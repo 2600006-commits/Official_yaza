@@ -5,9 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>자율학습실 관리 시스템 (Cloud)</title>
 
-<!-- ✨ Firebase v8 SDK 로드 -->
+<!-- ✨ Firebase v8 SDK 및 필수 라이브러리 로드 -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <style>
   :root{
@@ -43,7 +45,6 @@
     box-shadow:0 8px 32px rgba(31,38,135,0.14);
   }
 
-  /* 연결 상태 경고 배너 */
   #serialWarning {
     display: none; background: #ff3b30; color: #fff; text-align: center; padding: 12px; font-weight: bold;
     position: sticky; top: 0; z-index: 9999; font-size: 14px;
@@ -115,7 +116,6 @@
   .grid-dot{ position:absolute; width:6px; height:6px; border-radius:50%; background:rgba(120,120,128,0.35); transform:translate(-50%,-50%); pointer-events:none; }
   #editHint{ margin:0 12px 10px; font-size:12px; color:var(--text-secondary); display:none; }
 
-  /* 가로 15칸 최적화 좌석 */
   .desk{
     position:absolute; width:82px; height:58px; transform:translate(-50%,-50%);
     border-radius:12px; padding:5px 7px; display:flex; flex-direction:column; justify-content:space-between;
@@ -253,7 +253,7 @@
 
 <div id="app-toast"></div>
 
-<!-- 클라우드 및 와이파이 경고 배너 (Web Serial 대체) -->
+<!-- 클라우드 및 와이파이 경고 배너 -->
 <div id="serialWarning"><span id="icon-alert"></span> 클라우드 서버에 연결 중입니다...</div>
 
 <header class="glass">
@@ -613,7 +613,6 @@
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 (function(){
   'use strict';
@@ -624,14 +623,14 @@
      🔥 발급받으신 Firebase Config 값이 연동되었습니다! 🔥 
      ======================================================== */
   const firebaseConfig = {
-    apiKey: "AIzaSyBff6zfkpULYdtLG3b0n8jxDQWhkk5iqDk", //[cite: 11]
-    authDomain: "hanseo-yaza.firebaseapp.com", //[cite: 11]
-    databaseURL: "https://hanseo-yaza-default-rtdb.firebaseio.com", //[cite: 11]
-    projectId: "hanseo-yaza", //[cite: 11]
-    storageBucket: "hanseo-yaza.firebasestorage.app", //[cite: 11]
-    messagingSenderId: "333216044867", //[cite: 11]
-    appId: "1:333216044867:web:9d6da48390481f84b041f6", //[cite: 11]
-    measurementId: "G-ZE22W4FCRB" //[cite: 11]
+    apiKey: "AIzaSyBff6zfkpULYdtLG3b0n8jxDQWhkk5iqDk",
+    authDomain: "hanseo-yaza.firebaseapp.com",
+    databaseURL: "https://hanseo-yaza-default-rtdb.firebaseio.com",
+    projectId: "hanseo-yaza",
+    storageBucket: "hanseo-yaza.firebasestorage.app",
+    messagingSenderId: "333216044867",
+    appId: "1:333216044867:web:9d6da48390481f84b041f6",
+    measurementId: "G-ZE22W4FCRB"
   };
   
   // Firebase 초기화
@@ -845,55 +844,33 @@
   }
   async function saveSettings(){ await dbPut('settings', settings); }
   
-  // 실시간 렌더링 (Firebase에서 데이터가 변경되면 즉각 반영)
+  // 🚨 방어 코드 추가: 설정 로드 전 렌더링 방지
   let renderTimer = null;
   function triggerRender() {
+    if (!settings) return; // settings가 로딩되기 전이면 화면 그리기를 취소하여 사이트 멈춤 방지
     clearTimeout(renderTimer);
     renderTimer = setTimeout(async () => { 
       students = await dbGetAll('students');
       desks = await dbGetAll('desks');
       if(!layoutEditMode) renderFloor(); 
+      // 관리자 모드가 열려있을 때 실시간 데이터 갱신
+      if(adminMode && $('#ovAdmin').classList.contains('show')){
+          const activeTab = document.querySelector('.tabbtn.active');
+          if(activeTab && activeTab.dataset.tab === 'students') renderAdminStudentList();
+      }
     }, 100);
   }
 
-  fbDB.ref('attendance').on('value', triggerRender);
-  fbDB.ref('desks').on('value', triggerRender);
-  fbDB.ref('students').on('value', triggerRender);
-
-  // Firebase 연결 상태 모니터링
-  fbDB.ref('.info/connected').on('value', snap => {
-    const warning = $('#serialWarning');
-    if (snap.val() === true) {
-      $('#serialDot').className = 'dot on';
-      $('#serialLabel').textContent = '클라우드 연동됨';
-      warning.style.display = 'none';
-      warning.classList.remove('flash');
-    } else {
-      $('#serialDot').className = 'dot off';
-      $('#serialLabel').textContent = '서버 연결 끊김';
-      warning.style.display = 'block';
-      warning.classList.add('flash');
-      warning.innerHTML = ICONS.alert + " 인터넷 연결 또는 클라우드 서버와의 통신이 끊어졌습니다!";
-    }
-  });
-
-  /* ✨ ESP32가 보낸 지문 스캔 로그 수신 대기 ✨ */
-  fbDB.ref('scans').on('child_added', snapshot => {
-    const scan = snapshot.val();
-    if(scan && scan.fpId) {
-      handleFingerprintMatch(scan.fpId);
-      snapshot.ref.remove(); // 큐에서 삭제
-    }
-  });
-
-  function findStudentByDesk(deskId){ return students.find(s => s.deskId === deskId); }
+  // 🚨 버그 수정: Firebase ID 비교 시 문자/숫자 타입 불일치 방지 (모두 String 변환)
+  function findDesk(id){ return desks.find(d => String(d.id) === String(id)); }
+  function findStudentByDesk(deskId){ return students.find(s => String(s.deskId) === String(deskId)); }
   function findStudentByFp(fpId){ return students.find(s => String(s.fingerprintId) === String(fpId)); }
-  function findDesk(id){ return desks.find(d => d.id === id); }
+  
   function deskLabel(desk){
     if (!desk) return '알 수 없는 좌석';
     if (desk.seatNumber) return `${desk.floor}층 ${desk.seatNumber}번 (${desk.type==='partition'?'칸막이':'오픈형'})`;
     const sameFloor = desks.filter(d=>d.floor===desk.floor).sort((a,b)=>a.id-b.id);
-    const idx = sameFloor.findIndex(d=>d.id===desk.id)+1;
+    const idx = sameFloor.findIndex(d=>String(d.id)===String(desk.id))+1;
     return `${desk.floor}층 ${desk.type==='partition'?'칸막이':'오픈형'} #${idx}`;
   }
 
@@ -922,7 +899,7 @@
     return {col,row};
   }
   function resolveOverlapCell(col,row,floor,excludeId){
-    const occupied = new Set(desks.filter(d => d.floor===floor && d.id!==excludeId).map(d => d.col+'_'+d.row));
+    const occupied = new Set(desks.filter(d => d.floor===floor && String(d.id)!==String(excludeId)).map(d => d.col+'_'+d.row));
     if(!occupied.has(col+'_'+row)) return {col,row};
     for(let radius=1; radius<Math.max(GRID_COLS,GRID_ROWS); radius++){
       for(let dc=-radius; dc<=radius; dc++){
@@ -938,7 +915,7 @@
   }
 
   function calcValidSeconds(t1, t2) {
-    if (!t1 || !t2 || t1 >= t2) return 0;
+    if (!settings || !t1 || !t2 || t1 >= t2) return 0;
     let total = 0;
     let current = new Date(t1);
     current = new Date(current.getFullYear(), current.getMonth(), current.getDate() - 1);
@@ -1006,19 +983,19 @@
   async function getTodayRecords(){ return await dbIndexGetAll('attendance','date', todayStr()); }
   function occupiedDeskIdSet(todayRecords){
     const set = new Set();
-    students.forEach(s => { if(s.seatMode === 'fixed' && s.deskId != null) set.add(s.deskId); });
-    todayRecords.forEach(r => { if(r.deskId != null) set.add(r.deskId); });
+    students.forEach(s => { if(s.seatMode === 'fixed' && s.deskId != null) set.add(String(s.deskId)); });
+    todayRecords.forEach(r => { if(r.deskId != null) set.add(String(r.deskId)); });
     return set;
   }
   function findAvailableDeskForToday(floor, todayRecords){
     const occupied = occupiedDeskIdSet(todayRecords);
     const floorDesks = desks.filter(d => d.floor === floor).sort((a,b) => a.id - b.id);
-    const emptyDesks = floorDesks.filter(d => !occupied.has(d.id));
+    const emptyDesks = floorDesks.filter(d => !occupied.has(String(d.id)));
     if(emptyDesks.length === 0) return null;
 
     for(const desk of emptyDesks) {
       const hasNeighbor = floorDesks.some(other =>
-        occupied.has(other.id) &&
+        occupied.has(String(other.id)) &&
         (Math.abs(other.col - desk.col) <= 1 && Math.abs(other.row - desk.row) <= 1)
       );
       if(!hasNeighbor) return desk;
@@ -2197,14 +2174,34 @@
     }
   }
   
+  // 🚨 버그 수정: 지문 변경 시 과거 출결 데이터까지 새 ID로 안전하게 이관
   async function handleEnrollResult(success, respondedId){
     if(pendingEnrollStudentId == null) return;
     const s = students.find(x => String(x.id) === String(pendingEnrollStudentId));
     const statusEl = $('#feStatus');
     if(success && s){
       const finalId = pendingEnrollFpId != null ? pendingEnrollFpId : parseInt(respondedId);
-      s.fingerprintId = finalId;
-      await dbPut('students', s);
+
+      if(String(s.fingerprintId) !== String(finalId)) {
+          const oldId = s.id;
+          await dbDelete('students', oldId); // 구 데이터 삭제
+          s.fingerprintId = finalId;
+          s.id = finalId;
+          await dbPut('students', s); // 새 데이터 저장
+
+          // 연관된 출결 기록 동기화 (고아 데이터 방지)
+          const records = await dbGetAll('attendance');
+          for(const r of records) {
+              if(String(r.studentId) === String(oldId)) {
+                  r.studentId = finalId;
+                  r.studentDate = finalId + '_' + r.date;
+                  await dbPut('attendance', r);
+              }
+          }
+      } else {
+          await dbPut('students', s);
+      }
+
       await logChange('지문 재등록', `${s.name} → 지문ID ${finalId}`);
       if(statusEl) statusEl.textContent = `등록 성공! 지문 ID ${finalId}로 저장되었습니다.`;
     } else if(statusEl){
@@ -2212,6 +2209,7 @@
     }
     pendingEnrollStudentId = null; pendingEnrollFpId = null;
   }
+  
   $('#enrollBtn').addEventListener('click', async () => {
     const id = $('#enrollFpId').value;
     if(!id){ await showMessage('지문 ID를 입력해주세요.'); return; }
@@ -2364,19 +2362,52 @@
 
   function updateClock(){ $('#clockText').textContent = new Date().toLocaleString('ko-KR',{hour:'2-digit',minute:'2-digit',month:'long',day:'numeric',weekday:'short'}); }
 
+  // 🚨 버그 수정: Firebase 연동 타이밍을 조절하여 사이트 먹통 방지
   async function init(){
-    await loadSettings();
+    await loadSettings(); // 이 설정이 로드되기 전에 다른 코드가 먼저 실행되는 것을 완전히 차단
+    
     applyDarkMode();
     buildScheduleGrid('regScheduleGrid','reg');
     buildScheduleGrid('editScheduleGrid','edit');
     await ensureDeskSchema();
     await cleanupStaleRecords(); 
     toggleNewSeatField(); renderDeskOptions();
+    
+    // 설정이 모두 로드된 이후에만 실시간 리스너들을 부착합니다.
+    fbDB.ref('attendance').on('value', triggerRender);
+    fbDB.ref('desks').on('value', triggerRender);
+    fbDB.ref('students').on('value', triggerRender);
+    
+    fbDB.ref('.info/connected').on('value', snap => {
+      const warning = $('#serialWarning');
+      if (snap.val() === true) {
+        $('#serialDot').className = 'dot on';
+        $('#serialLabel').textContent = '클라우드 연동됨';
+        warning.style.display = 'none';
+        warning.classList.remove('flash');
+      } else {
+        $('#serialDot').className = 'dot off';
+        $('#serialLabel').textContent = '서버 연결 끊김';
+        warning.style.display = 'block';
+        warning.classList.add('flash');
+        warning.innerHTML = ICONS.alert + " 인터넷 연결 또는 클라우드 서버와의 통신이 끊어졌습니다!";
+      }
+    });
+
+    fbDB.ref('scans').on('child_added', snapshot => {
+      const scan = snapshot.val();
+      if(scan && scan.fpId) {
+        handleFingerprintMatch(scan.fpId);
+        snapshot.ref.remove(); // 큐에서 삭제
+      }
+    });
+
     updateClock();
     runAutoCheckout();
     setInterval(updateClock, 15000);
     setInterval(checkDateRollover, 30000);
   }
+  
   init();
 })();
 </script>
