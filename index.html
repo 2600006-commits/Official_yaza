@@ -2126,11 +2126,12 @@
   /* ---------------- USB 기기 연결 (신규 지문 등록 전용) ---------------- */
   function logSerial(msg){ const el = $('#serialLog'); if(el) el.textContent = '['+new Date().toLocaleTimeString('ko-KR')+'] '+msg+'\n'+el.textContent; }
   
+  // 🚨 완벽하게 고쳐진 통신 속도 🚨 (ESP32 기본 속도 115200 일치 완료)
   safeAddListener('#connectSerialBtn', 'click', async () => {
     if(!('serial' in navigator)){ await showMessage('이 브라우저는 Web Serial API를 지원하지 않습니다.'); return; }
     try{
       serialPort = await navigator.serial.requestPort();
-      await serialPort.open({ baudRate: 57600 });
+      await serialPort.open({ baudRate: 115200 }); // 수정된 부분!
       logSerial('USB 기기 연결 성공');
       readSerialLoop();
       const encoder = new TextEncoderStream();
