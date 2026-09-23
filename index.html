@@ -1050,7 +1050,7 @@
 
   const lastScanMap = new Map();
 
-  async function handleFingerprintMatch(fpId){
+  async function handleFingerprintMatch(fpId, deviceAction){
     fpId = parseInt(fpId);
     if(!fpId || isNaN(fpId)) return;
     if(!isReady()){ showToast('데이터를 불러오는 중입니다. 잠시 후 다시 스캔해주세요.'); return; }
@@ -1064,11 +1064,16 @@
       let record = await getTodayAttendance(student.id);
 
       // 화면에서 누른 버튼(입실/외출/퇴실) 요청이 15초 이내면 그 동작으로, 없으면 입실로 처리
+      // 기기(ESP32)는 scanRequest를 읽자마자 삭제하고, 인식 결과에 action을 함께 실어 보냅니다.
       let action = 'present';
-      const snap = await fbDB.ref('scanRequest').once('value');
-      if(snap.exists() && snap.val() && snap.val().timestamp > Date.now() - 15000) {
-          action = snap.val().action;
-          snap.ref.remove();
+      if(['present','away','left'].indexOf(deviceAction) >= 0){
+          action = deviceAction;
+      } else {
+          const snap = await fbDB.ref('scanRequest').once('value');
+          if(snap.exists() && snap.val() && snap.val().timestamp > Date.now() - 15000) {
+              action = snap.val().action;
+              snap.ref.remove();
+          }
       }
 
       if (action === 'present') {
@@ -1132,11 +1137,9 @@
     }
   }
 
-  // ⚠️ 기기(ESP32) → 웹 지문 인식 결과 수신 경로.
-  // 원본에는 handleFingerprintMatch 를 호출하는 코드가 없어서 지문을 찍어도 출결이 반영되지 않았습니다.
-  // 기기 펌웨어가 인식 결과를 쓰는 Firebase 경로가 다르면 아래 값만 바꿔주세요.
-  // 기기는 숫자(지문ID) 또는 {fpId, timestamp, success} 형태로 기록하면 됩니다.
-  const FP_MATCH_PATH = 'scanResult';
+  // 기기(ESP32) → 웹 지문 인식 결과 수신.
+  // 펌웨어는 성공 시 /scans 에 push({ fpId, action })로 기록합니다. (timestamp가 있으면 오래된 신호는 무시)
+  const FP_MATCH_PATH = 'scans';
   function isFreshTs(v, windowMs){
     let n = Number(v);
     if(!n || n < 1e9) return true;         // 시각 정보가 없거나 epoch가 아니면(부팅 후 경과시간 등) 판단 불가 → 최신으로 간주
@@ -1145,19 +1148,28 @@
   }
   function initFingerprintListener(){
     const ref = fbDB.ref(FP_MATCH_PATH);
-    ref.on('value', snap => {
-      if(!snap.exists()) return;
-      // 여러 화면(키오스크/관리자 폰 등)이 같은 신호를 받아도 한 곳에서만 처리하도록 "선점"한다.
+    // 여러 화면(키오스크/관리자 폰 등)이 같은 신호를 받아도 한 곳에서만 처리하도록 항목별로 "선점"한다.
+    function consume(child){
       let claimed = null;
-      ref.transaction(cur => { if(cur == null) return; claimed = cur; return null; }, (err, committed) => {
+      child.ref.transaction(cur => { if(cur == null) return; claimed = cur; return null; }, (err, committed) => {
         if(err || !committed || claimed == null) return;
         const isObj = typeof claimed === 'object';
         const fpId = isObj ? (claimed.fpId != null ? claimed.fpId : (claimed.fingerprintId != null ? claimed.fingerprintId : claimed.id)) : claimed;
         if(isObj && !isFreshTs(claimed.timestamp, 20000)) return;
         if(isObj && claimed.success === false){ showToast('지문 인식에 실패했습니다. 다시 시도해주세요.'); return; }
-        handleFingerprintMatch(fpId);
+        handleFingerprintMatch(fpId, isObj ? claimed.action : undefined);
       });
-    });
+    }
+    // 화면을 열기 전에 쌓여 있던 신호는 (펌웨어가 시각을 안 남기므로) 오래된 것으로 보고 버린다.
+    // 그렇지 않으면 화면을 여는 순간 예전 스캔이 출결로 기록될 수 있다.
+    ref.once('value').then(snap => {
+      snap.forEach(ch => {
+        const v = ch.val();
+        const fresh = v && typeof v === 'object' && Number(v.timestamp) > 1e9 && isFreshTs(v.timestamp, 20000);
+        if(!fresh) ch.ref.remove();
+      });
+      ref.on('child_added', consume);
+    }).catch(e => console.error('scans 리스너 오류', e));
   }
 
   async function setSeatStatus(studentId, status){
