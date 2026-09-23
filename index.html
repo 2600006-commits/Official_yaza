@@ -633,7 +633,7 @@
 (function(){
   'use strict';
   
-  // 요소 찾기 래퍼 (안전 장치 추가)
+  // 요소 찾기 래퍼
   const $ = sel => document.querySelector(sel);
   const $$ = sel => Array.from(document.querySelectorAll(sel));
   const safeAddListener = (id, event, handler) => { const el = $(id); if(el) el.addEventListener(event, handler); };
@@ -719,8 +719,11 @@
     return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
   };
   const fmtTime = ts => ts ? new Date(ts).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}) : '-';
-  const openOverlay = id => { if($(id)) $(id).classList.add('show'); };
-  const closeOverlay = id => { if($(id)) $(id).classList.remove('show'); };
+  
+  // 🚨 완벽하게 고쳐진 핵심 팝업 제어 함수! 🚨 (샵 # 기호 복구 완료)
+  const openOverlay = id => { const el = $('#'+id); if(el) el.classList.add('show'); };
+  const closeOverlay = id => { const el = $('#'+id); if(el) el.classList.remove('show'); };
+  
   const DAYS = [['mon','월'],['tue','화'],['wed','수'],['thu','목'],['fri','금']];
 
   function showToast(msg) {
@@ -736,28 +739,27 @@
 
   function showMessage(msg){
     return new Promise(resolve => {
-      $('#msgText').textContent = msg;
+      if($('#msgText')) $('#msgText').textContent = msg;
       openOverlay('ovMessage');
-      $('#msgOk').onclick = () => { closeOverlay('ovMessage'); resolve(); };
+      if($('#msgOk')) $('#msgOk').onclick = () => { closeOverlay('ovMessage'); resolve(); };
     });
   }
   function showConfirm(msg){
     return new Promise(resolve => {
-      $('#confirmMsg').textContent = msg;
+      if($('#confirmMsg')) $('#confirmMsg').textContent = msg;
       openOverlay('ovConfirm');
-      $('#confirmYes').onclick = () => { closeOverlay('ovConfirm'); resolve(true); };
-      $('#confirmNo').onclick = () => { closeOverlay('ovConfirm'); resolve(false); };
+      if($('#confirmYes')) $('#confirmYes').onclick = () => { closeOverlay('ovConfirm'); resolve(true); };
+      if($('#confirmNo')) $('#confirmNo').onclick = () => { closeOverlay('ovConfirm'); resolve(false); };
     });
   }
   function showPrompt(msg, placeholder){
     return new Promise(resolve => {
-      $('#promptMsg').textContent = msg;
-      $('#promptInput').value = '';
-      $('#promptInput').placeholder = placeholder || '';
+      if($('#promptMsg')) $('#promptMsg').textContent = msg;
+      if($('#promptInput')) { $('#promptInput').value = ''; $('#promptInput').placeholder = placeholder || ''; }
       openOverlay('ovPrompt');
-      setTimeout(() => $('#promptInput').focus(), 100);
-      $('#promptOk').onclick = () => { const v = $('#promptInput').value.trim(); closeOverlay('ovPrompt'); resolve(v || null); };
-      $('#promptCancel').onclick = () => { closeOverlay('ovPrompt'); resolve(null); };
+      setTimeout(() => { if($('#promptInput')) $('#promptInput').focus(); }, 100);
+      if($('#promptOk')) $('#promptOk').onclick = () => { const v = $('#promptInput').value.trim(); closeOverlay('ovPrompt'); resolve(v || null); };
+      if($('#promptCancel')) $('#promptCancel').onclick = () => { closeOverlay('ovPrompt'); resolve(null); };
     });
   }
 
@@ -804,7 +806,7 @@
       grid.appendChild(row);
       const cb = row.querySelector('.schedDay');
       const timeRow = row.querySelector('.day-sched-time');
-      cb.addEventListener('change', () => { timeRow.style.display = cb.checked ? 'flex' : 'none'; });
+      if(cb && timeRow) cb.addEventListener('change', () => { timeRow.style.display = cb.checked ? 'flex' : 'none'; });
     });
   }
   function resetScheduleGrid(prefix){
@@ -838,7 +840,7 @@
     clearTimeout(renderTimer);
     renderTimer = setTimeout(() => { 
       if(!layoutEditMode) renderFloor(); 
-      if(adminMode && $('#ovAdmin').classList.contains('show')){
+      if(adminMode && $('#ovAdmin') && $('#ovAdmin').classList.contains('show')){
           const activeTab = document.querySelector('.tabbtn.active');
           if(activeTab && activeTab.dataset.tab === 'students') renderAdminStudentList();
       }
@@ -897,9 +899,12 @@
       safety++;
       let dStart = new Date(current.getFullYear(), current.getMonth(), current.getDate(), sh, sm, 0, 0);
       let dEnd = new Date(current.getFullYear(), current.getMonth(), current.getDate(), eh, em, 0, 0);
+      
       if (sh > eh || (sh === eh && sm > em)) { dEnd.setDate(dEnd.getDate() + 1); }
+      
       let overlapStart = Math.max(t1, dStart.getTime());
       let overlapEnd = Math.min(t2, dEnd.getTime());
+      
       if (overlapStart < overlapEnd) { total += (overlapEnd - overlapStart) / 1000; }
       current.setDate(current.getDate() + 1);
     }
@@ -979,7 +984,7 @@
   function showSeatChoice(studentName){
     if (currentModalCancel) currentModalCancel(); 
     return new Promise(resolve => {
-      $('#scDesc').textContent = `${studentName}님, 오늘 학습 방식을 선택해주세요. 4시~9시30분 전체 시간을 채울 예정이면 "전체 시간"(2층), 자유롭게 왔다 갈 예정이면 "일부 시간"(1층)을 선택해주세요.`;
+      if($('#scDesc')) $('#scDesc').textContent = `${studentName}님, 오늘 학습 방식을 선택해주세요. 4시~9시30분 전체 시간을 채울 예정이면 "전체 시간"(2층), 자유롭게 왔다 갈 예정이면 "일부 시간"(1층)을 선택해주세요.`;
       
       let timer = setTimeout(() => {
         closeOverlay('ovSeatChoice'); resolve(null); showToast('시간이 초과되어 취소되었습니다.');
@@ -989,9 +994,9 @@
       currentModalCancel = () => { clearTimeout(timer); closeOverlay('ovSeatChoice'); resolve(null); };
       const finish = (val) => { clearTimeout(timer); closeOverlay('ovSeatChoice'); resolve(val); currentModalCancel = null; };
 
-      $('#scFull').onclick = () => finish('full');
-      $('#scPartial').onclick = () => finish('partial');
-      $('#scCancel').onclick = () => finish(null);
+      if($('#scFull')) $('#scFull').onclick = () => finish('full');
+      if($('#scPartial')) $('#scPartial').onclick = () => finish('partial');
+      if($('#scCancel')) $('#scCancel').onclick = () => finish(null);
       openOverlay('ovSeatChoice');
     });
   }
@@ -999,8 +1004,9 @@
   function showStudentActionChoice(status, name){
     if (currentModalCancel) currentModalCancel(); 
     return new Promise(resolve => {
-      $('#saName').textContent = name;
+      if($('#saName')) $('#saName').textContent = name;
       const acts = $('#saActions');
+      if(!acts) return resolve(null);
       acts.innerHTML = '';
 
       let timer = setTimeout(() => {
@@ -1016,17 +1022,17 @@
           <button class="btn btn-secondary" id="saAway" style="flex:1; height:48px; font-size:15px; border-radius:12px;">자리 비움</button>
           <button class="btn btn-danger" id="saLeft" style="flex:1; height:48px; font-size:15px; border-radius:12px;">퇴실 처리</button>
         `;
-        $('#saAway').onclick = () => finish('away');
-        $('#saLeft').onclick = () => finish('left');
+        if($('#saAway')) $('#saAway').onclick = () => finish('away');
+        if($('#saLeft')) $('#saLeft').onclick = () => finish('left');
       } else if (status === 'away') {
         acts.innerHTML = `
           <button class="btn btn-primary" id="saPresent" style="flex:1; height:48px; font-size:15px; border-radius:12px;">재입실 (복귀)</button>
           <button class="btn btn-danger" id="saLeft" style="flex:1; height:48px; font-size:15px; border-radius:12px;">퇴실 처리</button>
         `;
-        $('#saPresent').onclick = () => finish('present');
-        $('#saLeft').onclick = () => finish('left');
+        if($('#saPresent')) $('#saPresent').onclick = () => finish('present');
+        if($('#saLeft')) $('#saLeft').onclick = () => finish('left');
       }
-      $('#saCancel').onclick = () => finish(null);
+      if($('#saCancel')) $('#saCancel').onclick = () => finish(null);
       openOverlay('ovStudentAction');
     });
   }
@@ -1151,14 +1157,15 @@
 
   safeAddListener('#finishEditBtn', 'click', () => {
     layoutEditMode = false;
-    $('#editToolbar').style.display = 'none';
+    if($('#editToolbar')) $('#editToolbar').style.display = 'none';
     renderFloor();
   });
+  
   safeAddListener('#startLayoutBtn', 'click', () => {
     closeOverlay('ovAdmin');
-    $('#fabMenu').classList.remove('show');
+    if($('#fabMenu')) $('#fabMenu').classList.remove('show');
     layoutEditMode = true;
-    $('#editToolbar').style.display = 'flex';
+    if($('#editToolbar')) $('#editToolbar').style.display = 'flex';
     renderFloor();
   });
 
@@ -1171,8 +1178,10 @@
 
   safeAddListener('#fitToggleBtn', 'click', () => {
     fitToScreen = !fitToScreen;
-    $('#fitToggleBtn').classList.toggle('active', fitToScreen);
-    $('#fitToggleBtn').textContent = fitToScreen ? '화면에 맞춤' : '실제 크기';
+    if($('#fitToggleBtn')) {
+        $('#fitToggleBtn').classList.toggle('active', fitToScreen);
+        $('#fitToggleBtn').textContent = fitToScreen ? '화면에 맞춤' : '실제 크기';
+    }
     renderFloor();
   });
   
@@ -1190,7 +1199,7 @@
     if(!canvas || !viewport || !scrollWrap) return;
 
     scrollWrap.classList.toggle('editing', layoutEditMode);
-    $('#editHint').style.display = layoutEditMode ? 'block' : 'none';
+    if($('#editHint')) $('#editHint').style.display = layoutEditMode ? 'block' : 'none';
     const size = canvasPixelSize();
     canvas.style.width = size.width+'px';
     canvas.style.height = size.height+'px';
@@ -1493,14 +1502,14 @@
     if(!content){ await showMessage('감독 내용을 입력해주세요.'); return; }
     await dbPut('dailylogs', { date, author, content, timestamp: Date.now() });
     await logChange('감독일지 작성', `${date} (${author})`);
-    $('#diaryContent').value = '';
+    if($('#diaryContent')) $('#diaryContent').value = '';
     await renderDiaryList();
     showToast('감독 일지가 저장되었습니다.');
   });
 
   async function renderChangeLog(){
     let dateStr = $('#logDateFilter').value;
-    if(!dateStr){ dateStr = todayStr(); $('#logDateFilter').value = dateStr; }
+    if(!dateStr){ dateStr = todayStr(); if($('#logDateFilter')) $('#logDateFilter').value = dateStr; }
     
     const allLogs = await dbGetAll('changelog');
     const logs = allLogs.filter(l => {
@@ -2314,7 +2323,7 @@
       }
       
       if(changedCount > 0){
-        logChange('마감 일괄 퇴실', `${changedCount}명 운영 종료시간 자동 퇴실 처리됨`);
+        logChange('마감 일괄 퇴실', `${changedCount}명 운영 종료시간 기준 자동 퇴실 처리됨`);
         showToast(`운영 시간이 종료되어 ${changedCount}명 일괄 퇴실 처리되었습니다.`);
       }
     }
@@ -2348,7 +2357,6 @@
     toggleNewSeatField(); 
     updateClock();
     
-    // 🚨 통신과 UI 렌더링 분리 (Non-Blocking)
     fbDB.ref('settings/app').on('value', snap => {
         if(snap.exists()) { settings = { ...settings, ...snap.val() }; applyDarkMode(); }
         else { saveSettings(); }
@@ -2373,7 +2381,7 @@
         if($('#serialLabel')) $('#serialLabel').textContent = '서버 연결 끊김';
         warning.style.display = 'block';
         warning.classList.add('flash');
-        warning.innerHTML = ICONS.alert + " 인터넷 연결 또는 학교 방화벽 차단을 확인해 주세요.";
+        warning.innerHTML = ICONS.alert + " 인터넷 연결 및 학교 방화벽을 확인해 주세요.";
       }
     });
 
