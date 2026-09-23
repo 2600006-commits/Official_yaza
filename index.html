@@ -440,6 +440,9 @@
       </div>
       <button class="btn btn-primary" id="saveTimeSettingsBtn" style="width:100%; margin-top:12px;">운영 설정 저장</button>
       
+      <h3 style="margin-top:24px;">전체 데이터 엑셀 백업</h3>
+      <button class="btn btn-secondary" id="exportExcelBtn" style="width:100%">모든 학생 및 출결 기록 다운로드</button>
+
       <h3 style="margin-top:24px;">관리자 비밀번호 변경</h3>
       <div class="field"><label>현재 비밀번호</label><input type="password" id="curPw"></div>
       <div class="field"><label>새 비밀번호</label><input type="password" id="newPw"></div>
@@ -483,6 +486,7 @@
       <h3>관리자 변경 이력</h3>
       <div class="row" style="margin-bottom:12px;">
         <div class="field" style="margin-bottom:0;"><input type="date" id="logDateFilter"></div>
+        <button class="btn btn-secondary" id="exportLogExcelBtn" style="white-space:nowrap; height:44px;">엑셀 다운로드</button>
       </div>
       <div id="changeLogList"></div>
     </div>
@@ -613,11 +617,26 @@
   </div>
 </div>
 
+<!-- 백업 리마인더 모달 추가 -->
+<div class="overlay" id="ovReminder">
+  <div class="modal glass">
+    <h2>오늘의 데이터를 백업할까요?</h2>
+    <p class="muted">야간자율학습 종료 시각입니다. 데이터 유실을 막기 위해 매일 백업을 권장합니다.</p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="reminderLater" style="flex:1;">나중에</button>
+      <button class="btn btn-primary" id="reminderBackup" style="flex:1;">지금 백업</button>
+    </div>
+  </div>
+</div>
+
 <script>
 (function(){
   'use strict';
+  
+  // 요소 찾기 래퍼 (안전 장치 추가)
   const $ = sel => document.querySelector(sel);
   const $$ = sel => Array.from(document.querySelectorAll(sel));
+  const safeAddListener = (id, event, handler) => { const el = $(id); if(el) el.addEventListener(event, handler); };
   
   /* ========================================================
      🔥 데이터 및 캐시 아키텍처 재설계 (로딩 속도 및 안정성 극대화)
@@ -649,13 +668,11 @@
   let pendingEnrollStudentId = null, pendingEnrollFpId = null;
 
   /* ---------------- Firebase 초고속 데이터 래퍼 (Non-Blocking) ---------------- */
-  // 데이터를 읽어올 때 Firebase를 기다리지 않고 무조건 즉시 로컬 캐시를 반환합니다. (프리징 절대 방지)
   async function dbGetAll(store){ return cache[store] || []; }
   async function dbGet(store, key){ return (cache[store]||[]).find(x => String(x.id) === String(key)) || null; }
   async function dbIndexGet(store, index, value){ return (cache[store]||[]).find(x => String(x[index]) === String(value)) || null; }
   async function dbIndexGetAll(store, index, value){ return (cache[store]||[]).filter(x => String(x[index]) === String(value)); }
 
-  // 데이터를 저장할 때 캐시에 먼저 즉각 반영(낙관적 UI)하고 서버에는 비동기로 보냅니다.
   async function dbPut(store, val){
     if (store === 'students') val.id = val.fingerprintId; 
     else if (!val.id) val.id = Date.now();
@@ -673,9 +690,7 @@
     fbDB.ref(store + '/' + key).remove();
   }
 
-  async function saveSettings(){
-    fbDB.ref('settings/app').set(settings);
-  }
+  async function saveSettings(){ fbDB.ref('settings/app').set(settings); }
 
   /* ---- 아이콘 (픽토그램) ---- */
   const ICONS = {
@@ -693,8 +708,8 @@
     medal3: `<svg width="14" height="14" viewBox="0 0 24 24" fill="#cd7f32" stroke="#8c5622" stroke-width="1.5"><circle cx="12" cy="14" r="6"></circle><path d="M8.21 13.89L7 22l5-3 5 3-1.21-8.11"></path><text x="12" y="17" font-size="8" text-anchor="middle" fill="#8c5622" stroke="none" font-weight="bold">3</text></svg>`
   };
 
-  $('#icon-fingerprint').innerHTML = ICONS.fingerprint;
-  $('#icon-trophy').innerHTML = ICONS.trophy;
+  if($('#icon-fingerprint')) $('#icon-fingerprint').innerHTML = ICONS.fingerprint;
+  if($('#icon-trophy')) $('#icon-trophy').innerHTML = ICONS.trophy;
   $$('.close-x').forEach(b => { b.innerHTML = ICONS.close; b.addEventListener('click', () => closeOverlay(b.dataset.close)); });
   
   function todayStr() {
@@ -704,12 +719,13 @@
     return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
   };
   const fmtTime = ts => ts ? new Date(ts).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}) : '-';
-  const openOverlay = id => $('#'+id).classList.add('show');
-  const closeOverlay = id => $('#'+id).classList.remove('show');
+  const openOverlay = id => { if($(id)) $(id).classList.add('show'); };
+  const closeOverlay = id => { if($(id)) $(id).classList.remove('show'); };
   const DAYS = [['mon','월'],['tue','화'],['wed','수'],['thu','목'],['fri','금']];
 
   function showToast(msg) {
     const t = $('#app-toast');
+    if(!t) return;
     t.textContent = msg;
     t.classList.remove('show');
     void t.offsetWidth;
@@ -745,13 +761,6 @@
     });
   }
 
-  async function logChange(action, detail){
-    try{ await dbPut('changelog', { timestamp: Date.now(), admin: adminName || '관리자', action, detail: detail||'' }); }
-    catch(e){}
-  }
-
-  function defaultWeekly(){ const w={}; DAYS.forEach(([k])=>w[k]={enabled:false,start:'18:00',end:'21:00'}); return w; }
-
   function timeLabel(h,m){
     const ampm = h<12 ? '오전' : '오후';
     const h12 = h%12===0 ? 12 : h%12;
@@ -781,6 +790,7 @@
 
   function buildScheduleGrid(containerId, prefix){
     const grid = $('#'+containerId);
+    if(!grid) return;
     grid.innerHTML = '';
     DAYS.forEach(([key,label]) => {
       const row = document.createElement('div'); row.className = 'day-sched-row';
@@ -823,7 +833,6 @@
     return weeklySchedule;
   }
 
-  // 렌더링 최적화
   let renderTimer = null;
   function triggerRender() {
     clearTimeout(renderTimer);
@@ -888,12 +897,9 @@
       safety++;
       let dStart = new Date(current.getFullYear(), current.getMonth(), current.getDate(), sh, sm, 0, 0);
       let dEnd = new Date(current.getFullYear(), current.getMonth(), current.getDate(), eh, em, 0, 0);
-      
       if (sh > eh || (sh === eh && sm > em)) { dEnd.setDate(dEnd.getDate() + 1); }
-      
       let overlapStart = Math.max(t1, dStart.getTime());
       let overlapEnd = Math.min(t2, dEnd.getTime());
-      
       if (overlapStart < overlapEnd) { total += (overlapEnd - overlapStart) / 1000; }
       current.setDate(current.getDate() + 1);
     }
@@ -1143,13 +1149,12 @@
     await logChange('좌석 삭제', label);
   }
 
-  $$('input[name="deskType"]').forEach(r => r.addEventListener('change', e => { newDeskType = e.target.value; }));
-  $('#finishEditBtn').addEventListener('click', () => {
+  safeAddListener('#finishEditBtn', 'click', () => {
     layoutEditMode = false;
     $('#editToolbar').style.display = 'none';
     renderFloor();
   });
-  $('#startLayoutBtn').addEventListener('click', () => {
+  safeAddListener('#startLayoutBtn', 'click', () => {
     closeOverlay('ovAdmin');
     $('#fabMenu').classList.remove('show');
     layoutEditMode = true;
@@ -1164,12 +1169,13 @@
   }
   $$('.floor-tab').forEach(b => b.addEventListener('click', () => selectFloor(parseInt(b.dataset.floor))));
 
-  $('#fitToggleBtn').addEventListener('click', () => {
+  safeAddListener('#fitToggleBtn', 'click', () => {
     fitToScreen = !fitToScreen;
     $('#fitToggleBtn').classList.toggle('active', fitToScreen);
     $('#fitToggleBtn').textContent = fitToScreen ? '화면에 맞춤' : '실제 크기';
     renderFloor();
   });
+  
   let resizeTimer = null;
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
@@ -1181,6 +1187,8 @@
     const canvas = $('#deskCanvas');
     const viewport = $('#canvasViewport');
     const scrollWrap = $('#canvasScroll');
+    if(!canvas || !viewport || !scrollWrap) return;
+
     scrollWrap.classList.toggle('editing', layoutEditMode);
     $('#editHint').style.display = layoutEditMode ? 'block' : 'none';
     const size = canvasPixelSize();
@@ -1307,7 +1315,7 @@
       canvas.style.transform = 'none';
     }
 
-    $('#floorSummary').textContent = `재실 ${presentCount} / 전체 ${floorDesks.length}`;
+    if($('#floorSummary')) $('#floorSummary').textContent = `재실 ${presentCount} / 전체 ${floorDesks.length}`;
     renderTodaySummary();
     renderPublicRanking(); 
   }
@@ -1349,7 +1357,7 @@
     cell.appendChild(delBtn);
   }
   
-  $('#deskCanvas').addEventListener('click', async e => {
+  safeAddListener('#deskCanvas', 'click', async e => {
     if(!layoutEditMode) return;
     if(e.target.id !== 'deskCanvas') return;
     const canvas = $('#deskCanvas');
@@ -1396,6 +1404,7 @@
   async function renderRanking(){
     const ranking = await computeRanking();
     const list = $('#rankingList');
+    if(!list) return;
     if(ranking.length===0){ list.innerHTML = '<p class="muted">등록된 학생이 없습니다.</p>'; return; }
     list.innerHTML = ranking.map((r,i) => `
       <div class="list-item">
@@ -1408,6 +1417,7 @@
     const ranking = await computeRanking();
     const top3 = ranking.slice(0,3).filter(r => r.totalMin > 0);
     const container = $('#publicRanking');
+    if(!container) return;
     if(top3.length === 0) {
       container.innerHTML = `<span class="medal-icon">${ICONS.trophy}</span> <b>이달의 명예의 전당</b> <span class="muted" style="margin-left:10px;">아직 데이터가 없습니다.</span>`;
       return;
@@ -1445,15 +1455,17 @@
     }
     const maxMin = Math.max(1, ...bars.map(b=>b.min));
     const chart = $('#statsChart');
-    chart.innerHTML = `<div style="display:flex;align-items:flex-end;gap:3px;height:160px;overflow-x:auto;padding-bottom:4px;">` +
-      bars.map(b => `
-        <div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:18px;flex:1;">
-          <div title="${b.day}일: ${b.min}분" style="width:100%;max-width:22px;background:var(--accent);border-radius:4px 4px 0 0;height:${Math.max(2,Math.round(b.min/maxMin*130))}px;"></div>
-          <div style="font-size:9px;color:var(--text-secondary);margin-top:3px;">${b.day}</div>
-        </div>`).join('') + `</div>`;
+    if(chart) {
+      chart.innerHTML = `<div style="display:flex;align-items:flex-end;gap:3px;height:160px;overflow-x:auto;padding-bottom:4px;">` +
+        bars.map(b => `
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:18px;flex:1;">
+            <div title="${b.day}일: ${b.min}분" style="width:100%;max-width:22px;background:var(--accent);border-radius:4px 4px 0 0;height:${Math.max(2,Math.round(b.min/maxMin*130))}px;"></div>
+            <div style="font-size:9px;color:var(--text-secondary);margin-top:3px;">${b.day}</div>
+          </div>`).join('') + `</div>`;
+    }
     const totalMin = bars.reduce((s,b)=>s+b.min,0);
     const avgMin = Math.round(totalMin/daysInMonth);
-    $('#statsSummary').textContent = `이번 달 전체 누적 ${Math.floor(totalMin/60)}시간 ${totalMin%60}분 · 일평균 ${avgMin}분`;
+    if($('#statsSummary')) $('#statsSummary').textContent = `이번 달 전체 누적 ${Math.floor(totalMin/60)}시간 ${totalMin%60}분 · 일평균 ${avgMin}분`;
   }
 
   async function renderDiaryList(){
@@ -1461,6 +1473,7 @@
     let entries = await dbIndexGetAll('dailylogs','date',date);
     entries.sort((a,b)=>b.timestamp-a.timestamp);
     const list = $('#diaryList');
+    if(!list) return;
     if(entries.length===0){ list.innerHTML = '<p class="muted">해당 날짜에 기록된 감독 일지가 없습니다.</p>'; return; }
     list.innerHTML = entries.map(e => `
       <div class="list-item" style="flex-direction:column;align-items:flex-start;gap:4px;">
@@ -1471,8 +1484,9 @@
         <div style="white-space:pre-wrap;">${e.content}</div>
       </div>`).join('');
   }
-  $('#diaryDate').addEventListener('change', renderDiaryList);
-  $('#saveDiaryBtn').addEventListener('click', async () => {
+  
+  safeAddListener('#diaryDate', 'change', renderDiaryList);
+  safeAddListener('#saveDiaryBtn', 'click', async () => {
     const date = $('#diaryDate').value || todayStr();
     const author = $('#diaryAuthor').value.trim() || adminName || '익명';
     const content = $('#diaryContent').value.trim();
@@ -1497,6 +1511,7 @@
     }).sort((a,b)=>b.timestamp-a.timestamp);
     
     const list = $('#changeLogList');
+    if(!list) return;
     if(logs.length===0){ list.innerHTML = '<p class="muted">선택한 날짜에 기록된 변경 이력이 없습니다.</p>'; return; }
     list.innerHTML = logs.map(l => `
       <div class="list-item" style="flex-direction:column;align-items:flex-start;gap:2px;">
@@ -1507,9 +1522,9 @@
         <div class="muted">${l.admin} · ${l.detail||''}</div>
       </div>`).join('');
   }
-  $('#logDateFilter').addEventListener('change', renderChangeLog);
   
-  $('#exportLogExcelBtn').addEventListener('click', async () => {
+  safeAddListener('#logDateFilter', 'change', renderChangeLog);
+  safeAddListener('#exportLogExcelBtn', 'click', async () => {
     let dateStr = $('#logDateFilter').value || todayStr();
     const allLogs = await dbGetAll('changelog');
     const logs = allLogs.filter(l => {
@@ -1545,11 +1560,11 @@
     const scheduled = cache.students.filter(s => s.weeklySchedule[key] && s.weeklySchedule[key].enabled);
     let arrived = 0;
     for(const s of scheduled){ const r = await getTodayAttendance(s.id); if(r) arrived++; }
-    if(scheduled.length===0){ $('#todaySummary').textContent = '오늘 자율학습 신청자가 없습니다.'; return; }
-    $('#todaySummary').textContent = `오늘 신청 ${scheduled.length}명 중 ${arrived}명 입실`;
+    if(scheduled.length===0){ if($('#todaySummary')) $('#todaySummary').textContent = '오늘 자율학습 신청자가 없습니다.'; return; }
+    if($('#todaySummary')) $('#todaySummary').textContent = `오늘 신청 ${scheduled.length}명 중 ${arrived}명 입실`;
   }
 
-  $('#exportSeatImageBtn').addEventListener('click', async () => {
+  safeAddListener('#exportSeatImageBtn', 'click', async () => {
     const wasEditing = layoutEditMode;
     if(wasEditing){ layoutEditMode = false; }
     await renderFloor({fullView:true});
@@ -1571,7 +1586,7 @@
     return (rec && rec.deskId != null) ? findDesk(rec.deskId) : null;
   }
   async function jumpToStudentDesk(student){
-    $('#searchResults').style.display = 'none';
+    if($('#searchResults')) $('#searchResults').style.display = 'none';
     if(!student) return;
     const desk = await currentDeskForStudent(student);
     if(!desk) return;
@@ -1581,9 +1596,11 @@
       if(el){ el.classList.add('highlight'); el.scrollIntoView({behavior:'smooth', block:'center'}); setTimeout(()=>el.classList.remove('highlight'), 2000); }
     }, 150);
   }
-  $('#studentSearch').addEventListener('input', async e => {
+  
+  safeAddListener('#studentSearch', 'input', async e => {
     const q = e.target.value.trim().toLowerCase();
     const resultsBox = $('#searchResults');
+    if(!resultsBox) return;
     if(!q){ resultsBox.style.display = 'none'; return; }
     const matches = cache.students.filter(s => s.name.toLowerCase().includes(q) || (s.studentNum && s.studentNum.includes(q)));
     if(matches.length === 0){ resultsBox.style.display = 'none'; return; }
@@ -1609,8 +1626,10 @@
     if (!desk) return;
     const todayRecords = await getTodayRecords();
     const { student, record } = await getDeskOccupant(deskId, todayRecords);
-    $('#sdTitle').textContent = deskLabel(desk);
+    if($('#sdTitle')) $('#sdTitle').textContent = deskLabel(desk);
     const body = $('#sdBody');
+    if(!body) return;
+    
     if(!student){
       if(adminMode){
         const canAssignFixed = desk.floor === 2;
@@ -1623,14 +1642,14 @@
                <p class="muted" style="margin-top:8px;">1층 좌석은 학생이 지문을 등록하면 자동으로 배정됩니다.</p>`
             : `<p class="muted">1층 좌석은 학생이 지문을 등록하면 자동으로 배정됩니다. (고정좌석은 2층에서만 지정할 수 있습니다)</p>`);
         if(canAssignFixed){
-          $('#assignBtn').onclick = async () => {
+          safeAddListener('#assignBtn', 'click', async () => {
             const sid = $('#assignSelect').value; if(!sid) return;
             const st = cache.students.find(s=>String(s.id)===String(sid)); st.deskId = deskId;
             await dbPut('students', st);
             await logChange('좌석 배정', `${st.name} → ${deskLabel(desk)}`);
             closeOverlay('ovSeatDetail');
             showToast('좌석이 배정되었습니다.');
-          };
+          });
         }
       } else { body.innerHTML = '<p class="muted">배정된 학생이 없습니다.</p>'; }
     } else {
@@ -1649,17 +1668,17 @@
       }
       body.innerHTML = html;
       if(adminMode){
-        $('#setAway').onclick = async () => { await setSeatStatus(student.id,'away'); await logChange('출결 수동변경', `${student.name} → 자리비움`); closeOverlay('ovSeatDetail'); showToast('상태가 변경되었습니다.'); };
-        $('#setPresent').onclick = async () => { await setSeatStatus(student.id,'present'); await logChange('출결 수동변경', `${student.name} → 재실`); closeOverlay('ovSeatDetail'); showToast('상태가 변경되었습니다.'); };
-        $('#setLeft').onclick = async () => { await setSeatStatus(student.id,'left'); await logChange('출결 수동변경', `${student.name} → 퇴실`); closeOverlay('ovSeatDetail'); showToast('상태가 변경되었습니다.'); };
-        $('#unassignBtn').onclick = async () => {
+        safeAddListener('#setAway', 'click', async () => { await setSeatStatus(student.id,'away'); await logChange('출결 수동변경', `${student.name} → 자리비움`); closeOverlay('ovSeatDetail'); showToast('상태가 변경되었습니다.'); });
+        safeAddListener('#setPresent', 'click', async () => { await setSeatStatus(student.id,'present'); await logChange('출결 수동변경', `${student.name} → 재실`); closeOverlay('ovSeatDetail'); showToast('상태가 변경되었습니다.'); });
+        safeAddListener('#setLeft', 'click', async () => { await setSeatStatus(student.id,'left'); await logChange('출결 수동변경', `${student.name} → 퇴실`); closeOverlay('ovSeatDetail'); showToast('상태가 변경되었습니다.'); });
+        safeAddListener('#unassignBtn', 'click', async () => {
           if(student.seatMode === 'fixed'){
             student.deskId = null; await dbPut('students', student);
           } else if(record){
             record.deskId = null; await dbPut('attendance', record);
           }
           await logChange('좌석 비우기', student.name); closeOverlay('ovSeatDetail'); showToast('좌석이 비워졌습니다.');
-        };
+        });
       }
     }
     openOverlay('ovSeatDetail');
@@ -1669,7 +1688,7 @@
   async function openWeeklyModal(deskId){
     const { student } = await getDeskOccupant(deskId);
     if(!student) return;
-    $('#wkTitle').textContent = student.name + '님의 주간 시간표';
+    if($('#wkTitle')) $('#wkTitle').textContent = student.name + '님의 주간 시간표';
     const editable = adminMode;
     let rows = '';
     DAYS.forEach(([key,label]) => {
@@ -1695,23 +1714,23 @@
           </div>`;
       }
     });
-    $('#wkBody').innerHTML = rows;
+    if($('#wkBody')) $('#wkBody').innerHTML = rows;
     if(editable){
       DAYS.forEach(([key]) => {
         const cb = $('#wd_'+key);
         const timeRow = document.querySelector(`.day-sched-time[data-day="${key}"]`);
-        cb.addEventListener('change', () => { timeRow.style.display = cb.checked ? 'flex' : 'none'; });
+        if(cb && timeRow) cb.addEventListener('change', () => { timeRow.style.display = cb.checked ? 'flex' : 'none'; });
       });
     }
-    $('#wkActions').innerHTML = editable ? `<button class="btn btn-primary" id="wkSave" style="width:100%">저장</button>` : '';
+    if($('#wkActions')) $('#wkActions').innerHTML = editable ? `<button class="btn btn-primary" id="wkSave" style="width:100%">저장</button>` : '';
     if(editable){
-      $('#wkSave').onclick = async () => {
+      safeAddListener('#wkSave', 'click', async () => {
         DAYS.forEach(([key]) => { student.weeklySchedule[key] = { enabled: $('#wd_'+key).checked, start: getTimeSelectValue('wk_'+key+'_s'), end: getTimeSelectValue('wk_'+key+'_e') }; });
         await dbPut('students', student);
         await logChange('시간표 변경', `${student.name}님 주간 시간표 수정`);
         closeOverlay('ovWeekly');
         showToast('주간 시간표가 저장되었습니다.');
-      };
+      });
     }
     openOverlay('ovWeekly');
   }
@@ -1721,52 +1740,53 @@
     if(adminMode){
       adminIdleTimer = setTimeout(() => {
         adminMode = false; layoutEditMode = false;
-        $('#editToolbar').style.display='none';
-        $('#adminFab').style.display='none';
-        $('#btnAdmin').textContent = '관리자 모드';
+        if($('#editToolbar')) $('#editToolbar').style.display='none';
+        if($('#adminFab')) $('#adminFab').style.display='none';
+        if($('#btnAdmin')) $('#btnAdmin').textContent = '관리자 모드';
         renderFloor();
       }, 5*60*1000);
     }
   }
   document.addEventListener('click', resetAdminIdleTimer);
   document.addEventListener('click', e => {
-    if(!e.target.closest('#searchResults') && e.target.id !== 'studentSearch'){ $('#searchResults').style.display = 'none'; }
+    if(!e.target.closest('#searchResults') && e.target.id !== 'studentSearch'){ if($('#searchResults')) $('#searchResults').style.display = 'none'; }
   });
 
   function openAdminPanel(tab){
     $$('.tabbtn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
     $$('.tabpane').forEach(p=>p.classList.toggle('active', p.id==='tab-'+tab));
     if(tab==='students'){ renderAdminStudentList(); renderDeskOptions(); }
-    if(tab==='rules'){ $('#rulesTextarea').value = settings.rulesText || ''; }
+    if(tab==='rules'){ if($('#rulesTextarea')) $('#rulesTextarea').value = settings.rulesText || ''; }
     if(tab==='settings'){ 
-      $('#validStartWrapper').innerHTML = timeSelectHTML('setValid_start', settings.validStartTime);
-      $('#validEndWrapper').innerHTML = timeSelectHTML('setValid_end', settings.validEndTime);
+      if($('#validStartWrapper')) $('#validStartWrapper').innerHTML = timeSelectHTML('setValid_start', settings.validStartTime);
+      if($('#validEndWrapper')) $('#validEndWrapper').innerHTML = timeSelectHTML('setValid_end', settings.validEndTime);
     }
     if(tab==='ranking'){ renderRanking(); }
     if(tab==='stats'){ renderStatsChart(); renderLateAbsenceStats(); }
-    if(tab==='diary'){ if(!$('#diaryDate').value) $('#diaryDate').value = todayStr(); renderDiaryList(); }
+    if(tab==='diary'){ if($('#diaryDate') && !$('#diaryDate').value) $('#diaryDate').value = todayStr(); renderDiaryList(); }
     if(tab==='log'){ renderChangeLog(); }
     openOverlay('ovAdmin');
   }
 
-  $('#saveTimeSettingsBtn').addEventListener('click', async () => {
+  safeAddListener('#saveTimeSettingsBtn', 'click', async () => {
     settings.validStartTime = getTimeSelectValue('setValid_start');
     settings.validEndTime = getTimeSelectValue('setValid_end');
     await saveSettings();
     showToast('운영 설정이 저장되었습니다.');
   });
 
-  $('#btnAdmin').addEventListener('click', () => {
+  safeAddListener('#btnAdmin', 'click', () => {
     if(adminMode){ openAdminPanel('students'); }
-    else { $('#pwInput').value=''; $('#pwAdminName').value = settings.lastAdminName || ''; openOverlay('ovPassword'); }
+    else { if($('#pwInput')) $('#pwInput').value=''; if($('#pwAdminName')) $('#pwAdminName').value = settings.lastAdminName || ''; openOverlay('ovPassword'); }
   });
-  $('#pwSubmit').addEventListener('click', async () => {
+  
+  safeAddListener('#pwSubmit', 'click', async () => {
     if($('#pwInput').value === settings.adminPassword){
       adminMode = true;
       adminName = $('#pwAdminName').value.trim() || '관리자';
       settings.lastAdminName = adminName; await saveSettings();
-      $('#btnAdmin').textContent = '관리자 메뉴';
-      $('#adminFab').style.display = 'flex';
+      if($('#btnAdmin')) $('#btnAdmin').textContent = '관리자 메뉴';
+      if($('#adminFab')) $('#adminFab').style.display = 'flex';
       resetAdminIdleTimer();
       closeOverlay('ovPassword');
       renderFloor();
@@ -1774,22 +1794,23 @@
     } else { await showMessage('비밀번호가 올바르지 않습니다.'); }
   });
 
-  $('#fabToggle').addEventListener('click', () => $('#fabMenu').classList.toggle('show'));
+  safeAddListener('#fabToggle', 'click', () => { if($('#fabMenu')) $('#fabMenu').classList.toggle('show'); });
+  
   $$('.fab-item').forEach(btn => {
     btn.addEventListener('click', () => {
-      $('#fabMenu').classList.remove('show');
+      if($('#fabMenu')) $('#fabMenu').classList.remove('show');
       const action = btn.dataset.action;
-      if(action === 'layout'){ layoutEditMode = true; $('#editToolbar').style.display='flex'; renderFloor(); return; }
+      if(action === 'layout'){ layoutEditMode = true; if($('#editToolbar')) $('#editToolbar').style.display='flex'; renderFloor(); return; }
       if(action === 'kiosk') {
         document.body.classList.add('kiosk-mode');
-        adminMode = false; $('#adminFab').style.display='none'; $('#btnAdmin').textContent = '관리자 모드';
+        adminMode = false; if($('#adminFab')) $('#adminFab').style.display='none'; if($('#btnAdmin')) $('#btnAdmin').textContent = '관리자 모드';
         showToast('키오스크 모드가 활성화되었습니다.');
         return;
       }
       if(action === 'exit'){
         adminMode = false; layoutEditMode = false;
-        $('#editToolbar').style.display='none'; $('#adminFab').style.display='none';
-        $('#btnAdmin').textContent = '관리자 모드'; renderFloor(); return;
+        if($('#editToolbar')) $('#editToolbar').style.display='none'; if($('#adminFab')) $('#adminFab').style.display='none';
+        if($('#btnAdmin')) $('#btnAdmin').textContent = '관리자 모드'; renderFloor(); return;
       }
       openAdminPanel(action);
     });
@@ -1799,31 +1820,35 @@
   const exitKiosk = $('#exitKioskBtn');
   const startExit = () => { exitTimer = setTimeout(() => { document.body.classList.remove('kiosk-mode'); showToast('키오스크 모드가 종료되었습니다.'); }, 1500); };
   const cancelExit = () => clearTimeout(exitTimer);
-  exitKiosk.addEventListener('mousedown', startExit);
-  exitKiosk.addEventListener('touchstart', startExit, {passive:true});
-  exitKiosk.addEventListener('mouseup', cancelExit);
-  exitKiosk.addEventListener('mouseleave', cancelExit);
-  exitKiosk.addEventListener('touchend', cancelExit);
+  if(exitKiosk) {
+      exitKiosk.addEventListener('mousedown', startExit);
+      exitKiosk.addEventListener('touchstart', startExit, {passive:true});
+      exitKiosk.addEventListener('mouseup', cancelExit);
+      exitKiosk.addEventListener('mouseleave', cancelExit);
+      exitKiosk.addEventListener('touchend', cancelExit);
+  }
 
   $$('.tabbtn').forEach(btn => btn.addEventListener('click', () => openAdminPanel(btn.dataset.tab)));
 
   function applyDarkMode(){
     document.body.classList.toggle('dark', settings.darkMode);
-    $('#btnDarkToggle').innerHTML = settings.darkMode ? ICONS.sun : ICONS.moon;
+    if($('#btnDarkToggle')) $('#btnDarkToggle').innerHTML = settings.darkMode ? ICONS.sun : ICONS.moon;
   }
-  $('#btnDarkToggle').addEventListener('click', async () => {
+  
+  safeAddListener('#btnDarkToggle', 'click', async () => {
     settings.darkMode = !settings.darkMode;
     await saveSettings();
     applyDarkMode();
   });
 
-  $('#saveRulesBtn').addEventListener('click', async () => {
+  safeAddListener('#saveRulesBtn', 'click', async () => {
     settings.rulesText = $('#rulesTextarea').value;
     await saveSettings();
     showToast('규정이 저장되었습니다.');
   });
-  $('#btnRules').addEventListener('click', () => {
-    $('#rulesDisplay').textContent = settings.rulesText && settings.rulesText.trim()
+  
+  safeAddListener('#btnRules', 'click', () => {
+    if($('#rulesDisplay')) $('#rulesDisplay').textContent = settings.rulesText && settings.rulesText.trim()
       ? settings.rulesText
       : '등록된 규정이 없습니다. 관리자에게 문의해주세요.';
     openOverlay('ovRules');
@@ -1832,17 +1857,18 @@
   function renderDeskOptions(){
     const assignedIds = new Set(cache.students.filter(s => s.seatMode !== 'flexible' && s.deskId != null).map(s => String(s.deskId)));
     const avail = cache.desks.filter(d => d.floor === 2 && !assignedIds.has(String(d.id)));
-    $('#newSeat').innerHTML = '<option value="">미배정(추후 배정)</option>' + avail.map(d => `<option value="${d.id}">${deskLabel(d)}</option>`).join('');
+    if($('#newSeat')) $('#newSeat').innerHTML = '<option value="">미배정(추후 배정)</option>' + avail.map(d => `<option value="${d.id}">${deskLabel(d)}</option>`).join('');
   }
   function toggleNewSeatField(){
     const modeEl = document.querySelector('input[name="newSeatMode"]:checked');
     const mode = modeEl ? modeEl.value : 'fixed';
-    $('#newSeatField').style.display = mode === 'fixed' ? 'block' : 'none';
+    if($('#newSeatField')) $('#newSeatField').style.display = mode === 'fixed' ? 'block' : 'none';
   }
   $$('input[name="newSeatMode"]').forEach(r => r.addEventListener('change', () => { toggleNewSeatField(); renderDeskOptions(); }));
   
   function renderAdminStudentList(){
     const list = $('#studentList');
+    if(!list) return;
     const sortBy = $('#studentSort') ? $('#studentSort').value : 'name';
     const filterBy = $('#studentFilter') ? $('#studentFilter').value : 'all';
     let arr = cache.students.slice();
@@ -1885,10 +1911,11 @@
     $$('#studentList [data-hist]').forEach(b => { b.onclick = () => openAttendanceHistory(b.dataset.hist); });
     $$('#studentList [data-enroll]').forEach(b => { b.onclick = () => openFingerprintEnroll(b.dataset.enroll); });
   }
-  $('#studentSort') && $('#studentSort').addEventListener('change', renderAdminStudentList);
-  $('#studentFilter') && $('#studentFilter').addEventListener('change', renderAdminStudentList);
   
-  $('#addStudentBtn').addEventListener('click', async () => {
+  if($('#studentSort')) $('#studentSort').addEventListener('change', renderAdminStudentList);
+  if($('#studentFilter')) $('#studentFilter').addEventListener('change', renderAdminStudentList);
+  
+  safeAddListener('#addStudentBtn', 'click', async () => {
     const name = $('#newName').value.trim();
     const sNum = $('#newStudentNum').value.trim();
     const seatModeEl = document.querySelector('input[name="newSeatMode"]:checked');
@@ -1912,31 +1939,33 @@
   function toggleEditSeatField(){
     const modeEl = document.querySelector('input[name="editSeatMode"]:checked');
     const mode = modeEl ? modeEl.value : 'fixed';
-    $('#editSeatField').style.display = mode === 'fixed' ? 'block' : 'none';
+    if($('#editSeatField')) $('#editSeatField').style.display = mode === 'fixed' ? 'block' : 'none';
   }
   function renderEditDeskOptions(current){
     const assignedIds = new Set(cache.students.filter(s => s.seatMode !== 'flexible' && s.deskId != null && String(s.id) !== String(current.id)).map(s => String(s.deskId)));
     const avail = cache.desks.filter(d => d.floor === 2 && !assignedIds.has(String(d.id)));
-    $('#editSeat').innerHTML = '<option value="">미배정(추후 배정)</option>' + avail.map(d => `<option value="${d.id}">${deskLabel(d)}</option>`).join('');
+    if($('#editSeat')) $('#editSeat').innerHTML = '<option value="">미배정(추후 배정)</option>' + avail.map(d => `<option value="${d.id}">${deskLabel(d)}</option>`).join('');
   }
   $$('input[name="editSeatMode"]').forEach(r => r.addEventListener('change', toggleEditSeatField));
+  
   function openStudentEdit(studentId){
     const s = cache.students.find(x => String(x.id) === String(studentId)); if(!s) return;
     editingStudentId = studentId;
-    $('#editName').value = s.name;
-    $('#editStudentNum').value = s.studentNum || '';
-    $('#editFp').value = s.fingerprintId;
-    $('#editGoal').value = s.monthlyGoalMinutes;
+    if($('#editName')) $('#editName').value = s.name;
+    if($('#editStudentNum')) $('#editStudentNum').value = s.studentNum || '';
+    if($('#editFp')) $('#editFp').value = s.fingerprintId;
+    if($('#editGoal')) $('#editGoal').value = s.monthlyGoalMinutes;
     const modeVal = s.seatMode === 'flexible' ? 'flexible' : 'fixed';
     const radio = document.querySelector(`input[name="editSeatMode"][value="${modeVal}"]`);
     if(radio) radio.checked = true;
     renderEditDeskOptions(s);
-    $('#editSeat').value = s.deskId != null ? String(s.deskId) : '';
+    if($('#editSeat')) $('#editSeat').value = s.deskId != null ? String(s.deskId) : '';
     setScheduleGridValues('edit', s.weeklySchedule);
     toggleEditSeatField();
     openOverlay('ovStudentEdit');
   }
-  $('#editSaveBtn').addEventListener('click', async () => {
+  
+  safeAddListener('#editSaveBtn', 'click', async () => {
     const s = cache.students.find(x => String(x.id) === String(editingStudentId)); if(!s) return;
     const name = $('#editName').value.trim();
     const sNum = $('#editStudentNum').value.trim();
@@ -1957,7 +1986,7 @@
 
   async function openAttendanceHistory(studentId){
     const s = cache.students.find(x => String(x.id) === String(studentId)); if(!s) return;
-    $('#histTitle').textContent = s.name + '님의 출결 이력';
+    if($('#histTitle')) $('#histTitle').textContent = s.name + '님의 출결 이력';
     const records = (await dbGetAll('attendance')).filter(a => String(a.studentId) === String(studentId)).sort((a,b) => b.date.localeCompare(a.date));
     const mPrefix = monthStr();
     const now = new Date();
@@ -1979,8 +2008,9 @@
         if(ci > target) lateCount++;
       }
     });
-    $('#histSummary').textContent = `이번 달 출석 ${presentDays}일 · 지각 ${lateCount}회 · 결석(신청 후 미출석) ${absentCount}일`;
+    if($('#histSummary')) $('#histSummary').textContent = `이번 달 출석 ${presentDays}일 · 지각 ${lateCount}회 · 결석(신청 후 미출석) ${absentCount}일`;
     const list = $('#histList');
+    if(!list) return;
     if(records.length === 0){ list.innerHTML = '<p class="muted">출결 기록이 없습니다.</p>'; }
     else {
       list.innerHTML = records.map(r => {
@@ -1995,14 +2025,15 @@
     openOverlay('ovAttendanceHistory');
   }
 
-  $('#downloadTemplateBtn').addEventListener('click', () => {
+  safeAddListener('#downloadTemplateBtn', 'click', () => {
     const sample = [{ 학번: '20101', 이름: '홍길동', 지문ID: 1, 월목표시간_분: 1200, 좌석유형: '고정', 월: '18:00-21:00', 화: '18:00-21:00', 수: '', 목: '18:00-21:00', 금: '' }];
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(sample);
     XLSX.utils.book_append_sheet(wb, ws, '학생등록양식');
     XLSX.writeFile(wb, '학생등록_양식.xlsx');
   });
-  $('#importStudentsFile').addEventListener('change', async e => {
+  
+  safeAddListener('#importStudentsFile', 'change', async e => {
     const file = e.target.files[0]; if(!file) return;
     try{
       const buf = await file.arrayBuffer();
@@ -2065,6 +2096,7 @@
   async function renderLateAbsenceStats(){
     const stats = await computeLateAbsenceStats();
     const el = $('#lateAbsenceList');
+    if(!el) return;
     if(stats.length === 0){ el.innerHTML = '<p class="muted">등록된 학생이 없습니다.</p>'; return; }
     el.innerHTML = stats.map(s => `
       <div class="list-item">
@@ -2073,7 +2105,7 @@
       </div>`).join('');
   }
 
-  $('#changePwBtn').addEventListener('click', async () => {
+  safeAddListener('#changePwBtn', 'click', async () => {
     const cur = $('#curPw').value, nw = $('#newPw').value, cf = $('#confirmPw').value;
     if(cur !== settings.adminPassword){ await showMessage('현재 비밀번호가 일치하지 않습니다.'); return; }
     if(!nw || nw !== cf){ await showMessage('새 비밀번호가 일치하지 않습니다.'); return; }
@@ -2083,9 +2115,9 @@
   });
 
   /* ---------------- USB 기기 연결 (신규 지문 등록 전용) ---------------- */
-  function logSerial(msg){ const el = $('#serialLog'); el.textContent = '['+new Date().toLocaleTimeString('ko-KR')+'] '+msg+'\n'+el.textContent; }
+  function logSerial(msg){ const el = $('#serialLog'); if(el) el.textContent = '['+new Date().toLocaleTimeString('ko-KR')+'] '+msg+'\n'+el.textContent; }
   
-  $('#connectSerialBtn').addEventListener('click', async () => {
+  safeAddListener('#connectSerialBtn', 'click', async () => {
     if(!('serial' in navigator)){ await showMessage('이 브라우저는 Web Serial API를 지원하지 않습니다.'); return; }
     try{
       serialPort = await navigator.serial.requestPort();
@@ -2097,7 +2129,8 @@
       serialWriter = encoder.writable.getWriter();
     }catch(e){ await showMessage('연결 실패: '+e.message); }
   });
-  $('#disconnectSerialBtn').addEventListener('click', async () => {
+  
+  safeAddListener('#disconnectSerialBtn', 'click', async () => {
     try{ if(serialWriter) await serialWriter.close(); if(serialPort) await serialPort.close(); }catch(e){}
     serialPort=null; serialWriter=null; logSerial('USB 연결 해제됨');
   });
@@ -2130,7 +2163,6 @@
     if(success && s){
       const finalId = pendingEnrollFpId != null ? pendingEnrollFpId : parseInt(respondedId);
 
-      // 🚨 버그 수정: 지문 번호 변경 시 과거 기록 이관
       if(String(s.fingerprintId) !== String(finalId)) {
           const oldId = s.id;
           await dbDelete('students', oldId); 
@@ -2157,7 +2189,7 @@
     pendingEnrollStudentId = null; pendingEnrollFpId = null;
   }
   
-  $('#enrollBtn').addEventListener('click', async () => {
+  safeAddListener('#enrollBtn', 'click', async () => {
     const id = $('#enrollFpId').value;
     if(!id){ await showMessage('지문 ID를 입력해주세요.'); return; }
     if(!serialWriter){ await showMessage('기기가 연결되어 있지 않습니다.'); return; }
@@ -2168,14 +2200,15 @@
     const s = cache.students.find(x => String(x.id) === String(studentId)); if(!s) return;
     pendingEnrollStudentId = studentId;
     pendingEnrollFpId = null;
-    $('#feName').textContent = s.name;
-    $('#feFpId').value = s.fingerprintId;
-    $('#feStatus').textContent = serialWriter
+    if($('#feName')) $('#feName').textContent = s.name;
+    if($('#feFpId')) $('#feFpId').value = s.fingerprintId;
+    if($('#feStatus')) $('#feStatus').textContent = serialWriter
       ? '기기가 연결되어 있습니다. 지문 ID를 확인한 뒤 "등록 시작"을 누르고 기기에 손가락을 올려주세요.'
       : '기기가 연결되어 있지 않습니다. 관리자 패널 > 기기 연결 탭에서 먼저 연결해주세요.';
     openOverlay('ovFingerprintEnroll');
   }
-  $('#feStartBtn').addEventListener('click', async () => {
+  
+  safeAddListener('#feStartBtn', 'click', async () => {
     const s = cache.students.find(x => String(x.id) === String(pendingEnrollStudentId)); if(!s) return;
     const newId = parseInt($('#feFpId').value);
     if(!newId || newId < 1 || newId > 199){ await showMessage('지문 ID는 1~199 사이 숫자로 입력해주세요.'); return; }
@@ -2183,12 +2216,12 @@
     if(dupe && String(dupe.id) !== String(s.id)){ await showMessage(`지문 ID ${newId}는 이미 ${dupe.name}님이 사용 중입니다.`); return; }
     if(!serialWriter){ await showMessage('기기가 연결되어 있지 않습니다. 관리자 패널 > 기기 연결 탭에서 먼저 연결해주세요.'); return; }
     pendingEnrollFpId = newId;
-    $('#feStatus').textContent = '지문 등록 대기 중... 기기에 손가락을 올려주세요.';
+    if($('#feStatus')) $('#feStatus').textContent = '지문 등록 대기 중... 기기에 손가락을 올려주세요.';
     await serialWriter.write('ENROLL:'+newId+'\n');
     logSerial('등록 명령 전송 (재등록): ENROLL:'+newId+' → '+s.name);
   });
 
-  $('#exportExcelBtn').addEventListener('click', async () => {
+  safeAddListener('#exportExcelBtn', 'click', async () => {
     const attendance = await dbGetAll('attendance');
     const wb = XLSX.utils.book_new();
     const studentSheet = cache.students.map(s => {
@@ -2204,8 +2237,9 @@
     XLSX.writeFile(wb, 'yaja_backup_'+todayStr()+'.xlsx');
   });
 
-  $('#reminderLater').addEventListener('click', () => closeOverlay('ovReminder'));
-  $('#reminderBackup').addEventListener('click', () => { closeOverlay('ovReminder'); $('#exportExcelBtn').click(); });
+  safeAddListener('#reminderLater', 'click', () => closeOverlay('ovReminder'));
+  safeAddListener('#reminderBackup', 'click', () => { closeOverlay('ovReminder'); if($('#exportExcelBtn')) $('#exportExcelBtn').click(); });
+  
   function checkBackupReminder(){
     const now = new Date();
     const hm = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
@@ -2305,7 +2339,7 @@
     runAutoCheckout(); 
   }
 
-  function updateClock(){ $('#clockText').textContent = new Date().toLocaleString('ko-KR',{hour:'2-digit',minute:'2-digit',month:'long',day:'numeric',weekday:'short'}); }
+  function updateClock(){ if($('#clockText')) $('#clockText').textContent = new Date().toLocaleString('ko-KR',{hour:'2-digit',minute:'2-digit',month:'long',day:'numeric',weekday:'short'}); }
 
   function init(){
     applyDarkMode();
@@ -2314,7 +2348,7 @@
     toggleNewSeatField(); 
     updateClock();
     
-    // 🚨 핵심 수정: 실시간 데이터를 완전히 독립시켜 프리징 원천 차단
+    // 🚨 통신과 UI 렌더링 분리 (Non-Blocking)
     fbDB.ref('settings/app').on('value', snap => {
         if(snap.exists()) { settings = { ...settings, ...snap.val() }; applyDarkMode(); }
         else { saveSettings(); }
@@ -2327,18 +2361,19 @@
 
     fbDB.ref('.info/connected').on('value', snap => {
       const warning = $('#serialWarning');
+      if(!warning) return;
       if (snap.val() === true) {
-        $('#serialDot').className = 'dot on';
-        $('#serialLabel').textContent = '클라우드 연동됨';
+        if($('#serialDot')) $('#serialDot').className = 'dot on';
+        if($('#serialLabel')) $('#serialLabel').textContent = '클라우드 연동됨';
         warning.style.display = 'none';
         warning.classList.remove('flash');
         cleanupStaleRecords(); runAutoCheckout();
       } else {
-        $('#serialDot').className = 'dot off';
-        $('#serialLabel').textContent = '서버 연결 끊김';
+        if($('#serialDot')) $('#serialDot').className = 'dot off';
+        if($('#serialLabel')) $('#serialLabel').textContent = '서버 연결 끊김';
         warning.style.display = 'block';
         warning.classList.add('flash');
-        warning.innerHTML = ICONS.alert + " 인터넷 연결 및 학교 방화벽을 확인해 주세요.";
+        warning.innerHTML = ICONS.alert + " 인터넷 연결 또는 학교 방화벽 차단을 확인해 주세요.";
       }
     });
 
