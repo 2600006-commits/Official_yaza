@@ -417,6 +417,11 @@
         <div id="regScheduleGrid"></div>
       </div>
       <button class="btn btn-primary" id="addStudentBtn" style="width:100%">학생 추가</button>
+
+      <h3>학생 일괄 등록 (엑셀)</h3>
+      <p class="muted">양식을 내려받아 작성한 뒤 업로드하세요. 요일 칸은 "18:00-21:00" 형식으로 입력하고, 신청하지 않는 요일은 비워두세요. 좌석유형은 "고정" 또는 "자율"로 입력합니다.</p>
+      <button class="btn btn-secondary" id="downloadTemplateBtn" style="width:100%;">등록 양식 다운로드</button>
+      <input type="file" id="importStudentsFile" accept=".xlsx,.xls" style="margin-top:8px;width:100%;">
     </div>
 
     <div class="tabpane" id="tab-rules">
@@ -616,24 +621,24 @@
   const $$ = sel => Array.from(document.querySelectorAll(sel));
   
   /* ========================================================
-     🔥 여기에 발급받은 Firebase Config 값을 붙여넣으세요! 🔥 
+     🔥 발급받으신 Firebase Config 값이 연동되었습니다! 🔥 
      ======================================================== */
   const firebaseConfig = {
-    apiKey: "AIzaSyBff6zfkpULYdtLG3b0n8jxDQWhkk5iqDk",
-    authDomain: "hanseo-yaza.firebaseapp.com",
-    databaseURL: "https://hanseo-yaza-default-rtdb.firebaseio.com",
-    projectId: "hanseo-yaza",
-    storageBucket: "hanseo-yaza.firebasestorage.app",
-    messagingSenderId: "333216044867",
-    appId: "1:333216044867:web:9d6da48390481f84b041f6",
-    measurementId: "G-ZE22W4FCRB"
+    apiKey: "AIzaSyBff6zfkpULYdtLG3b0n8jxDQWhkk5iqDk", //[cite: 11]
+    authDomain: "hanseo-yaza.firebaseapp.com", //[cite: 11]
+    databaseURL: "https://hanseo-yaza-default-rtdb.firebaseio.com", //[cite: 11]
+    projectId: "hanseo-yaza", //[cite: 11]
+    storageBucket: "hanseo-yaza.firebasestorage.app", //[cite: 11]
+    messagingSenderId: "333216044867", //[cite: 11]
+    appId: "1:333216044867:web:9d6da48390481f84b041f6", //[cite: 11]
+    measurementId: "G-ZE22W4FCRB" //[cite: 11]
   };
   
   // Firebase 초기화
   firebase.initializeApp(firebaseConfig);
   const fbDB = firebase.database();
 
-  /* ---------------- Firebase 데이터베이스 래퍼 함수 (IndexedDB 호환) ---------------- */
+  /* ---------------- Firebase 데이터베이스 래퍼 함수 (IndexedDB 대체) ---------------- */
   async function dbGetAll(store){
     const snap = await fbDB.ref(store).once('value');
     return snap.exists() ? Object.values(snap.val()) : [];
@@ -963,7 +968,7 @@
     const map = new Map();
     const todayStrVal = todayStr();
     for(const s of students) {
-      const records = allAttendance.filter(a => a.studentId === s.id && (a.elapsedSeconds > 0 || a.status === 'present' || a.status === 'away'));
+      const records = allAttendance.filter(a => String(a.studentId) === String(s.id) && (a.elapsedSeconds > 0 || a.status === 'present' || a.status === 'away'));
       const dates = new Set(records.map(a => a.date));
       
       if (dates.size === 0) {
@@ -1022,14 +1027,14 @@
   }
   async function getDeskOccupant(deskId, todayRecords){
     todayRecords = todayRecords || await getTodayRecords();
-    const fixedStudent = students.find(s => s.seatMode === 'fixed' && s.deskId === deskId);
+    const fixedStudent = students.find(s => s.seatMode === 'fixed' && String(s.deskId) === String(deskId));
     if(fixedStudent){
-      const record = todayRecords.find(r => r.studentId === fixedStudent.id) || null;
+      const record = todayRecords.find(r => String(r.studentId) === String(fixedStudent.id)) || null;
       return { student: fixedStudent, record };
     }
-    const record = todayRecords.find(r => r.deskId === deskId) || null;
+    const record = todayRecords.find(r => String(r.deskId) === String(deskId)) || null;
     if(record){
-      const student = students.find(s => s.id === record.studentId) || null;
+      const student = students.find(s => String(s.id) === String(record.studentId)) || null;
       return { student, record };
     }
     return { student: null, record: null };
@@ -1190,7 +1195,7 @@
         let totalTime = calcValidSeconds(record.checkIn, now);
         record.elapsedSeconds = Math.round(Math.max(0, totalTime - (record.totalBreakSeconds||0)));
         
-        const student = students.find(s=>s.id===studentId);
+        const student = students.find(s=>String(s.id)===String(studentId));
         if(student){ student.monthlyElapsedSeconds = (student.monthlyElapsedSeconds||0) + record.elapsedSeconds; await dbPut('students', student); }
       }
     }
@@ -1454,7 +1459,7 @@
         const key = DAY_KEYS[d.getDay()];
         return s.weeklySchedule[key] && s.weeklySchedule[key].enabled;
       }).length;
-      const attendedDates = new Set(attendance.filter(a => a.studentId===s.id && a.date.startsWith(mPrefix)).map(a=>a.date));
+      const attendedDates = new Set(attendance.filter(a => String(a.studentId)===String(s.id) && a.date.startsWith(mPrefix)).map(a=>a.date));
       const attendedDays = attendedDates.size;
       const rate = scheduledDays>0 ? Math.round(attendedDays/scheduledDays*100) : 0;
       const totalMin = Math.round((s.monthlyElapsedSeconds||0)/60);
@@ -1636,7 +1641,7 @@
   async function currentDeskForStudent(student, todayRecords){
     if(student.seatMode === 'fixed') return student.deskId != null ? findDesk(student.deskId) : null;
     todayRecords = todayRecords || await getTodayRecords();
-    const rec = todayRecords.find(r => r.studentId === student.id);
+    const rec = todayRecords.find(r => String(r.studentId) === String(student.id));
     return (rec && rec.deskId != null) ? findDesk(rec.deskId) : null;
   }
   async function jumpToStudentDesk(student){
@@ -1646,7 +1651,7 @@
     if(!desk) return;
     if(desk.floor !== currentFloor) selectFloor(desk.floor);
     setTimeout(() => {
-      const el = Array.from(document.querySelectorAll('.desk')).find(d => d.dataset.deskId == desk.id);
+      const el = Array.from(document.querySelectorAll('.desk')).find(d => String(d.dataset.deskId) === String(desk.id));
       if(el){ el.classList.add('highlight'); el.scrollIntoView({behavior:'smooth', block:'center'}); setTimeout(()=>el.classList.remove('highlight'), 2000); }
     }, 150);
   }
@@ -1654,20 +1659,20 @@
     const q = e.target.value.trim().toLowerCase();
     const resultsBox = $('#searchResults');
     if(!q){ resultsBox.style.display = 'none'; return; }
-    const matches = students.filter(s => s.name.toLowerCase().includes(q));
+    const matches = students.filter(s => s.name.toLowerCase().includes(q) || (s.studentNum && s.studentNum.includes(q)));
     if(matches.length === 0){ resultsBox.style.display = 'none'; return; }
     if(matches.length === 1){ jumpToStudentDesk(matches[0]); return; }
     const todayRecords = await getTodayRecords();
     const rows = [];
     for(const s of matches){
       const desk = await currentDeskForStudent(s, todayRecords);
-      rows.push(`<div class="search-result-item glass" data-sid="${s.id}">${s.name} · ${desk?deskLabel(desk):'미배정'}</div>`);
+      rows.push(`<div class="search-result-item glass" data-sid="${s.id}">${s.studentNum||''} ${s.name} · ${desk?deskLabel(desk):'미배정'}</div>`);
     }
     resultsBox.innerHTML = rows.join('');
     resultsBox.style.display = 'block';
     $$('#searchResults [data-sid]').forEach(item => {
       item.addEventListener('click', () => {
-        const st = students.find(s => s.id === parseInt(item.dataset.sid));
+        const st = students.find(s => String(s.id) === String(item.dataset.sid));
         jumpToStudentDesk(st);
       });
     });
@@ -1693,8 +1698,8 @@
             : `<p class="muted">1층 좌석은 학생이 지문을 등록하면 자동으로 배정됩니다. (고정좌석은 2층에서만 지정할 수 있습니다)</p>`);
         if(canAssignFixed){
           $('#assignBtn').onclick = async () => {
-            const sid = parseInt($('#assignSelect').value); if(!sid) return;
-            const st = students.find(s=>s.id===sid); st.deskId = deskId;
+            const sid = $('#assignSelect').value; if(!sid) return;
+            const st = students.find(s=>String(s.id)===String(sid)); st.deskId = deskId;
             await dbPut('students', st);
             await logChange('좌석 배정', `${st.name} → ${deskLabel(desk)}`);
             closeOverlay('ovSeatDetail');
@@ -1706,7 +1711,7 @@
       const status = record ? record.status : '미입실';
       const modeLabel = student.seatMode === 'fixed' ? '고정좌석'
         : ('자율 · ' + (record && record.seatChoice === 'full' ? '전체 시간' : record && record.seatChoice === 'partial' ? '일부 시간' : '-'));
-      let html = `<p><b>${student.name}</b> <span class="muted">(${modeLabel})</span></p>
+      let html = `<p><b>${student.studentNum||''} ${student.name}</b> <span class="muted">(${modeLabel})</span></p>
         <p class="muted">오늘 상태: ${statusLabel(status)}</p>
         <p class="muted">입실 ${record?fmtTime(record.checkIn):'-'} / 퇴실 ${record&&record.checkOut?fmtTime(record.checkOut):'-'}</p>`;
       if(adminMode){
@@ -1733,6 +1738,7 @@
     }
     openOverlay('ovSeatDetail');
   }
+  function statusLabel(s){ return {present:'재실', away:'자리비움', left:'퇴실', empty:'미입실', '미입실':'미입실'}[s] || s; }
 
   async function openWeeklyModal(deskId){
     const { student } = await getDeskOccupant(deskId);
@@ -1898,8 +1904,8 @@
   });
 
   function renderDeskOptions(){
-    const assignedIds = new Set(students.filter(s => s.seatMode !== 'flexible' && s.deskId != null).map(s => s.deskId));
-    const avail = desks.filter(d => d.floor === 2 && !assignedIds.has(d.id));
+    const assignedIds = new Set(students.filter(s => s.seatMode !== 'flexible' && s.deskId != null).map(s => String(s.deskId)));
+    const avail = desks.filter(d => d.floor === 2 && !assignedIds.has(String(d.id)));
     $('#newSeat').innerHTML = '<option value="">미배정(추후 배정)</option>' + avail.map(d => `<option value="${d.id}">${deskLabel(d)}</option>`).join('');
   }
   function toggleNewSeatField(){
@@ -1908,6 +1914,7 @@
     $('#newSeatField').style.display = mode === 'fixed' ? 'block' : 'none';
   }
   $$('input[name="newSeatMode"]').forEach(r => r.addEventListener('change', () => { toggleNewSeatField(); renderDeskOptions(); }));
+  
   function renderAdminStudentList(){
     const list = $('#studentList');
     const sortBy = $('#studentSort') ? $('#studentSort').value : 'name';
@@ -1940,7 +1947,7 @@
     $$('#studentList [data-del]').forEach(b => {
       b.onclick = async () => {
         if(await showConfirm('정말 삭제하시겠습니까?')){
-          const sid = b.dataset.del; // Firebase 키는 string
+          const sid = b.dataset.del; 
           const st = students.find(s=>String(s.id)===String(sid));
           await dbDelete('students', sid);
           await logChange('학생 삭제', st?st.name:('ID '+sid));
@@ -1982,8 +1989,8 @@
     $('#editSeatField').style.display = mode === 'fixed' ? 'block' : 'none';
   }
   function renderEditDeskOptions(current){
-    const assignedIds = new Set(students.filter(s => s.seatMode !== 'flexible' && s.deskId != null && String(s.id) !== String(current.id)).map(s => s.deskId));
-    const avail = desks.filter(d => d.floor === 2 && !assignedIds.has(d.id));
+    const assignedIds = new Set(students.filter(s => s.seatMode !== 'flexible' && s.deskId != null && String(s.id) !== String(current.id)).map(s => String(s.deskId)));
+    const avail = desks.filter(d => d.floor === 2 && !assignedIds.has(String(d.id)));
     $('#editSeat').innerHTML = '<option value="">미배정(추후 배정)</option>' + avail.map(d => `<option value="${d.id}">${deskLabel(d)}</option>`).join('');
   }
   $$('input[name="editSeatMode"]').forEach(r => r.addEventListener('change', toggleEditSeatField));
