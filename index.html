@@ -54,7 +54,7 @@
   @keyframes flashBg { 0%, 100% { background: #ff3b30; } 50% { background: #d70015; } }
 
   header{
-    position:sticky; top:0; z-index:20;
+    position:sticky; top:var(--warn-h, 0px); z-index:20;
     display:flex; align-items:center; justify-content:space-between;
     padding:14px 18px; margin:12px; border-radius:var(--radius-lg); gap:10px; flex-wrap:wrap;
   }
@@ -121,8 +121,9 @@
     border-radius:12px; padding:5px 7px; display:flex; flex-direction:column; justify-content:space-between;
     background:rgba(var(--seat-rgb,142,142,147),0.18);
     backdrop-filter:blur(14px) saturate(160%); -webkit-backdrop-filter:blur(14px) saturate(160%);
-    transition:background .45s ease, box-shadow .2s ease; cursor:pointer; user-select:none; touch-action:none;
+    transition:background .45s ease, box-shadow .2s ease; cursor:pointer; user-select:none; touch-action:manipulation;
   }
+  .canvas-scroll.editing .desk{ touch-action:none; }
   .desk:active{ filter:brightness(0.97); }
   .desk.type-partition{ border:2px solid rgba(80,80,86,0.45); border-radius:10px; }
   .desk.type-open{ border:1px solid rgba(255,255,255,0.65); }
@@ -200,6 +201,8 @@
     opacity:0; pointer-events:none; transition:opacity .25s ease; padding:16px;
   }
   .overlay.show{ opacity:1; pointer-events:auto; }
+  #ovMessage, #ovConfirm, #ovPrompt{ z-index:200; }
+  #msgText, #confirmMsg{ white-space:pre-wrap; }
   .modal{
     width:100%; max-width:420px; max-height:86vh; overflow-y:auto; position:relative;
     border-radius:var(--radius-lg); padding:22px; transform:translateY(10px) scale(0.97); transition:transform .25s ease;
@@ -213,6 +216,7 @@
     width:100%; padding:11px 12px; border-radius:var(--radius-sm); border:1px solid rgba(120,120,128,0.25);
     background:rgba(255,255,255,0.7); font-size:14px; font-family:inherit;
   }
+  .field input[type="radio"]{ width:auto; padding:0; }
   .row{ display:flex; gap:10px; }
   .row > *{ flex:1; }
   .modal-actions{ display:flex; gap:10px; margin-top:18px; }
@@ -230,7 +234,7 @@
   .day-sched-time select{ flex:1; min-width:0; padding:9px 6px; border-radius:10px; border:1px solid rgba(120,120,128,0.25); background:rgba(255,255,255,0.8); font-family:inherit; font-size:13px; }
   .day-sched-time .tilde{ color:var(--text-secondary); flex:none; }
   .muted{ color:var(--text-secondary); font-size:12px; }
-  .close-x{ position:absolute; top:16px; right:16px; background:rgba(120,120,128,0.16); border:none; width:30px; height:30px; border-radius:50%; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .close-x{ position:absolute; top:16px; right:16px; background:rgba(120,120,128,0.16); border:none; width:30px; height:30px; border-radius:50%; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--text-primary); }
 
   /* ---------------- 다크 모드 ---------------- */
   body.dark{ background:linear-gradient(135deg,#0b0f1a 0%,#151225 45%,#1a1015 100%); color:#f2f2f5; }
@@ -243,6 +247,7 @@
   body.dark .day-sched-time select{ background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.15); color:#f2f2f5; }
   body.dark .btn-secondary{ background:rgba(255,255,255,0.12); color:#f2f2f5; }
   body.dark .tabbar button{ background:rgba(255,255,255,0.1); color:#f2f2f5; }
+  body.dark .tabbar button.active{ background:var(--accent); color:#fff; }
   body.dark .desk{ box-shadow:0 2px 10px rgba(0,0,0,0.35); }
   body.dark .desk .d-name{ color:#fff; }
   body.dark .grid-dot{ background:rgba(255,255,255,0.25); }
@@ -648,6 +653,13 @@
   const $ = sel => document.querySelector(sel);
   const $$ = sel => Array.from(document.querySelectorAll(sel));
   const safeAddListener = (id, event, handler) => { const el = $(id); if(el) el.addEventListener(event, handler); };
+
+  // 사용자 입력(이름/일지 등)을 innerHTML에 넣을 때 HTML이 실행되지 않도록 변환
+  const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  // 같은 밀리초에 여러 건이 저장돼도 ID가 겹치지 않도록 증가 보장
+  let lastIdIssued = 0;
+  function newId(){ let id = Date.now(); if(id <= lastIdIssued) id = lastIdIssued + 1; lastIdIssued = id; return id; }
+  const pad2 = n => n < 10 ? '0' + n : String(n);
   
   const firebaseConfig = {
     apiKey: "AIzaSyBff6zfkpULYdtLG3b0n8jxDQWhkk5iqDk",
@@ -665,6 +677,11 @@
 
   let settings = { id:'app', adminPassword:'0000', currentDate: todayStr(), studyEndTime:'22:00', lastBackupReminderDate:null, rulesText:'', darkMode:false, validStartTime:'16:00', validEndTime:'21:30' };
   let cache = { students: [], desks: [], attendance: [], changelog: [], dailylogs: [] };
+  // 서버 데이터를 처음 다 받기 전에는 자동 마감/설정 저장 등을 하지 않도록 하는 플래그
+  const loaded = { settings:false, students:false, desks:false, attendance:false };
+  const isReady = () => loaded.settings && loaded.students && loaded.desks && loaded.attendance;
+  let isOnline = false;
+  let startedUp = false;
   
   let adminMode = false, adminIdleTimer = null;
   let currentFloor = 1, layoutEditMode = false, fitToScreen = true;
@@ -677,24 +694,54 @@
   async function dbIndexGet(store, index, value){ return (cache[store]||[]).find(x => String(x[index]) === String(value)) || null; }
   async function dbIndexGetAll(store, index, value){ return (cache[store]||[]).filter(x => String(x[index]) === String(value)); }
 
+  // Firebase 쓰기: undefined 값이 있으면 set()이 예외를 던지므로 JSON 변환으로 제거하고,
+  // 실패해도 앱이 멈추지 않게 처리 (오프라인일 때 await 하면 영원히 멈추는 문제도 방지)
+  function fbWrite(path, val){
+    try{
+      const pr = fbDB.ref(path).set(JSON.parse(JSON.stringify(val)));
+      if(pr && pr.catch) pr.catch(e => { console.error('저장 실패', path, e); showToast('서버 저장 실패: ' + e.message); });
+    }catch(e){ console.error('저장 오류', path, e); showToast('저장 오류: ' + e.message); }
+  }
+
   window.dbPut = async function(store, val){
     if (store === 'students') val.id = val.fingerprintId; 
-    else if (!val.id) val.id = Date.now();
+    else if (!val.id) val.id = newId();
     
-    const idx = (cache[store]||[]).findIndex(x => String(x.id) === String(val.id));
+    if(!cache[store]) cache[store] = [];
+    const idx = cache[store].findIndex(x => String(x.id) === String(val.id));
     if(idx >= 0) cache[store][idx] = val;
     else cache[store].push(val);
     
-    fbDB.ref(store + '/' + val.id).set(val); 
+    fbWrite(store + '/' + val.id, val);
     return val;
   };
   
   async function dbDelete(store, key){
     cache[store] = (cache[store]||[]).filter(x => String(x.id) !== String(key));
-    fbDB.ref(store + '/' + key).remove();
+    try{
+      const pr = fbDB.ref(store + '/' + key).remove();
+      if(pr && pr.catch) pr.catch(e => { console.error('삭제 실패', e); showToast('서버 삭제 실패: ' + e.message); });
+    }catch(e){ console.error(e); }
   }
 
-  async function saveSettings(){ fbDB.ref('settings/app').set(settings); }
+  // 서버 설정을 아직 못 받은 상태에서 기본값(비밀번호 0000 등)으로 덮어쓰지 않도록 차단
+  function saveSettings(){
+    if(!loaded.settings){ console.warn('설정 로딩 전이라 저장을 건너뜁니다.'); return; }
+    fbWrite('settings/app', settings);
+  }
+
+  // 서버 스냅샷 → 배열. 정수 키(지문ID 1,2,3…)면 Firebase가 배열로 돌려주며 null이 섞이므로 걸러낸다.
+  const snapToList = snap => snap.exists() ? Object.values(snap.val()).filter(x => x && typeof x === 'object') : [];
+  function defaultWeekly(){
+    const w = {}; DAYS.forEach(([k]) => { w[k] = { enabled:false, start:'18:00', end:'21:00' }; }); return w;
+  }
+  function normStudent(s){
+    s.name = String(s.name == null ? '' : s.name);
+    s.studentNum = String(s.studentNum == null ? '' : s.studentNum);
+    if(!s.weeklySchedule || typeof s.weeklySchedule !== 'object') s.weeklySchedule = defaultWeekly();
+    DAYS.forEach(([k]) => { if(!s.weeklySchedule[k]) s.weeklySchedule[k] = { enabled:false, start:'18:00', end:'21:00' }; });
+    return s;
+  }
 
   const ICONS = {
     moon: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`,
@@ -715,12 +762,12 @@
   if($('#icon-trophy')) $('#icon-trophy').innerHTML = ICONS.trophy;
   $$('.close-x').forEach(b => { b.innerHTML = ICONS.close; b.addEventListener('click', () => closeOverlay(b.dataset.close)); });
   
+  // 새벽 6시 이전은 전날로 취급하는 "운영일" 기준 날짜
+  function bizDate() { const d = new Date(); if (d.getHours() < 6) d.setDate(d.getDate() - 1); return d; }
   function todayStr() {
-    const d = new Date();
-    if (d.getHours() < 6) d.setDate(d.getDate() - 1);
-    const pad = n => n < 10 ? '0' + n : n;
-    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-  };
+    const d = bizDate();
+    return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+  }
   const fmtTime = ts => ts ? new Date(ts).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}) : '-';
   
   const openOverlay = id => { const el = $('#'+id); if(el) el.classList.add('show'); };
@@ -754,13 +801,13 @@
       if($('#confirmNo')) $('#confirmNo').onclick = () => { closeOverlay('ovConfirm'); resolve(false); };
     });
   }
-  function showPrompt(msg, placeholder){
+  function showPrompt(msg, placeholder, allowEmpty){
     return new Promise(resolve => {
       if($('#promptMsg')) $('#promptMsg').textContent = msg;
       if($('#promptInput')) { $('#promptInput').value = ''; $('#promptInput').placeholder = placeholder || ''; }
       openOverlay('ovPrompt');
       setTimeout(() => { if($('#promptInput')) $('#promptInput').focus(); }, 100);
-      if($('#promptOk')) $('#promptOk').onclick = () => { const v = $('#promptInput').value.trim(); closeOverlay('ovPrompt'); resolve(v || null); };
+      if($('#promptOk')) $('#promptOk').onclick = () => { const v = $('#promptInput').value.trim(); closeOverlay('ovPrompt'); resolve(allowEmpty ? v : (v || null)); };
       if($('#promptCancel')) $('#promptCancel').onclick = () => { closeOverlay('ovPrompt'); resolve(null); };
     });
   }
@@ -770,15 +817,22 @@
     const h12 = h%12===0 ? 12 : h%12;
     return `${ampm} ${h12}:${String(m).padStart(2,'0')}`;
   }
+  // "9:00", "18:05" 같은 값을 셀렉트 옵션("09:00", "18:10")에 맞게 정규화 (안 맞으면 셀렉트가 빈 값이 됨)
+  function normTime(v, fb){
+    const m = /^(\d{1,2}):(\d{2})$/.exec(String(v == null ? '' : v).trim());
+    if(!m) return fb || '18:00';
+    let h = +m[1], mi = +m[2];
+    if(h > 23 || mi > 59) return fb || '18:00';
+    mi = Math.round(mi/10)*10; if(mi === 60){ mi = 0; h = (h+1) % 24; }
+    return `${String(h).padStart(2,'0')}:${String(mi).padStart(2,'0')}`;
+  }
   function timeSelectHTML(prefix, value){
-    let [vh,vm] = (value||'18:00').split(':').map(Number);
-    if(isNaN(vh)) vh=18; if(isNaN(vm)) vm=0;
-    vm = Math.round(vm/10)*10; if(vm===60){ vm=0; vh=(vh+1)%24; }
+    const norm = normTime(value, '18:00');
     let opts = '';
     for(let mins=0; mins<24*60; mins+=10){
       const h = Math.floor(mins/60), m = mins%60;
       const val = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-      const selected = (h===vh && m===vm) ? 'selected' : '';
+      const selected = (val === norm) ? 'selected' : '';
       opts += `<option value="${val}" ${selected}>${timeLabel(h,m)}</option>`;
     }
     return `<select class="timeSel" data-prefix="${prefix}">${opts}</select>`;
@@ -789,7 +843,7 @@
   }
   function setTimeSelectValue(prefix, value){
     const el = document.querySelector(`.timeSel[data-prefix="${prefix}"]`);
-    if(el) el.value = value||'18:00';
+    if(el) el.value = normTime(value, '18:00');
   }
 
   function buildScheduleGrid(containerId, prefix){
@@ -916,21 +970,26 @@
   function getStreakMap(allAttendance) {
     const map = new Map();
     const todayStrVal = todayStr();
+    // 학생별 출석 날짜를 한 번만 모아 둔다 (학생 수 × 기록 수만큼 매번 반복 검색하던 것을 제거)
+    const byStudent = new Map();
+    allAttendance.forEach(a => {
+      if(!(a.elapsedSeconds > 0 || a.status === 'present' || a.status === 'away')) return;
+      const k = String(a.studentId);
+      if(!byStudent.has(k)) byStudent.set(k, new Set());
+      byStudent.get(k).add(a.date);
+    });
     for(const s of cache.students) {
-      const records = allAttendance.filter(a => String(a.studentId) === String(s.id) && (a.elapsedSeconds > 0 || a.status === 'present' || a.status === 'away'));
-      const dates = new Set(records.map(a => a.date));
+      const dates = byStudent.get(String(s.id)) || new Set();
       if (dates.size === 0) { map.set(s.id, 0); continue; }
 
       let streak = 0;
-      let d = new Date();
-      if (d.getHours() < 6) d.setDate(d.getDate() - 1); 
+      let d = bizDate();
       
       let checking = true; let lookbackLimit = 365;
 
       while(checking && streak < 30 && lookbackLimit > 0) {
         lookbackLimit--;
-        const pad = n => n<10?'0'+n:n;
-        const dStr = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+        const dStr = `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
         const dayKey = DAY_KEYS[d.getDay()];
         const isScheduled = s.weeklySchedule && s.weeklySchedule[dayKey] && s.weeklySchedule[dayKey].enabled;
 
@@ -982,110 +1041,162 @@
   }
 
   // ✨ 스캔 명령 전송 함수 (전역)
-  window.requestScan = async function(action) {
+  window.requestScan = function(action) {
      closeOverlay('ovSeatDetail');
-     await fbDB.ref('scanRequest').set({ action: action, timestamp: Date.now() });
+     if(!isOnline){ showToast('서버에 연결되지 않아 스캐너를 켤 수 없습니다. 연결 상태를 확인해주세요.'); return; }
+     fbWrite('scanRequest', { action: action, timestamp: Date.now() });
      showToast('지문 인식기가 켜졌습니다. 10초 내에 손가락을 스캔해주세요.');
   };
 
   const lastScanMap = new Map();
 
   async function handleFingerprintMatch(fpId){
+    fpId = parseInt(fpId);
+    if(!fpId || isNaN(fpId)) return;
+    if(!isReady()){ showToast('데이터를 불러오는 중입니다. 잠시 후 다시 스캔해주세요.'); return; }
     const now = Date.now();
     if (lastScanMap.has(fpId) && now - lastScanMap.get(fpId) < 3000) return;
     lastScanMap.set(fpId, now);
 
-    const student = findStudentByFp(fpId);
-    if(!student){ showToast('등록되지 않은 지문입니다.'); return; }
-    let record = await getTodayAttendance(student.id);
-    
-    fbDB.ref('scanRequest').once('value', async snap => {
-        let action = 'present';
-        if(snap.exists() && snap.val().timestamp > Date.now() - 15000) {
-            action = snap.val().action;
-            snap.ref.remove(); 
-        }
+    try{
+      const student = findStudentByFp(fpId);
+      if(!student){ showToast('등록되지 않은 지문입니다.'); return; }
+      let record = await getTodayAttendance(student.id);
 
-        if (action === 'present') {
-             if(!record) {
-                let deskId = null, seatChoice = null;
-                if(student.seatMode === 'fixed') {
-                    deskId = student.deskId != null ? student.deskId : null;
-                } else {
-                    const todayRecords = await getTodayRecords();
-                    const targetFloor = 1; 
-                    const desk = findAvailableDeskForToday(targetFloor, todayRecords);
-                    deskId = desk ? desk.id : null;
-                    seatChoice = 'partial';
-                    if(!desk) showToast(`${targetFloor}층에 빈자리가 없어 좌석 없이 입실 처리됩니다.`);
-                }
-                record = { studentId: student.id, studentDate: student.id+'_'+todayStr(), date: todayStr(), checkIn: now, checkOut:null, status:'present', elapsedSeconds:0, totalBreakSeconds:0, lastBreakStart:null, deskId, seatChoice };
-                await window.dbPut('attendance', record);
-                showToast(`${student.name}님 환영합니다! 입실 완료되었습니다.`);
-             } else {
-                if(record.status === 'away') {
-                   if(record.lastBreakStart) record.totalBreakSeconds = (record.totalBreakSeconds||0) + calcValidSeconds(record.lastBreakStart, now);
-                   record.lastBreakStart = null;
-                   record.status = 'present';
-                   await window.dbPut('attendance', record);
-                   showToast(`${student.name}님 재입실 처리되었습니다.`);
-                } else if (record.status === 'present'){
-                   showToast(`${student.name}님은 이미 입실 상태입니다.`);
-                } else {
-                   showToast(`${student.name}님은 이미 퇴실 처리되었습니다.`);
-                }
-             }
-        } else if (action === 'away') {
-             if(record && record.status === 'present') {
-                record.lastBreakStart = now;
-                record.status = 'away';
-                await window.dbPut('attendance', record);
-                showToast(`${student.name}님 자리 비움 처리되었습니다.`);
-             } else {
-                showToast(`입실 상태에서만 외출이 가능합니다.`);
-             }
-        } else if (action === 'left') {
-             if(record && (record.status === 'present' || record.status === 'away')) {
-                if(record.status === 'away' && record.lastBreakStart) {
-                   record.totalBreakSeconds = (record.totalBreakSeconds||0) + calcValidSeconds(record.lastBreakStart, now);
-                   record.lastBreakStart = null;
-                }
-                record.checkOut = now;
-                record.status = 'left';
-                record.elapsedSeconds = Math.round(Math.max(0, calcValidSeconds(record.checkIn, now) - (record.totalBreakSeconds||0)));
-                await window.dbPut('attendance', record);
-                student.monthlyElapsedSeconds = (student.monthlyElapsedSeconds||0) + record.elapsedSeconds;
-                await window.dbPut('students', student);
-                showToast(`${student.name}님 고생하셨습니다! 퇴실 처리되었습니다.`);
-             } else {
-                showToast(`이미 퇴실하셨거나 입실 기록이 없습니다.`);
-             }
-        }
+      // 화면에서 누른 버튼(입실/외출/퇴실) 요청이 15초 이내면 그 동작으로, 없으면 입실로 처리
+      let action = 'present';
+      const snap = await fbDB.ref('scanRequest').once('value');
+      if(snap.exists() && snap.val() && snap.val().timestamp > Date.now() - 15000) {
+          action = snap.val().action;
+          snap.ref.remove();
+      }
+
+      if (action === 'present') {
+           if(!record) {
+              let deskId = null, seatChoice = null;
+              if(student.seatMode === 'fixed') {
+                  deskId = student.deskId != null ? student.deskId : null;
+              } else {
+                  const todayRecords = await getTodayRecords();
+                  const targetFloor = 1; 
+                  const desk = findAvailableDeskForToday(targetFloor, todayRecords);
+                  deskId = desk ? desk.id : null;
+                  seatChoice = 'partial';
+                  if(!desk) showToast(`${targetFloor}층에 빈자리가 없어 좌석 없이 입실 처리됩니다.`);
+              }
+              record = { studentId: student.id, studentDate: student.id+'_'+todayStr(), date: todayStr(), checkIn: now, checkOut:null, status:'present', elapsedSeconds:0, totalBreakSeconds:0, lastBreakStart:null, deskId, seatChoice };
+              await window.dbPut('attendance', record);
+              showToast(`${student.name}님 환영합니다! 입실 완료되었습니다.`);
+           } else {
+              if(record.status === 'away') {
+                 if(record.lastBreakStart) record.totalBreakSeconds = (record.totalBreakSeconds||0) + calcValidSeconds(record.lastBreakStart, now);
+                 record.lastBreakStart = null;
+                 record.status = 'present';
+                 await window.dbPut('attendance', record);
+                 showToast(`${student.name}님 재입실 처리되었습니다.`);
+              } else if (record.status === 'present'){
+                 showToast(`${student.name}님은 이미 입실 상태입니다.`);
+              } else {
+                 showToast(`${student.name}님은 이미 퇴실 처리되었습니다.`);
+              }
+           }
+      } else if (action === 'away') {
+           if(record && record.status === 'present') {
+              record.lastBreakStart = now;
+              record.status = 'away';
+              await window.dbPut('attendance', record);
+              showToast(`${student.name}님 자리 비움 처리되었습니다.`);
+           } else {
+              showToast(`입실 상태에서만 외출이 가능합니다.`);
+           }
+      } else if (action === 'left') {
+           if(record && (record.status === 'present' || record.status === 'away')) {
+              if(record.status === 'away' && record.lastBreakStart) {
+                 record.totalBreakSeconds = (record.totalBreakSeconds||0) + calcValidSeconds(record.lastBreakStart, now);
+                 record.lastBreakStart = null;
+              }
+              record.checkOut = now;
+              record.status = 'left';
+              record.elapsedSeconds = Math.round(Math.max(0, calcValidSeconds(record.checkIn, now) - (record.totalBreakSeconds||0)));
+              await window.dbPut('attendance', record);
+              student.monthlyElapsedSeconds = (student.monthlyElapsedSeconds||0) + record.elapsedSeconds;
+              await window.dbPut('students', student);
+              showToast(`${student.name}님 고생하셨습니다! 퇴실 처리되었습니다.`);
+           } else {
+              showToast(`이미 퇴실하셨거나 입실 기록이 없습니다.`);
+           }
+      }
+    }catch(err){
+      console.error('지문 처리 오류', err);
+      showToast('지문 처리 중 오류가 발생했습니다: ' + err.message);
+    }
+  }
+
+  // ⚠️ 기기(ESP32) → 웹 지문 인식 결과 수신 경로.
+  // 원본에는 handleFingerprintMatch 를 호출하는 코드가 없어서 지문을 찍어도 출결이 반영되지 않았습니다.
+  // 기기 펌웨어가 인식 결과를 쓰는 Firebase 경로가 다르면 아래 값만 바꿔주세요.
+  // 기기는 숫자(지문ID) 또는 {fpId, timestamp, success} 형태로 기록하면 됩니다.
+  const FP_MATCH_PATH = 'scanResult';
+  function isFreshTs(v, windowMs){
+    let n = Number(v);
+    if(!n || n < 1e9) return true;         // 시각 정보가 없거나 epoch가 아니면(부팅 후 경과시간 등) 판단 불가 → 최신으로 간주
+    if(n < 1e11) n *= 1000;                // 초 단위 epoch → ms
+    return n > Date.now() - windowMs;
+  }
+  function initFingerprintListener(){
+    const ref = fbDB.ref(FP_MATCH_PATH);
+    ref.on('value', snap => {
+      if(!snap.exists()) return;
+      // 여러 화면(키오스크/관리자 폰 등)이 같은 신호를 받아도 한 곳에서만 처리하도록 "선점"한다.
+      let claimed = null;
+      ref.transaction(cur => { if(cur == null) return; claimed = cur; return null; }, (err, committed) => {
+        if(err || !committed || claimed == null) return;
+        const isObj = typeof claimed === 'object';
+        const fpId = isObj ? (claimed.fpId != null ? claimed.fpId : (claimed.fingerprintId != null ? claimed.fingerprintId : claimed.id)) : claimed;
+        if(isObj && !isFreshTs(claimed.timestamp, 20000)) return;
+        if(isObj && claimed.success === false){ showToast('지문 인식에 실패했습니다. 다시 시도해주세요.'); return; }
+        handleFingerprintMatch(fpId);
+      });
     });
   }
 
   async function setSeatStatus(studentId, status){
     let record = await getTodayAttendance(studentId);
     const now = Date.now();
+    const student = cache.students.find(s => String(s.id) === String(studentId));
     if(!record){
-      record = { studentId, studentDate: studentId+'_'+todayStr(), date: todayStr(), checkIn: now, checkOut:null, status, elapsedSeconds:0, totalBreakSeconds:0, lastBreakStart:null };
+      record = { studentId, studentDate: studentId+'_'+todayStr(), date: todayStr(), checkIn: now, checkOut:null, status, elapsedSeconds:0, totalBreakSeconds:0, lastBreakStart: status === 'away' ? now : null };
     } else {
-      if (record.status === 'away' && status !== 'away') {
-         if (record.lastBreakStart) {
-            record.totalBreakSeconds = (record.totalBreakSeconds||0) + calcValidSeconds(record.lastBreakStart, now);
-            record.lastBreakStart = null;
-         }
-      }
-      if (status === 'away' && record.status !== 'away') {
-         record.lastBreakStart = now;
+      const prev = record.status;
+      if(prev === 'left' && status === 'left') return;   // 이미 퇴실: 다시 합산하지 않음
+
+      if(prev === 'left'){
+        // 퇴실 취소(재입실): 이미 월 누적에 더해진 시간을 되돌리고, 퇴실~재입실 사이 공백은 휴식으로 처리
+        if(student){
+          student.monthlyElapsedSeconds = Math.max(0, (student.monthlyElapsedSeconds||0) - (record.elapsedSeconds||0));
+          await window.dbPut('students', student);
+        }
+        if(status === 'away'){
+          record.lastBreakStart = record.checkOut || now;
+        } else {
+          record.totalBreakSeconds = (record.totalBreakSeconds||0) + calcValidSeconds(record.checkOut || now, now);
+          record.lastBreakStart = null;
+        }
+        record.checkOut = null;
+        record.elapsedSeconds = 0;
+      } else if (prev === 'away' && status !== 'away') {
+        if (record.lastBreakStart) {
+          record.totalBreakSeconds = (record.totalBreakSeconds||0) + calcValidSeconds(record.lastBreakStart, now);
+        }
+        record.lastBreakStart = null;
+      } else if (status === 'away' && prev !== 'away') {
+        record.lastBreakStart = now;
       }
       record.status = status;
       if(status === 'left'){
         record.checkOut = now;
-        let totalTime = calcValidSeconds(record.checkIn, now);
+        const totalTime = calcValidSeconds(record.checkIn, now);
         record.elapsedSeconds = Math.round(Math.max(0, totalTime - (record.totalBreakSeconds||0)));
-        
-        const student = cache.students.find(s=>String(s.id)===String(studentId));
         if(student){ student.monthlyElapsedSeconds = (student.monthlyElapsedSeconds||0) + record.elapsedSeconds; await window.dbPut('students', student); }
       }
     }
@@ -1094,10 +1205,10 @@
 
   // ✨ 배치 모드 오류 수정 (addDesk 시 바로 화면 갱신 추가 완료)
   async function addDesk(floor, type, col, row, seatNumber) {
-    const d = { floor, type, col, row, seatNumber: seatNumber || null, id: Date.now() };
+    const d = { floor, type, col, row, seatNumber: seatNumber || null, id: newId() };
     cache.desks.push(d); // 캐시에 즉시 반영
     renderFloor();       // 화면에 즉시 그리기
-    await fbDB.ref('desks/' + d.id).set(d); // DB는 비동기 저장
+    fbWrite('desks/' + d.id, d); // DB 저장 (오프라인이어도 화면이 멈추지 않도록 기다리지 않음)
     await window.logChange('좌석 추가', `${floor}층 ${type==='partition'?'칸막이':'오픈형'}${seatNumber ? ' ' + seatNumber + '번' : ''}`);
   }
   
@@ -1148,8 +1259,10 @@
     resizeTimer = setTimeout(() => { if(!layoutEditMode) renderFloor(); }, 200);
   });
 
+  let renderSeq = 0;
   async function renderFloor(opts){
     opts = opts || {};
+    const mySeq = ++renderSeq;   // 더 최신 렌더가 시작되면 이전 렌더 결과는 버린다
     const canvas = $('#deskCanvas');
     const viewport = $('#canvasViewport');
     const scrollWrap = $('#canvasScroll');
@@ -1164,7 +1277,7 @@
     const size = canvasPixelSize();
     canvas.style.width = size.width+'px';
     canvas.style.height = size.height+'px';
-    canvas.innerHTML = '';
+    const frag = document.createDocumentFragment();
     if(layoutEditMode){
       for(let c=0;c<GRID_COLS;c++){
         for(let r=0;r<GRID_ROWS;r++){
@@ -1172,7 +1285,7 @@
           const dot = document.createElement('div');
           dot.className = 'grid-dot';
           dot.style.left = pos.x+'px'; dot.style.top = pos.y+'px';
-          canvas.appendChild(dot);
+          frag.appendChild(dot);
         }
       }
     }
@@ -1197,12 +1310,7 @@
         status = record ? record.status : 'empty';
         if(status === 'present') presentCount++;
         const todaySchedule = student.weeklySchedule[todayKey];
-        if(record && (status==='present' || status==='left') && todaySchedule && todaySchedule.enabled){
-          const checkInTime = new Date(record.checkIn);
-          const [sh,sm] = todaySchedule.start.split(':').map(Number);
-          const scheduledStart = new Date(checkInTime); scheduledStart.setHours(sh,sm,0,0);
-          if(checkInTime > scheduledStart) isLate = true;
-        }
+        if(record && (status==='present' || status==='left')) isLate = isLateRecord(student, record);
         if(!record && todaySchedule && todaySchedule.enabled) expectedNotArrived = true;
       }
       cell.className = 'desk type-' + desk.type + ' ' + status + (isLate ? ' late' : '');
@@ -1238,7 +1346,7 @@
         cell.innerHTML = `
           <span class="badge">${desk.type==='partition'?'칸막이':'오픈형'}</span>
           ${pct>=100?`<span class="goal-badge" title="이번 달 목표 달성!">${ICONS.star}</span>`:''}
-          <div class="d-name"><span class="name-text">${student.name}</span><span class="streak-icon">${streakBadge}</span></div>
+          <div class="d-name"><span class="name-text">${esc(student.name)}</span><span class="streak-icon">${streakBadge}</span></div>
           <div class="d-time">${checkIn}~${checkOut}<br>${elapsedMin}분</div>
           <div class="goal-bar"><div class="goal-fill" style="width:${pct}%"></div></div>`;
         cell.dataset.studentName = student.name;
@@ -1257,8 +1365,13 @@
       cell.dataset.deskId = desk.id;
       if(layoutEditMode) attachDeskEditEvents(cell, desk, canvas);
       else attachDeskEvents(cell, desk);
-      canvas.appendChild(cell);
+      frag.appendChild(cell);
     }
+
+    // 렌더링 도중 더 새로운 렌더가 시작됐다면 이 결과는 버리고, 아니면 한 번에 교체
+    if(mySeq !== renderSeq) return;
+    canvas.innerHTML = '';
+    canvas.appendChild(frag);
 
     const useFit = fitToScreen && !layoutEditMode && !opts.fullView;
     if(useFit){
@@ -1312,18 +1425,30 @@
       cell.style.left = pos.x+'px'; cell.style.top = pos.y+'px';
       desk._col = col; desk._row = row;
     });
-    cell.addEventListener('pointerup', async () => {
+    const endDrag = async () => {
+      if(!dragging) return;
       dragging = false; cell.style.zIndex = '';
       if(desk._col != null){
         const slot = resolveOverlapCell(desk._col, desk._row, desk.floor, desk.id);
         desk.col = slot.col; desk.row = slot.row;
         delete desk._col; delete desk._row;
+        // 겹쳐서 다른 칸으로 밀려났다면 화면에도 그 위치를 반영 (안 그러면 화면과 저장 위치가 어긋남)
+        const pos = cellToPos(slot.col, slot.row);
+        cell.style.left = pos.x+'px'; cell.style.top = pos.y+'px';
         await window.dbPut('desks', desk);
       }
-    });
+    };
+    cell.addEventListener('pointerup', endDrag);
+    cell.addEventListener('pointercancel', endDrag);
     const delBtn = document.createElement('button');
     delBtn.className = 'del-btn'; delBtn.innerHTML = ICONS.close;
-    delBtn.addEventListener('click', async e => { e.stopPropagation(); if(await showConfirm('이 책상을 삭제하시겠습니까?')) await deleteDesk(desk.id); });
+    delBtn.addEventListener('click', async e => {
+      e.stopPropagation();
+      if(await showConfirm('이 책상을 삭제하시겠습니까?')){
+        await deleteDesk(desk.id);
+        renderFloor();   // 배치 모드에서는 자동 갱신이 꺼져 있으므로 직접 다시 그린다
+      }
+    });
     cell.appendChild(delBtn);
   }
   
@@ -1334,21 +1459,52 @@
     const rect = canvas.getBoundingClientRect();
     const px = e.clientX-rect.left, py = e.clientY-rect.top;
     const { col, row } = posToCell(px, py);
+    
+    // 세 번째 인자 true: 빈칸 확인도 허용(취소만 null)
+    const seatNum = await showPrompt('좌석 번호를 입력하세요 (번호가 없으면 빈칸)', '예: 1', true);
+    if (seatNum === null) return;
+    const num = seatNum.trim();
+    if(num && cache.desks.some(d => d.floor === currentFloor && String(d.seatNumber) === num)){
+      await showMessage(`${currentFloor}층에 이미 ${num}번 좌석이 있습니다.`);
+      return;
+    }
+    // 입력하는 동안 다른 책상이 생겼을 수 있으니 빈 칸 계산은 입력 후에
     const slot = resolveOverlapCell(col, row, currentFloor, null);
     
-    const seatNum = await showPrompt('좌석 번호를 입력하세요 (번호가 없으면 빈칸)', '예: 1');
-    if (seatNum === null) return;
-    
-    // ✨ 라디오 버튼 값을 즉시 읽어오는 것으로 오류 완벽 해결
     const typeEl = document.querySelector('input[name="deskType"]:checked');
     const deskType = typeEl ? typeEl.value : 'open';
     
-    addDesk(currentFloor, deskType, slot.col, slot.row, seatNum.trim());
+    addDesk(currentFloor, deskType, slot.col, slot.row, num);
   });
 
   const monthStr = () => todayStr().slice(0,7);
   const DAY_KEYS = ['sun','mon','tue','wed','thu','fri','sat'];
-  function todayDayKey(){ return DAY_KEYS[new Date().getDay()]; }
+  function todayDayKey(){ return DAY_KEYS[bizDate().getDay()]; }
+
+  // 이번 달 1일 ~ 오늘 중 학생이 신청한 요일의 날짜 목록.
+  // 오늘은 아직 끝나지 않았으므로, 이미 출석 기록이 있을 때만 포함(미출석을 결석으로 세지 않음)
+  function scheduledDatesThisMonth(s, attendedSet){
+    const b = bizDate(), y = b.getFullYear(), m = b.getMonth(), todayS = todayStr();
+    const out = [];
+    for(let d=1; d<=b.getDate(); d++){
+      const key = DAY_KEYS[new Date(y, m, d).getDay()];
+      const sc = s.weeklySchedule && s.weeklySchedule[key];
+      if(!(sc && sc.enabled)) continue;
+      const ds = `${y}-${pad2(m+1)}-${pad2(d)}`;
+      if(ds === todayS && !(attendedSet && attendedSet.has(ds))) continue;
+      out.push(ds);
+    }
+    return out;
+  }
+  // 해당 기록의 "날짜" 기준으로 신청 시작시각보다 늦게 입실했는지 (자정 넘겨 입실해도 오판 없음)
+  function isLateRecord(s, r){
+    if(!s || !r || !r.date || !r.checkIn) return false;
+    const sc = s.weeklySchedule && s.weeklySchedule[DAY_KEYS[new Date(r.date + 'T00:00:00').getDay()]];
+    if(!(sc && sc.enabled && sc.start)) return false;
+    const [sh, sm] = sc.start.split(':').map(Number);
+    const base = new Date(r.date + 'T00:00:00'); base.setHours(sh, sm, 0, 0);
+    return r.checkIn > base.getTime();
+  }
 
   function maskName(name) {
     if(name.length <= 1) return name;
@@ -1359,17 +1515,11 @@
   async function computeRanking(){
     const attendance = await dbGetAll('attendance');
     const mPrefix = monthStr();
-    const now = new Date();
-    const monthDates = [];
-    for(let d=1; d<=now.getDate(); d++){ monthDates.push(new Date(now.getFullYear(), now.getMonth(), d)); }
     return cache.students.map(s => {
-      const scheduledDays = monthDates.filter(d => {
-        const key = DAY_KEYS[d.getDay()];
-        return s.weeklySchedule[key] && s.weeklySchedule[key].enabled;
-      }).length;
-      const attendedDates = new Set(attendance.filter(a => String(a.studentId)===String(s.id) && a.date.startsWith(mPrefix)).map(a=>a.date));
+      const attendedDates = new Set(attendance.filter(a => String(a.studentId)===String(s.id) && a.date && a.date.startsWith(mPrefix)).map(a=>a.date));
+      const scheduledDays = scheduledDatesThisMonth(s, attendedDates).length;
       const attendedDays = attendedDates.size;
-      const rate = scheduledDays>0 ? Math.round(attendedDays/scheduledDays*100) : 0;
+      const rate = scheduledDays>0 ? Math.min(100, Math.round(attendedDays/scheduledDays*100)) : 0;
       const totalMin = Math.round((s.monthlyElapsedSeconds||0)/60);
       return { name:s.name, totalMin, attendedDays, scheduledDays, rate };
     }).sort((a,b) => b.totalMin - a.totalMin);
@@ -1382,7 +1532,7 @@
     if(ranking.length===0){ list.innerHTML = '<p class="muted">등록된 학생이 없습니다.</p>'; return; }
     list.innerHTML = ranking.map((r,i) => `
       <div class="list-item">
-        <span><b>${i+1}위</b> ${r.name} · ${Math.floor(r.totalMin/60)}시간 ${r.totalMin%60}분</span>
+        <span><b>${i+1}위</b> ${esc(r.name)} · ${Math.floor(r.totalMin/60)}시간 ${r.totalMin%60}분</span>
         <span class="muted">출석률 ${r.rate}% (${r.attendedDays}/${r.scheduledDays}일)</span>
       </div>`).join('');
   }
@@ -1398,7 +1548,7 @@
     }
     const medals = [ICONS.medal1, ICONS.medal2, ICONS.medal3];
     container.innerHTML = `<span class="medal-icon">${ICONS.trophy}</span> <b>이달의 명예의 전당</b>` + top3.map((r, i) =>
-      `<span style="margin-left:12px; display:flex; align-items:center;"><span class="medal-icon">${medals[i]}</span>${maskName(r.name)} (${Math.floor(r.totalMin/60)}h)</span>`
+      `<span style="margin-left:12px; display:flex; align-items:center;"><span class="medal-icon">${medals[i]}</span>${esc(maskName(r.name))} (${Math.floor(r.totalMin/60)}h)</span>`
     ).join('');
   }
 
@@ -1419,12 +1569,10 @@
   }
   async function renderStatsChart(){
     const totals = await computeDailyTotals();
-    const now = new Date();
-    const daysInMonth = now.getDate();
+    const daysInMonth = bizDate().getDate();
     const bars = [];
     for(let d=1; d<=daysInMonth; d++){
-      const pad = n => n<10?'0'+n:n;
-      const dateStr = monthStr()+'-'+pad(d);
+      const dateStr = monthStr()+'-'+pad2(d);
       bars.push({ day:d, min: totals[dateStr]||0 });
     }
     const maxMin = Math.max(1, ...bars.map(b=>b.min));
@@ -1452,10 +1600,10 @@
     list.innerHTML = entries.map(e => `
       <div class="list-item" style="flex-direction:column;align-items:flex-start;gap:4px;">
         <div style="display:flex;justify-content:space-between;width:100%;">
-          <b>${e.author||'익명'}</b>
+          <b>${esc(e.author||'익명')}</b>
           <span class="muted">${new Date(e.timestamp).toLocaleString('ko-KR',{hour:'2-digit',minute:'2-digit',month:'numeric',day:'numeric'})} 기록</span>
         </div>
-        <div style="white-space:pre-wrap;">${e.content}</div>
+        <div style="white-space:pre-wrap;">${esc(e.content)}</div>
       </div>`).join('');
   }
   
@@ -1490,10 +1638,10 @@
     list.innerHTML = logs.map(l => `
       <div class="list-item" style="flex-direction:column;align-items:flex-start;gap:2px;">
         <div style="display:flex;justify-content:space-between;width:100%;">
-          <b>${l.action}</b>
+          <b>${esc(l.action)}</b>
           <span class="muted">${new Date(l.timestamp).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}</span>
         </div>
-        <div class="muted">${l.admin} · ${l.detail||''}</div>
+        <div class="muted">${esc(l.admin)} · ${esc(l.detail||'')}</div>
       </div>`).join('');
   }
   
@@ -1561,7 +1709,7 @@
     if(wasEditing){ layoutEditMode = false; }
     await renderFloor({fullView:true});
     try{
-      const shot = await html2canvas($('#deskCanvas'), { backgroundColor:'#ffffff' });
+      const shot = await html2canvas($('#deskCanvas'), { backgroundColor: document.body.classList.contains('dark') ? '#1a1a24' : '#ffffff', scale: 2 });
       const link = document.createElement('a');
       link.download = `좌석표_${currentFloor}층_${todayStr()}.png`;
       link.href = shot.toDataURL('image/png');
@@ -1581,7 +1729,7 @@
     if($('#searchResults')) $('#searchResults').style.display = 'none';
     if(!student) return;
     const desk = await currentDeskForStudent(student);
-    if(!desk) return;
+    if(!desk){ showToast(`${student.name}님은 현재 배정된 좌석이 없습니다.`); return; }
     if(desk.floor !== currentFloor) selectFloor(desk.floor);
     setTimeout(() => {
       const el = Array.from(document.querySelectorAll('.desk')).find(d => String(d.dataset.deskId) === String(desk.id));
@@ -1594,14 +1742,14 @@
     const resultsBox = $('#searchResults');
     if(!resultsBox) return;
     if(!q){ resultsBox.style.display = 'none'; return; }
-    const matches = cache.students.filter(s => s.name.toLowerCase().includes(q) || (s.studentNum && s.studentNum.includes(q)));
+    const matches = cache.students.filter(s => String(s.name||'').toLowerCase().includes(q) || String(s.studentNum||'').toLowerCase().includes(q));
     if(matches.length === 0){ resultsBox.style.display = 'none'; return; }
     if(matches.length === 1){ jumpToStudentDesk(matches[0]); return; }
     const todayRecords = await getTodayRecords();
     const rows = [];
     for(const s of matches){
       const desk = await currentDeskForStudent(s, todayRecords);
-      rows.push(`<div class="search-result-item glass" data-sid="${s.id}">${s.studentNum||''} ${s.name} · ${desk?deskLabel(desk):'미배정'}</div>`);
+      rows.push(`<div class="search-result-item glass" data-sid="${esc(s.id)}">${esc(s.studentNum||'')} ${esc(s.name)} · ${esc(desk?deskLabel(desk):'미배정')}</div>`);
     }
     resultsBox.innerHTML = rows.join('');
     resultsBox.style.display = 'block';
@@ -1630,14 +1778,15 @@
         body.innerHTML = `<p class="muted">배정된 학생이 없습니다.</p>` +
           (canAssignFixed
             ? `<div class="field"><label>고정좌석 학생 배정</label><select id="assignSelect"><option value="">선택</option>
-                ${fixedCandidates.map(s=>`<option value="${s.id}">${s.name}</option>`).join('')}</select></div>
+                ${fixedCandidates.map(s=>`<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('')}</select></div>
                <button class="btn btn-primary" id="assignBtn" style="width:100%">배정</button>
                <p class="muted" style="margin-top:8px;">1층 좌석은 학생이 지문을 등록하면 자동으로 배정됩니다.</p>`
             : `<p class="muted">1층 좌석은 학생이 지문을 등록하면 자동으로 배정됩니다. (고정좌석은 2층에서만 지정할 수 있습니다)</p>`);
         if(canAssignFixed){
           safeAddListener('#assignBtn', 'click', async () => {
             const sid = $('#assignSelect').value; if(!sid) return;
-            const st = cache.students.find(s=>String(s.id)===String(sid)); st.deskId = deskId;
+            const st = cache.students.find(s=>String(s.id)===String(sid)); if(!st) return;
+            st.deskId = deskId;
             await window.dbPut('students', st);
             await window.logChange('좌석 배정', `${st.name} → ${deskLabel(desk)}`);
             closeOverlay('ovSeatDetail');
@@ -1649,7 +1798,7 @@
       const status = record ? record.status : '미입실';
       const modeLabel = student.seatMode === 'fixed' ? '고정좌석'
         : ('자율 · ' + (record && record.seatChoice === 'full' ? '전체 시간' : record && record.seatChoice === 'partial' ? '일부 시간' : '-'));
-      let html = `<p><b>${student.studentNum||''} ${student.name}</b> <span class="muted">(${modeLabel})</span></p>
+      let html = `<p><b>${esc(student.studentNum||'')} ${esc(student.name)}</b> <span class="muted">(${modeLabel})</span></p>
         <p class="muted">오늘 상태: <strong style="color:var(--accent);">${statusLabel(status)}</strong></p>
         <p class="muted">입실 ${record?fmtTime(record.checkIn):'-'} / 퇴실 ${record&&record.checkOut?fmtTime(record.checkOut):'-'}</p>`;
       
@@ -1719,7 +1868,7 @@
               <span style="font-weight:600;">${label}요일</span>
               <span class="muted">${d.enabled?'신청':'미신청'}</span>
             </div>
-            ${d.enabled ? `<div class="muted" style="margin-top:4px;font-size:13px;">${timeLabel(...d.start.split(':').map(Number))} ~ ${timeLabel(...d.end.split(':').map(Number))}</div>` : ''}
+            ${d.enabled ? `<div class="muted" style="margin-top:4px;font-size:13px;">${timeLabel(...normTime(d.start,'18:00').split(':').map(Number))} ~ ${timeLabel(...normTime(d.end,'21:00').split(':').map(Number))}</div>` : ''}
           </div>`;
       }
     });
@@ -1727,7 +1876,7 @@
     if(editable){
       DAYS.forEach(([key]) => {
         const cb = $('#wd_'+key);
-        const timeRow = document.querySelector(`.day-sched-time[data-day="${key}"]`);
+        const timeRow = document.querySelector(`#wkBody .day-sched-time[data-day="${key}"]`);
         if(cb && timeRow) cb.addEventListener('change', () => { timeRow.style.display = cb.checked ? 'flex' : 'none'; });
       });
     }
@@ -1751,12 +1900,15 @@
         adminMode = false; layoutEditMode = false;
         if($('#editToolbar')) $('#editToolbar').style.display='none';
         if($('#adminFab')) $('#adminFab').style.display='none';
+        if($('#fabMenu')) $('#fabMenu').classList.remove('show');
+        ['ovAdmin','ovStudentEdit','ovFingerprintEnroll','ovAttendanceHistory','ovSeatDetail','ovWeekly'].forEach(closeOverlay);
         if($('#btnAdmin')) $('#btnAdmin').textContent = '관리자 모드';
         renderFloor();
       }, 5*60*1000);
     }
   }
   document.addEventListener('click', resetAdminIdleTimer);
+  document.addEventListener('keydown', resetAdminIdleTimer);
   document.addEventListener('click', e => {
     if(!e.target.closest('#searchResults') && e.target.id !== 'studentSearch'){ if($('#searchResults')) $('#searchResults').style.display = 'none'; }
   });
@@ -1790,6 +1942,7 @@
   });
   
   safeAddListener('#pwSubmit', 'click', async () => {
+    if(!loaded.settings){ await showMessage('서버에서 설정을 불러오는 중입니다. 잠시 후 다시 시도해주세요.'); return; }
     if($('#pwInput').value === settings.adminPassword){
       adminMode = true;
       window.adminName = $('#pwAdminName').value.trim() || '관리자';
@@ -1803,6 +1956,8 @@
     } else { await showMessage('비밀번호가 올바르지 않습니다.'); }
   });
 
+  safeAddListener('#pwInput', 'keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); $('#pwSubmit').click(); } });
+  safeAddListener('#promptInput', 'keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); $('#promptOk').click(); } });
   safeAddListener('#fabToggle', 'click', () => { if($('#fabMenu')) $('#fabMenu').classList.toggle('show'); });
   
   $$('.fab-item').forEach(btn => {
@@ -1812,7 +1967,10 @@
       if(action === 'layout'){ layoutEditMode = true; if($('#editToolbar')) $('#editToolbar').style.display='flex'; renderFloor(); return; }
       if(action === 'kiosk') {
         document.body.classList.add('kiosk-mode');
-        adminMode = false; if($('#adminFab')) $('#adminFab').style.display='none'; if($('#btnAdmin')) $('#btnAdmin').textContent = '관리자 모드';
+        adminMode = false; layoutEditMode = false;
+        if($('#editToolbar')) $('#editToolbar').style.display='none';
+        if($('#adminFab')) $('#adminFab').style.display='none'; if($('#btnAdmin')) $('#btnAdmin').textContent = '관리자 모드';
+        renderFloor();
         showToast('키오스크 모드가 활성화되었습니다.');
         return;
       }
@@ -1839,14 +1997,19 @@
 
   $$('.tabbtn').forEach(btn => btn.addEventListener('click', () => openAdminPanel(btn.dataset.tab)));
 
+  const DARK_KEY = 'yaja_dark_mode';
+  let darkOverride = null;   // 이 기기에서 직접 고른 값 (없으면 서버 기본값 사용)
+  try{ const v = localStorage.getItem(DARK_KEY); if(v === '1') darkOverride = true; else if(v === '0') darkOverride = false; }catch(e){}
+  const isDark = () => darkOverride !== null ? darkOverride : !!settings.darkMode;
   function applyDarkMode(){
-    document.body.classList.toggle('dark', settings.darkMode);
-    if($('#btnDarkToggle')) $('#btnDarkToggle').innerHTML = settings.darkMode ? ICONS.sun : ICONS.moon;
+    const dark = isDark();
+    document.body.classList.toggle('dark', dark);
+    if($('#btnDarkToggle')) $('#btnDarkToggle').innerHTML = dark ? ICONS.sun : ICONS.moon;
   }
   
-  safeAddListener('#btnDarkToggle', 'click', async () => {
-    settings.darkMode = !settings.darkMode;
-    await saveSettings();
+  safeAddListener('#btnDarkToggle', 'click', () => {
+    darkOverride = !isDark();
+    try{ localStorage.setItem(DARK_KEY, darkOverride ? '1' : '0'); }catch(e){}
     applyDarkMode();
   });
 
@@ -1866,7 +2029,12 @@
   function renderDeskOptions(){
     const assignedIds = new Set(cache.students.filter(s => s.seatMode !== 'flexible' && s.deskId != null).map(s => String(s.deskId)));
     const avail = cache.desks.filter(d => d.floor === 2 && !assignedIds.has(String(d.id)));
-    if($('#newSeat')) $('#newSeat').innerHTML = '<option value="">미배정(추후 배정)</option>' + avail.map(d => `<option value="${d.id}">${deskLabel(d)}</option>`).join('');
+    const sel = $('#newSeat');
+    if(sel){
+      const keep = sel.value;
+      sel.innerHTML = '<option value="">미배정(추후 배정)</option>' + avail.map(d => `<option value="${esc(d.id)}">${esc(deskLabel(d))}</option>`).join('');
+      if(keep && avail.some(d => String(d.id) === keep)) sel.value = keep;
+    }
   }
   function toggleNewSeatField(){
     const modeEl = document.querySelector('input[name="newSeatMode"]:checked');
@@ -1896,22 +2064,25 @@
       const desk = s.deskId!=null ? findDesk(s.deskId) : null;
       const seatLabel = s.seatMode === 'fixed' ? (desk?deskLabel(desk):'좌석 미지정(고정)') : '자율(당일 자동배정)';
       return `<div class="list-item" style="flex-direction:column;align-items:stretch;gap:6px;">
-        <div>${s.studentNum||''} ${s.name} <span class="muted">· ${seatLabel} · 지문ID ${s.fingerprintId}</span></div>
+        <div>${esc(s.studentNum||'')} ${esc(s.name)} <span class="muted">· ${esc(seatLabel)} · 지문ID ${esc(s.fingerprintId)}</span></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-          <button class="btn btn-secondary" data-edit="${s.id}">수정</button>
-          <button class="btn btn-secondary" data-hist="${s.id}">출결 이력</button>
-          <button class="btn btn-secondary" data-enroll="${s.id}">지문 재등록</button>
-          <button class="btn btn-danger" data-del="${s.id}">삭제</button>
+          <button class="btn btn-secondary" data-edit="${esc(s.id)}">수정</button>
+          <button class="btn btn-secondary" data-hist="${esc(s.id)}">출결 이력</button>
+          <button class="btn btn-secondary" data-enroll="${esc(s.id)}">지문 재등록</button>
+          <button class="btn btn-danger" data-del="${esc(s.id)}">삭제</button>
         </div>
       </div>`;
     }).join('');
     $$('#studentList [data-del]').forEach(b => {
       b.onclick = async () => {
-        if(await showConfirm('정말 삭제하시겠습니까?')){
+        if(await showConfirm('정말 삭제하시겠습니까?\n이 학생의 출결 기록도 함께 삭제됩니다. (필요하면 먼저 엑셀 백업을 받아두세요)')){
           const sid = b.dataset.del; 
           const st = cache.students.find(s=>String(s.id)===String(sid));
+          // 지문 ID는 학생 ID로 재사용되므로, 기록을 남겨두면 나중에 같은 ID로 등록한 다른 학생이 이전 기록을 물려받게 된다
+          const oldRecords = cache.attendance.filter(a => String(a.studentId) === String(sid));
+          for(const r of oldRecords) await dbDelete('attendance', r.id);
           await dbDelete('students', sid);
-          await window.logChange('학생 삭제', st?st.name:('ID '+sid));
+          await window.logChange('학생 삭제', (st?st.name:('ID '+sid)) + (oldRecords.length ? ` (출결 기록 ${oldRecords.length}건 함께 삭제)` : ''));
           showToast('삭제되었습니다.');
         }
       };
@@ -1933,10 +2104,11 @@
     const fp = parseInt($('#newFp').value);
     const goal = parseInt($('#newGoal').value) || 1200;
     if(!name || !fp){ await showMessage('이름과 지문 ID를 입력해주세요.'); return; }
+    if(fp < 1 || fp > 199){ await showMessage('지문 ID는 1~199 사이 숫자로 입력해주세요.'); return; }
     if(findStudentByFp(fp)){ await showMessage('이미 사용 중인 지문 ID입니다.'); return; }
     const weeklySchedule = readScheduleGridValues('reg');
     await window.dbPut('students', { name, studentNum: sNum, deskId, fingerprintId: fp, weeklySchedule, monthlyGoalMinutes: goal, monthlyElapsedSeconds:0, monthlyHistory:{}, seatMode });
-    await window.logChange('학생 등록', `${name} (지문ID ${fp}${deskId!=null?', '+deskLabel(findDesk(deskId)):''}, ${seatMode==='fixed'?'고정':'자율'})`);
+    await window.logChange('학생 등록', `${name} (지문ID ${fp}${deskId!=null&&findDesk(deskId)?', '+deskLabel(findDesk(deskId)):''}, ${seatMode==='fixed'?'고정':'자율'})`);
     $('#newName').value=''; $('#newFp').value=''; $('#newStudentNum').value=''; $('#newGoal').value=1200;
     resetScheduleGrid('reg');
     document.querySelector('input[name="newSeatMode"][value="fixed"]').checked = true;
@@ -1953,7 +2125,7 @@
   function renderEditDeskOptions(current){
     const assignedIds = new Set(cache.students.filter(s => s.seatMode !== 'flexible' && s.deskId != null && String(s.id) !== String(current.id)).map(s => String(s.deskId)));
     const avail = cache.desks.filter(d => d.floor === 2 && !assignedIds.has(String(d.id)));
-    if($('#editSeat')) $('#editSeat').innerHTML = '<option value="">미배정(추후 배정)</option>' + avail.map(d => `<option value="${d.id}">${deskLabel(d)}</option>`).join('');
+    if($('#editSeat')) $('#editSeat').innerHTML = '<option value="">미배정(추후 배정)</option>' + avail.map(d => `<option value="${esc(d.id)}">${esc(deskLabel(d))}</option>`).join('');
   }
   $$('input[name="editSeatMode"]').forEach(r => r.addEventListener('change', toggleEditSeatField));
   
@@ -1998,24 +2170,14 @@
     if($('#histTitle')) $('#histTitle').textContent = s.name + '님의 출결 이력';
     const records = (await dbGetAll('attendance')).filter(a => String(a.studentId) === String(studentId)).sort((a,b) => b.date.localeCompare(a.date));
     const mPrefix = monthStr();
-    const now = new Date();
-    const monthDates = []; for(let d=1; d<=now.getDate(); d++){ monthDates.push(new Date(now.getFullYear(), now.getMonth(), d)); }
-    const scheduledDates = monthDates.filter(d => { const key = DAY_KEYS[d.getDay()]; return s.weeklySchedule[key] && s.weeklySchedule[key].enabled; }).map(d => {
-      const pad = n=>n<10?'0'+n:n; return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-    });
     const recordDateSet = new Set(records.filter(r => r.date.startsWith(mPrefix)).map(r => r.date));
+    const scheduledDates = scheduledDatesThisMonth(s, recordDateSet);
     const absentCount = scheduledDates.filter(d => !recordDateSet.has(d)).length;
     let lateCount = 0, presentDays = 0;
     records.forEach(r => {
-      if(r.date.startsWith(mPrefix)) presentDays++;
-      const dayKey = DAY_KEYS[new Date(r.date+'T00:00:00').getDay()];
-      const sched = s.weeklySchedule[dayKey];
-      if(sched && sched.enabled && r.checkIn){
-        const ci = new Date(r.checkIn);
-        const [sh,sm] = sched.start.split(':').map(Number);
-        const target = new Date(ci); target.setHours(sh,sm,0,0);
-        if(ci > target) lateCount++;
-      }
+      if(!r.date.startsWith(mPrefix)) return;     // 요약은 "이번 달" 기준 (원본은 지각만 전체 기간을 세어 불일치)
+      presentDays++;
+      if(isLateRecord(s, r)) lateCount++;
     });
     if($('#histSummary')) $('#histSummary').textContent = `이번 달 출석 ${presentDays}일 · 지각 ${lateCount}회 · 결석(신청 후 미출석) ${absentCount}일`;
     const list = $('#histList');
@@ -2026,8 +2188,8 @@
         const elapsedMin = Math.round((r.elapsedSeconds||0)/60);
         const deskInfo = r.deskId != null ? findDesk(r.deskId) : null;
         return `<div class="list-item" style="flex-direction:column;align-items:flex-start;gap:2px;">
-          <div style="display:flex;justify-content:space-between;width:100%;"><b>${r.date}</b><span class="muted">${statusLabel(r.status)}</span></div>
-          <div class="muted">입실 ${fmtTime(r.checkIn)} · 퇴실 ${r.checkOut?fmtTime(r.checkOut):'-'} · ${elapsedMin}분${deskInfo?' · '+deskLabel(deskInfo):''}</div>
+          <div style="display:flex;justify-content:space-between;width:100%;"><b>${esc(r.date)}</b><span class="muted">${esc(statusLabel(r.status))}</span></div>
+          <div class="muted">입실 ${fmtTime(r.checkIn)} · 퇴실 ${r.checkOut?fmtTime(r.checkOut):'-'} · ${elapsedMin}분${deskInfo?' · '+esc(deskLabel(deskInfo)):''}</div>
         </div>`;
       }).join('');
     }
@@ -2060,12 +2222,13 @@
         const seatModeRaw = String(row['좌석유형']||'').trim();
         const seatMode = (seatModeRaw === '자율' || seatModeRaw.toLowerCase() === 'flexible') ? 'flexible' : 'fixed';
         if(!name || !fp || isNaN(fp)){ skipped.push(`${name||'(이름없음)'}: 이름/지문ID 누락`); continue; }
+        if(fp < 1 || fp > 199){ skipped.push(`${name}: 지문ID ${fp} 범위 오류(1~199)`); continue; }
         if(findStudentByFp(fp)){ skipped.push(`${name}: 지문ID ${fp} 중복`); continue; }
         const weeklySchedule = defaultWeekly();
         Object.entries(dayColMap).forEach(([col,key]) => {
           const val = String(row[col]||'').trim();
           const m = val.match(/^(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})$/);
-          if(m){ weeklySchedule[key] = { enabled:true, start:m[1], end:m[2] }; }
+          if(m){ weeklySchedule[key] = { enabled:true, start:normTime(m[1],'18:00'), end:normTime(m[2],'21:00') }; }
         });
         await window.dbPut('students', { name, studentNum: sNum, deskId:null, fingerprintId: fp, weeklySchedule, monthlyGoalMinutes: goal, monthlyElapsedSeconds:0, monthlyHistory:{}, seatMode });
         added++;
@@ -2079,26 +2242,13 @@
   async function computeLateAbsenceStats(){
     const attendance = await dbGetAll('attendance');
     const mPrefix = monthStr();
-    const now = new Date();
-    const monthDates = []; for(let d=1; d<=now.getDate(); d++){ monthDates.push(new Date(now.getFullYear(), now.getMonth(), d)); }
     return cache.students.map(s => {
-      const scheduledDates = monthDates.filter(d => { const key = DAY_KEYS[d.getDay()]; return s.weeklySchedule[key] && s.weeklySchedule[key].enabled; }).map(d => {
-        const pad = n=>n<10?'0'+n:n; return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-      });
-      const myRecords = attendance.filter(a => String(a.studentId) === String(s.id) && a.date.startsWith(mPrefix));
+      const myRecords = attendance.filter(a => String(a.studentId) === String(s.id) && a.date && a.date.startsWith(mPrefix));
       const recordDateSet = new Set(myRecords.map(r => r.date));
+      const scheduledDates = scheduledDatesThisMonth(s, recordDateSet);
       const absentCount = scheduledDates.filter(d => !recordDateSet.has(d)).length;
       let lateCount = 0;
-      myRecords.forEach(r => {
-        const dayKey = DAY_KEYS[new Date(r.date+'T00:00:00').getDay()];
-        const sched = s.weeklySchedule[dayKey];
-        if(sched && sched.enabled && r.checkIn){
-          const ci = new Date(r.checkIn);
-          const [sh,sm] = sched.start.split(':').map(Number);
-          const target = new Date(ci); target.setHours(sh,sm,0,0);
-          if(ci > target) lateCount++;
-        }
-      });
+      myRecords.forEach(r => { if(isLateRecord(s, r)) lateCount++; });
       return { name: s.name, lateCount, absentCount, scheduledCount: scheduledDates.length };
     }).sort((a,b) => (b.lateCount+b.absentCount) - (a.lateCount+a.absentCount));
   }
@@ -2109,7 +2259,7 @@
     if(stats.length === 0){ el.innerHTML = '<p class="muted">등록된 학생이 없습니다.</p>'; return; }
     el.innerHTML = stats.map(s => `
       <div class="list-item">
-        <span>${s.name}</span>
+        <span>${esc(s.name)}</span>
         <span class="muted">지각 ${s.lateCount}회 · 결석 ${s.absentCount}일 (신청 ${s.scheduledCount}일 중)</span>
       </div>`).join('');
   }
@@ -2119,31 +2269,86 @@
     if(cur !== settings.adminPassword){ await showMessage('현재 비밀번호가 일치하지 않습니다.'); return; }
     if(!nw || nw !== cf){ await showMessage('새 비밀번호가 일치하지 않습니다.'); return; }
     settings.adminPassword = nw; await saveSettings();
+    await window.logChange('비밀번호 변경', '관리자 비밀번호가 변경되었습니다');
     $('#curPw').value=''; $('#newPw').value=''; $('#confirmPw').value='';
     showToast('비밀번호가 안전하게 변경되었습니다.');
   });
 
+  // 학생의 지문 ID(=학생 ID)를 바꿀 때: 새 ID로 저장 → 옛 키 삭제 → 출결 기록도 새 ID로 이전
+  // (원본은 옛 키가 남아 학생이 중복되고, 출결 기록이 옛 ID에 남아 이력이 끊겼음)
+  async function changeStudentFingerprint(student, newFp){
+    const oldId = student.id;
+    if(String(oldId) === String(newFp)){ student.fingerprintId = newFp; await window.dbPut('students', student); return student; }
+    const moved = cache.attendance.filter(a => String(a.studentId) === String(oldId));
+    const updated = Object.assign({}, student, { fingerprintId: newFp });
+    await window.dbPut('students', updated);      // 새 키로 저장 (id = newFp)
+    await dbDelete('students', oldId);            // 옛 키 삭제
+    for(const r of moved){
+      r.studentId = newFp;
+      r.studentDate = newFp + '_' + r.date;
+      await window.dbPut('attendance', r);
+    }
+    return updated;
+  }
+
+  let pendingNewEnrollFpId = null, enrollTimer = null;
+  // 타임스탬프가 초 단위/ms 단위/없음 어느 쪽이어도 처리
+  function enrollTimeout(fn){ clearTimeout(enrollTimer); enrollTimer = setTimeout(fn, 30000); }
+
   // ✨ Firebase Enroll Result Listener (원격 등록 피드백 수신)
   fbDB.ref('enrollResult').on('value', snap => {
        const res = snap.val();
-       if(res && res.timestamp > Date.now() - 30000) { 
-          if(pendingEnrollFpId != null) {
-              const statusEl = $('#feStatus2');
-              if(res.success) {
-                  const s = cache.students.find(x => String(x.id) === String(pendingEnrollStudentId));
-                  if(s) {
-                      s.fingerprintId = res.fpId;
-                      window.dbPut('students', s);
-                      window.logChange('지문 재등록', `${s.name} → 지문ID ${res.fpId}`);
-                      if(statusEl) statusEl.textContent = `등록 성공! 지문 ID ${res.fpId}로 완료되었습니다. 창을 닫아주세요.`;
-                  }
-              } else {
-                  if(statusEl) statusEl.textContent = '등록 실패. 손가락 위치를 확인하고 "원격 등록 시작"을 다시 눌러주세요.';
-              }
-              pendingEnrollFpId = null;
-          }
-          snap.ref.remove();
+       if(!res) return;
+       if(!isFreshTs(res.timestamp, 30000)) return;   // 오래된 결과는 무시
+       const newFp = res.fpId != null ? parseInt(res.fpId) : (pendingEnrollFpId != null ? pendingEnrollFpId : pendingNewEnrollFpId);
+       if(pendingEnrollFpId != null) {
+           clearTimeout(enrollTimer);
+           const statusEl = $('#feStatus2');
+           if(res.success) {
+               const s = cache.students.find(x => String(x.id) === String(pendingEnrollStudentId));
+               const dupe = findStudentByFp(newFp);
+               if(s && dupe && String(dupe.id) !== String(s.id)) {
+                   if(statusEl) statusEl.textContent = `지문 ID ${newFp}는 이미 ${dupe.name}님이 사용 중입니다.`;
+               } else if(s) {
+                   changeStudentFingerprint(s, newFp).then(ns => {
+                       pendingEnrollStudentId = ns.id;
+                       if($('#feFpId2')) $('#feFpId2').value = newFp;
+                       window.logChange('지문 재등록', `${ns.name} → 지문ID ${newFp}`);
+                   }).catch(e => { if(statusEl) statusEl.textContent = '저장 중 오류: ' + e.message; });
+                   if(statusEl) statusEl.textContent = `등록 성공! 지문 ID ${newFp}로 완료되었습니다. 창을 닫아주세요.`;
+               }
+           } else {
+               if(statusEl) statusEl.textContent = '등록 실패. 손가락 위치를 확인하고 "원격 등록 시작"을 다시 눌러주세요.';
+           }
+           pendingEnrollFpId = null;
+       } else if(pendingNewEnrollFpId != null) {
+           clearTimeout(enrollTimer);
+           const statusEl = $('#feStatus');
+           if(res.success) {
+               if(statusEl) statusEl.textContent = `등록 성공! 지문 ID ${newFp}가 기기에 저장되었습니다.\n[학생 관리] 탭의 "새 학생 등록"에서 이 지문 ID로 학생을 추가하세요.`;
+               if($('#newFp')) $('#newFp').value = newFp;
+               window.logChange('지문 신규 등록', `지문ID ${newFp} 기기 등록`);
+           } else {
+               if(statusEl) statusEl.textContent = '등록 실패. 손가락 위치를 확인하고 "원격 등록 시작"을 다시 눌러주세요.';
+           }
+           pendingNewEnrollFpId = null;
        }
+       snap.ref.remove();
+  });
+
+  // [기기 연결] 탭의 "원격 등록 시작" — 원본에는 클릭 핸들러가 없어 눌러도 아무 일도 일어나지 않았음
+  safeAddListener('#enrollBtn', 'click', async () => {
+    const id = parseInt($('#enrollFpId').value);
+    const statusEl = $('#feStatus');
+    if(!id || id < 1 || id > 199){ await showMessage('지문 ID는 1~199 사이 숫자로 입력해주세요.'); return; }
+    const dupe = findStudentByFp(id);
+    if(dupe){ await showMessage(`지문 ID ${id}는 이미 ${dupe.name}님이 사용 중입니다.`); return; }
+    if(!isOnline){ await showMessage('서버에 연결되지 않았습니다. 연결 상태를 확인해주세요.'); return; }
+    pendingEnrollFpId = null;
+    pendingNewEnrollFpId = id;
+    if(statusEl) statusEl.textContent = '원격 지문 등록 대기 중... 기기에 손가락을 올려주세요 (30초 대기)';
+    fbWrite('enrollRequest', { fpId: id, timestamp: Date.now() });
+    enrollTimeout(() => { if(pendingNewEnrollFpId != null){ pendingNewEnrollFpId = null; if(statusEl) statusEl.textContent = '기기 응답이 없습니다. 기기가 켜져 있고 와이파이에 연결되어 있는지 확인해주세요.'; } });
   });
 
   function openFingerprintEnroll(studentId){
@@ -2164,10 +2369,13 @@
     const dupe = findStudentByFp(newId);
     if(dupe && String(dupe.id) !== String(s.id)){ await showMessage(`지문 ID ${newId}는 이미 ${dupe.name}님이 사용 중입니다.`); return; }
     
+    if(!isOnline){ await showMessage('서버에 연결되지 않았습니다. 연결 상태를 확인해주세요.'); return; }
+    pendingNewEnrollFpId = null;
     pendingEnrollFpId = newId;
-    if($('#feStatus2')) $('#feStatus2').textContent = '원격 지문 등록 대기 중... 기기에 손가락을 올려주세요 (10초 대기)';
+    if($('#feStatus2')) $('#feStatus2').textContent = '원격 지문 등록 대기 중... 기기에 손가락을 올려주세요 (30초 대기)';
     
-    await fbDB.ref('enrollRequest').set({ fpId: newId, timestamp: Date.now() });
+    fbWrite('enrollRequest', { fpId: newId, timestamp: Date.now() });
+    enrollTimeout(() => { if(pendingEnrollFpId != null){ pendingEnrollFpId = null; if($('#feStatus2')) $('#feStatus2').textContent = '기기 응답이 없습니다. 기기가 켜져 있고 와이파이에 연결되어 있는지 확인해주세요.'; } });
   });
 
   safeAddListener('#exportExcelBtn', 'click', async () => {
@@ -2190,78 +2398,76 @@
   safeAddListener('#reminderBackup', 'click', () => { closeOverlay('ovReminder'); if($('#exportExcelBtn')) $('#exportExcelBtn').click(); });
   
   function checkBackupReminder(){
+    // 알림의 "지금 백업"은 전체 학생/출결 데이터를 내려받으므로 로그인한 관리자에게만 보여준다
+    if(!adminMode || document.body.classList.contains('kiosk-mode') || !isReady()) return;
     const now = new Date();
     const hm = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-    if(hm === settings.studyEndTime && settings.lastBackupReminderDate !== todayStr()){
+    // 정확히 그 분에만 뜨면 (탭이 백그라운드로 밀려 타이머가 늦어질 때) 놓치므로 이후 시각이면 하루 한 번 표시
+    if(hm >= (settings.studyEndTime || '22:00') && settings.lastBackupReminderDate !== todayStr()){
       settings.lastBackupReminderDate = todayStr(); saveSettings(); openOverlay('ovReminder');
     }
   }
 
-  async function cleanupStaleRecords(){
-    const allRecords = await dbGetAll('attendance');
-    const today = todayStr();
-    for(const r of allRecords){
-      if(r.date !== today && (r.status === 'present' || r.status === 'away')){
-        const [eh, em] = (settings.validEndTime || '21:30').split(':').map(Number);
-        const pts = r.date.split('-');
-        const endDt = new Date(pts[0], pts[1]-1, pts[2], eh, em, 0, 0);
-        if (eh < 12) endDt.setDate(endDt.getDate() + 1); 
-
-        if(r.status === 'away' && r.lastBreakStart){
-          r.totalBreakSeconds = (r.totalBreakSeconds||0) + calcValidSeconds(r.lastBreakStart, endDt);
-        }
-        r.checkOut = endDt.getTime();
-        r.status = 'left';
-        r.elapsedSeconds = Math.round(Math.max(0, calcValidSeconds(r.checkIn, endDt) - (r.totalBreakSeconds||0)));
-        await window.dbPut('attendance', r);
-
-        const st = cache.students.find(s=>String(s.id)===String(r.studentId));
-        if(st){
-          st.monthlyElapsedSeconds = (st.monthlyElapsedSeconds||0) + r.elapsedSeconds;
-          await window.dbPut('students', st);
-        }
-      }
+  // 운영 종료 시각(운영 시작이 종료보다 늦으면 다음날로 넘김: calcValidSeconds 와 동일 규칙)
+  function validEndFor(dateStr){
+    const [sh, sm] = (settings.validStartTime || '16:00').split(':').map(Number);
+    const [eh, em] = (settings.validEndTime || '21:30').split(':').map(Number);
+    const pt = dateStr.split('-').map(Number);
+    const end = new Date(pt[0], pt[1]-1, pt[2], eh, em, 0, 0);
+    if(sh > eh || (sh === eh && sm > em)) end.setDate(end.getDate() + 1);
+    return end;
+  }
+  // 입실/자리비움 상태의 기록을 지정 시각으로 퇴실 처리하고 월 누적에 합산
+  async function closeRecordAsLeft(record, outTs){
+    if(record.status === 'away' && record.lastBreakStart){
+      record.totalBreakSeconds = (record.totalBreakSeconds||0) + calcValidSeconds(record.lastBreakStart, outTs);
+    }
+    record.lastBreakStart = null;
+    record.checkOut = outTs;
+    record.status = 'left';
+    record.elapsedSeconds = Math.round(Math.max(0, calcValidSeconds(record.checkIn, outTs) - (record.totalBreakSeconds||0)));
+    await window.dbPut('attendance', record);
+    const st = cache.students.find(s => String(s.id) === String(record.studentId));
+    if(st){
+      st.monthlyElapsedSeconds = (st.monthlyElapsedSeconds||0) + record.elapsedSeconds;
+      await window.dbPut('students', st);
     }
   }
 
-  async function runAutoCheckout(){
-    if(!settings.validEndTime) return;
-    const now = new Date();
-    const [eh, em] = settings.validEndTime.split(':').map(Number);
-    const endDt = new Date(); 
-    endDt.setHours(eh, em, 0, 0);
-    const dateParts = todayStr().split('-').map(Number);
-    const targetEndDt = new Date(dateParts[0], dateParts[1]-1, dateParts[2], eh, em, 0, 0);
-    if (eh < 6) targetEndDt.setDate(targetEndDt.getDate() + 1);
+  let cleaning = false;
+  async function cleanupStaleRecords(){
+    if(!isReady() || cleaning) return;
+    cleaning = true;
+    try{
+      const allRecords = cache.attendance.slice();
+      const today = todayStr();
+      for(const r of allRecords){
+        if(r.date && r.date !== today && (r.status === 'present' || r.status === 'away')){
+          const endTs = validEndFor(r.date).getTime();
+          await closeRecordAsLeft(r, Math.max(endTs, r.checkIn || 0));
+        }
+      }
+    } finally { cleaning = false; }
+  }
 
-    if(now >= targetEndDt && settings.lastAutoCheckoutDate !== todayStr()){
-      settings.lastAutoCheckoutDate = todayStr();
-      await saveSettings();
+  async function runAutoCheckout(){
+    // 서버 데이터/설정을 다 받기 전에 실행하면 기본값(21:30, 비밀번호 0000 …)으로 서버 설정을 덮어쓰게 되므로 반드시 대기
+    if(!isReady() || !settings.validEndTime) return;
+    const today = todayStr();
+    const targetEndDt = validEndFor(today);
+
+    if(Date.now() >= targetEndDt.getTime() && settings.lastAutoCheckoutDate !== today){
+      settings.lastAutoCheckoutDate = today;
+      saveSettings();
 
       const todayRecords = await getTodayRecords();
       let changedCount = 0;
-      
       for(const record of todayRecords){
         if(record.status === 'present' || record.status === 'away'){
-          if(record.status === 'away' && record.lastBreakStart){
-            record.totalBreakSeconds = (record.totalBreakSeconds||0) + calcValidSeconds(record.lastBreakStart, targetEndDt);
-            record.lastBreakStart = null;
-          }
-          record.checkOut = targetEndDt.getTime();
-          record.status = 'left';
-          let totalTime = calcValidSeconds(record.checkIn, targetEndDt);
-          record.elapsedSeconds = Math.round(Math.max(0, totalTime - (record.totalBreakSeconds||0)));
-          await window.dbPut('attendance', record);
-
-          const st = cache.students.find(s=>String(s.id)===String(record.studentId));
-          if(st){ 
-            st.monthlyElapsedSeconds = (st.monthlyElapsedSeconds||0) + record.elapsedSeconds; 
-            await window.dbPut('students', st); 
-          }
+          await closeRecordAsLeft(record, Math.max(targetEndDt.getTime(), record.checkIn || 0));
           changedCount++;
         }
       }
-      
       if(changedCount > 0){
         window.logChange('마감 일괄 퇴실', `${changedCount}명 운영 종료시간 기준 자동 퇴실 처리됨`);
         showToast(`운영 시간이 종료되어 ${changedCount}명 일괄 퇴실 처리되었습니다.`);
@@ -2269,26 +2475,54 @@
     }
   }
 
+  let rollingOver = false;
   async function checkDateRollover(){
-    const today = todayStr();
-    if(settings.currentDate !== today){
-      await cleanupStaleRecords(); 
-      if(settings.currentDate.slice(0,7) !== today.slice(0,7)){
-        const prevMonth = settings.currentDate.slice(0,7);
-        for(const s of cache.students){
-          if(!s.monthlyHistory) s.monthlyHistory = {};
-          s.monthlyHistory[prevMonth] = s.monthlyElapsedSeconds || 0;
-          s.monthlyElapsedSeconds = 0;
-          await window.dbPut('students', s);
+    if(!isReady() || rollingOver) return;
+    rollingOver = true;
+    try{
+      const today = todayStr();
+      const prevDate = settings.currentDate || today;
+      if(prevDate !== today){
+        await cleanupStaleRecords(); 
+        if(prevDate.slice(0,7) !== today.slice(0,7)){
+          const prevMonth = prevDate.slice(0,7);
+          for(const s of cache.students){
+            if(!s.monthlyHistory) s.monthlyHistory = {};
+            // 다른 기기가 이미 월 마감을 했다면(이력이 있으면) 0으로 덮어쓰지 않는다
+            if(s.monthlyHistory[prevMonth] == null){
+              s.monthlyHistory[prevMonth] = s.monthlyElapsedSeconds || 0;
+              s.monthlyElapsedSeconds = 0;
+              await window.dbPut('students', s);
+            }
+          }
         }
+        settings.currentDate = today; saveSettings();
       }
-      settings.currentDate = today; saveSettings();
-    }
-    checkBackupReminder();
-    runAutoCheckout(); 
+      checkBackupReminder();
+      await runAutoCheckout();
+    } finally { rollingOver = false; }
   }
 
   function updateClock(){ if($('#clockText')) $('#clockText').textContent = new Date().toLocaleString('ko-KR',{hour:'2-digit',minute:'2-digit',month:'long',day:'numeric',weekday:'short'}); }
+
+  // 필요한 데이터를 모두 한 번씩 받은 뒤에만 시작 작업(날짜 전환·마감 처리)을 실행
+  function onDataLoaded(){
+    if(startedUp || !isReady()) return;
+    startedUp = true;
+    (async () => {
+      try{
+        await checkDateRollover();
+        await cleanupStaleRecords();
+        await runAutoCheckout();
+      }catch(e){ console.error('시작 작업 오류', e); }
+    })();
+  }
+
+  let offlineTimer = null;
+  function setWarnHeight(){
+    const w = $('#serialWarning');
+    document.documentElement.style.setProperty('--warn-h', (w && w.style.display === 'block') ? w.offsetHeight + 'px' : '0px');
+  }
 
   function init(){
     applyDarkMode();
@@ -2299,35 +2533,55 @@
     
     // 🚨 통신과 UI 렌더링 분리 (Non-Blocking)
     fbDB.ref('settings/app').on('value', snap => {
+        loaded.settings = true;    // 존재 여부와 상관없이 "확인 완료" — 이후부터 저장 허용
         if(snap.exists()) { settings = { ...settings, ...snap.val() }; applyDarkMode(); }
         else { saveSettings(); }
+        onDataLoaded();
     });
-    fbDB.ref('students').on('value', snap => { cache.students = snap.exists() ? Object.values(snap.val()) : []; triggerRender(); renderDeskOptions(); });
-    fbDB.ref('desks').on('value', snap => { cache.desks = snap.exists() ? Object.values(snap.val()) : []; triggerRender(); renderDeskOptions(); });
-    fbDB.ref('attendance').on('value', snap => { cache.attendance = snap.exists() ? Object.values(snap.val()) : []; triggerRender(); });
-    fbDB.ref('changelog').on('value', snap => { cache.changelog = snap.exists() ? Object.values(snap.val()) : []; });
-    fbDB.ref('dailylogs').on('value', snap => { cache.dailylogs = snap.exists() ? Object.values(snap.val()) : []; });
+    fbDB.ref('students').on('value', snap => { cache.students = snapToList(snap).map(normStudent); loaded.students = true; triggerRender(); renderDeskOptions(); onDataLoaded(); });
+    fbDB.ref('desks').on('value', snap => { cache.desks = snapToList(snap); loaded.desks = true; triggerRender(); renderDeskOptions(); onDataLoaded(); });
+    fbDB.ref('attendance').on('value', snap => { cache.attendance = snapToList(snap); loaded.attendance = true; triggerRender(); onDataLoaded(); });
+    fbDB.ref('changelog').on('value', snap => { cache.changelog = snapToList(snap); });
+    fbDB.ref('dailylogs').on('value', snap => { cache.dailylogs = snapToList(snap); });
+
+    initFingerprintListener();
 
     fbDB.ref('.info/connected').on('value', snap => {
       const warning = $('#serialWarning');
       if(!warning) return;
       if (snap.val() === true) {
+        isOnline = true;
+        clearTimeout(offlineTimer);
         if($('#serialDot')) $('#serialDot').className = 'dot on';
         if($('#serialLabel')) $('#serialLabel').textContent = '클라우드 연동됨';
         warning.style.display = 'none';
         warning.classList.remove('flash');
-        cleanupStaleRecords(); runAutoCheckout();
+        setWarnHeight();
+        if(isReady()){ cleanupStaleRecords(); runAutoCheckout(); }
       } else {
+        isOnline = false;
         if($('#serialDot')) $('#serialDot').className = 'dot off';
         if($('#serialLabel')) $('#serialLabel').textContent = '서버 연결 끊김';
-        warning.style.display = 'block';
-        warning.classList.add('flash');
-        warning.innerHTML = ICONS.alert + " 인터넷 연결 및 학교 방화벽을 확인해 주세요.";
+        // 접속 직후 잠깐 false 로 보고되는 경우가 있어, 3초 이상 끊겨 있을 때만 경고 배너 표시
+        clearTimeout(offlineTimer);
+        offlineTimer = setTimeout(() => {
+          if(isOnline) return;
+          warning.style.display = 'block';
+          warning.classList.add('flash');
+          warning.innerHTML = ICONS.alert + " 인터넷 연결 및 학교 방화벽을 확인해 주세요.";
+          setWarnHeight();
+        }, 3000);
       }
     });
 
     setInterval(updateClock, 15000);
     setInterval(checkDateRollover, 30000);
+    // 경과 시간(분)·지각 표시가 데이터 변경이 없어도 계속 갱신되도록 1분마다 화면 다시 그리기
+    setInterval(() => {
+      if(!isReady() || layoutEditMode) return;
+      if(document.querySelector('.overlay.show')) return;
+      triggerRender();
+    }, 60000);
   }
   
   init();
