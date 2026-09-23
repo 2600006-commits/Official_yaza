@@ -45,6 +45,14 @@
     box-shadow:0 8px 32px rgba(31,38,135,0.14);
   }
 
+  #serialWarning {
+    display: none; background: #ff3b30; color: #fff; text-align: center; padding: 12px; font-weight: bold;
+    position: sticky; top: 0; z-index: 9999; font-size: 14px;
+  }
+  #serialWarning.flash { animation: flashBg 2s infinite; }
+  #serialWarning svg { vertical-align: text-bottom; margin-right: 6px; }
+  @keyframes flashBg { 0%, 100% { background: #ff3b30; } 50% { background: #d70015; } }
+
   header{
     position:sticky; top:0; z-index:20;
     display:flex; align-items:center; justify-content:space-between;
@@ -245,6 +253,9 @@
 
 <div id="app-toast"></div>
 
+<!-- 클라우드 및 와이파이 경고 배너 -->
+<div id="serialWarning"><span id="icon-alert"></span> 클라우드 서버 통신 대기 중...</div>
+
 <header class="glass">
   <div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap; flex:1;">
     <div>
@@ -266,21 +277,21 @@
     <span class="muted"><span class="dot wait" id="serialDot"></span><span id="serialLabel">서버 연결 중...</span></span>
     <button class="btn btn-secondary" id="btnDarkToggle"></button>
     <button class="btn btn-secondary" id="btnRules">야자 규정</button>
-    <!-- 시뮬레이션 버튼 삭제 완료 -->
+    <!-- 시뮬레이션 버튼 깔끔하게 삭제 완료 -->
     <button class="btn btn-primary" id="btnAdmin">관리자 모드</button>
   </div>
 </header>
 
 <div class="kiosk-instruction"><span id="icon-fingerprint"></span>아래 버튼을 눌러 스캐너를 켠 후 지문을 스캔하세요</div>
 
-<!-- ✨ 1층 스캔 버튼 (평소엔 대기, 누르면 스캔 시작) -->
+<!-- ✨ 1층 스캔 전용 버튼 (센서 무선 원격 제어용) -->
 <div id="floor1Actions" style="display:flex; gap:10px; margin: 0 12px 16px; justify-content:center;">
     <button class="btn btn-primary" style="flex:1; height:48px; font-size:15px; border-radius:14px;" onclick="requestScan('present')">입실 스캔</button>
     <button class="btn btn-secondary" style="flex:1; height:48px; font-size:15px; border-radius:14px;" onclick="requestScan('away')">외출 스캔</button>
     <button class="btn btn-danger" style="flex:1; height:48px; font-size:15px; border-radius:14px;" onclick="requestScan('left')">퇴실 스캔</button>
 </div>
 
-<!-- 명예의 전당 -->
+<!-- 명예의 전당 (홈 화면 랭킹) -->
 <div id="publicRanking" class="glass"><span id="icon-trophy"></span> 명예의 전당: 데이터 집계 중...</div>
 
 <div id="todaySummary" class="muted" style="margin:0 12px 10px;font-size:12px;"></div>
@@ -342,7 +353,7 @@
   </div>
 </div>
 
-<!-- ✨ 2층 좌석 클릭 상세 팝업 -->
+<!-- 2층 좌석 상세 (스캔 버튼 내장형) -->
 <div class="overlay" id="ovSeatDetail">
   <div class="modal glass">
     <button class="close-x" data-close="ovSeatDetail"></button>
@@ -478,7 +489,7 @@
       <div id="diaryList"></div>
     </div>
 
-    <!-- ✨ 이력 삭제 버튼 추가 완료 -->
+    <!-- 이력 삭제 버튼이 추가된 변경 이력 탭 -->
     <div class="tabpane" id="tab-log">
       <h3>관리자 변경 이력</h3>
       <div class="row" style="margin-bottom:12px;">
@@ -498,6 +509,16 @@
       </div>
       <div id="feStatus" class="muted" style="margin-top:12px;white-space:pre-wrap;">기기가 와이파이에 켜져있어야 합니다.</div>
     </div>
+  </div>
+</div>
+
+<!-- 학생 상태 변경 선택 모달 -->
+<div class="overlay" id="ovStudentAction">
+  <div class="modal glass">
+    <h2><span id="saName"></span>님, 무엇을 할까요?</h2>
+    <div class="modal-actions" id="saActions" style="gap:12px;"></div>
+    <button class="btn btn-secondary" id="saCancel" style="width:100%;margin-top:12px;">취소 (화면 닫기)</button>
+    <p class="muted" style="text-align:center; margin-top:10px; font-size:11px;">7초 후 자동으로 취소됩니다.</p>
   </div>
 </div>
 
@@ -538,6 +559,20 @@
       <button class="btn btn-secondary" id="promptCancel" style="flex:1">취소</button>
       <button class="btn btn-primary" id="promptOk" style="flex:1">확인</button>
     </div>
+  </div>
+</div>
+
+<!-- 좌석 선택 (자율 학생 입실 시) -->
+<div class="overlay" id="ovSeatChoice">
+  <div class="modal glass">
+    <h2>오늘 학습 방식을 선택해주세요</h2>
+    <p class="muted" id="scDesc">전체 시간(4시~9시30분)을 채울 예정이면 "전체 시간", 자유롭게 왔다 갈 예정이면 "일부 시간"을 선택해주세요.</p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="scPartial" style="flex:1;">일부 시간 (1층)</button>
+      <button class="btn btn-primary" id="scFull" style="flex:1;">전체 시간 (2층)</button>
+    </div>
+    <button class="btn btn-secondary" id="scCancel" style="width:100%;margin-top:8px;">취소</button>
+    <p class="muted" style="text-align:center; margin-top:10px; font-size:11px;">7초 후 자동으로 취소됩니다.</p>
   </div>
 </div>
 
@@ -604,6 +639,12 @@
 (function(){
   'use strict';
   
+  // 글로벌 함수 지정 (오류 원천 차단)
+  window.logChange = async function(action, detail){
+    try{ await window.dbPut('changelog', { timestamp: Date.now(), admin: window.adminName || '관리자', action, detail: detail||'' }); }
+    catch(e){}
+  };
+
   const $ = sel => document.querySelector(sel);
   const $$ = sel => Array.from(document.querySelectorAll(sel));
   const safeAddListener = (id, event, handler) => { const el = $(id); if(el) el.addEventListener(event, handler); };
@@ -626,9 +667,9 @@
   let cache = { students: [], desks: [], attendance: [], changelog: [], dailylogs: [] };
   
   let adminMode = false, adminIdleTimer = null;
-  let currentFloor = 1, layoutEditMode = false, newDeskType = 'open', fitToScreen = true;
+  let currentFloor = 1, layoutEditMode = false, fitToScreen = true;
   let longPressTimer = null, longPressTriggered = false;
-  let adminName = '';
+  window.adminName = '';
   let pendingEnrollStudentId = null, pendingEnrollFpId = null;
 
   async function dbGetAll(store){ return cache[store] || []; }
@@ -636,7 +677,7 @@
   async function dbIndexGet(store, index, value){ return (cache[store]||[]).find(x => String(x[index]) === String(value)) || null; }
   async function dbIndexGetAll(store, index, value){ return (cache[store]||[]).filter(x => String(x[index]) === String(value)); }
 
-  async function dbPut(store, val){
+  window.dbPut = async function(store, val){
     if (store === 'students') val.id = val.fingerprintId; 
     else if (!val.id) val.id = Date.now();
     
@@ -646,7 +687,7 @@
     
     fbDB.ref(store + '/' + val.id).set(val); 
     return val;
-  }
+  };
   
   async function dbDelete(store, key){
     cache[store] = (cache[store]||[]).filter(x => String(x.id) !== String(key));
@@ -682,7 +723,6 @@
   };
   const fmtTime = ts => ts ? new Date(ts).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}) : '-';
   
-  // 🚨 고쳐진 팝업 함수 (샵 # 기호 포함 완료)
   const openOverlay = id => { const el = $('#'+id); if(el) el.classList.add('show'); };
   const closeOverlay = id => { const el = $('#'+id); if(el) el.classList.remove('show'); };
   
@@ -959,13 +999,11 @@
     if(!student){ showToast('등록되지 않은 지문입니다.'); return; }
     let record = await getTodayAttendance(student.id);
     
-    // 센서가 읽은 후 Firebase가 보낸 scanRequest 값을 보고 행동 결정
-    // 기본적으로 'present'로 취급하지만, scanRequest 노드가 최근에 살아있다면 그 값을 사용
     fbDB.ref('scanRequest').once('value', async snap => {
         let action = 'present';
         if(snap.exists() && snap.val().timestamp > Date.now() - 15000) {
             action = snap.val().action;
-            snap.ref.remove(); // 명령 소진
+            snap.ref.remove(); 
         }
 
         if (action === 'present') {
@@ -975,21 +1013,21 @@
                     deskId = student.deskId != null ? student.deskId : null;
                 } else {
                     const todayRecords = await getTodayRecords();
-                    const targetFloor = 1; // 자율좌석은 무조건 1층 일부 시간 배정 (UI 단순화)
+                    const targetFloor = 1; 
                     const desk = findAvailableDeskForToday(targetFloor, todayRecords);
                     deskId = desk ? desk.id : null;
                     seatChoice = 'partial';
                     if(!desk) showToast(`${targetFloor}층에 빈자리가 없어 좌석 없이 입실 처리됩니다.`);
                 }
                 record = { studentId: student.id, studentDate: student.id+'_'+todayStr(), date: todayStr(), checkIn: now, checkOut:null, status:'present', elapsedSeconds:0, totalBreakSeconds:0, lastBreakStart:null, deskId, seatChoice };
-                await dbPut('attendance', record);
+                await window.dbPut('attendance', record);
                 showToast(`${student.name}님 환영합니다! 입실 완료되었습니다.`);
              } else {
                 if(record.status === 'away') {
                    if(record.lastBreakStart) record.totalBreakSeconds = (record.totalBreakSeconds||0) + calcValidSeconds(record.lastBreakStart, now);
                    record.lastBreakStart = null;
                    record.status = 'present';
-                   await dbPut('attendance', record);
+                   await window.dbPut('attendance', record);
                    showToast(`${student.name}님 재입실 처리되었습니다.`);
                 } else if (record.status === 'present'){
                    showToast(`${student.name}님은 이미 입실 상태입니다.`);
@@ -1001,7 +1039,7 @@
              if(record && record.status === 'present') {
                 record.lastBreakStart = now;
                 record.status = 'away';
-                await dbPut('attendance', record);
+                await window.dbPut('attendance', record);
                 showToast(`${student.name}님 자리 비움 처리되었습니다.`);
              } else {
                 showToast(`입실 상태에서만 외출이 가능합니다.`);
@@ -1015,9 +1053,9 @@
                 record.checkOut = now;
                 record.status = 'left';
                 record.elapsedSeconds = Math.round(Math.max(0, calcValidSeconds(record.checkIn, now) - (record.totalBreakSeconds||0)));
-                await dbPut('attendance', record);
+                await window.dbPut('attendance', record);
                 student.monthlyElapsedSeconds = (student.monthlyElapsedSeconds||0) + record.elapsedSeconds;
-                await dbPut('students', student);
+                await window.dbPut('students', student);
                 showToast(`${student.name}님 고생하셨습니다! 퇴실 처리되었습니다.`);
              } else {
                 showToast(`이미 퇴실하셨거나 입실 기록이 없습니다.`);
@@ -1048,10 +1086,10 @@
         record.elapsedSeconds = Math.round(Math.max(0, totalTime - (record.totalBreakSeconds||0)));
         
         const student = cache.students.find(s=>String(s.id)===String(studentId));
-        if(student){ student.monthlyElapsedSeconds = (student.monthlyElapsedSeconds||0) + record.elapsedSeconds; await dbPut('students', student); }
+        if(student){ student.monthlyElapsedSeconds = (student.monthlyElapsedSeconds||0) + record.elapsedSeconds; await window.dbPut('students', student); }
       }
     }
-    await dbPut('attendance', record);
+    await window.dbPut('attendance', record);
   }
 
   // ✨ 배치 모드 오류 수정 (addDesk 시 바로 화면 갱신 추가 완료)
@@ -1060,7 +1098,7 @@
     cache.desks.push(d); // 캐시에 즉시 반영
     renderFloor();       // 화면에 즉시 그리기
     await fbDB.ref('desks/' + d.id).set(d); // DB는 비동기 저장
-    await logChange('좌석 추가', `${floor}층 ${type==='partition'?'칸막이':'오픈형'}${seatNumber ? ' ' + seatNumber + '번' : ''}`);
+    await window.logChange('좌석 추가', `${floor}층 ${type==='partition'?'칸막이':'오픈형'}${seatNumber ? ' ' + seatNumber + '번' : ''}`);
   }
   
   async function deleteDesk(id){
@@ -1068,10 +1106,10 @@
     const label = desk ? deskLabel(desk) : ('ID '+id);
     if(desk){
       const st = findStudentByDesk(id);
-      if(st){ st.deskId = null; await dbPut('students', st); }
+      if(st){ st.deskId = null; await window.dbPut('students', st); }
     }
     await dbDelete('desks', id);
-    await logChange('좌석 삭제', label);
+    await window.logChange('좌석 삭제', label);
   }
 
   safeAddListener('#finishEditBtn', 'click', () => {
@@ -1280,7 +1318,7 @@
         const slot = resolveOverlapCell(desk._col, desk._row, desk.floor, desk.id);
         desk.col = slot.col; desk.row = slot.row;
         delete desk._col; delete desk._row;
-        await dbPut('desks', desk);
+        await window.dbPut('desks', desk);
       }
     });
     const delBtn = document.createElement('button');
@@ -1301,7 +1339,11 @@
     const seatNum = await showPrompt('좌석 번호를 입력하세요 (번호가 없으면 빈칸)', '예: 1');
     if (seatNum === null) return;
     
-    addDesk(currentFloor, newDeskType, slot.col, slot.row, seatNum.trim());
+    // ✨ 라디오 버튼 값을 즉시 읽어오는 것으로 오류 완벽 해결
+    const typeEl = document.querySelector('input[name="deskType"]:checked');
+    const deskType = typeEl ? typeEl.value : 'open';
+    
+    addDesk(currentFloor, deskType, slot.col, slot.row, seatNum.trim());
   });
 
   const monthStr = () => todayStr().slice(0,7);
@@ -1423,8 +1465,8 @@
     const author = $('#diaryAuthor').value.trim() || adminName || '익명';
     const content = $('#diaryContent').value.trim();
     if(!content){ await showMessage('감독 내용을 입력해주세요.'); return; }
-    await dbPut('dailylogs', { date, author, content, timestamp: Date.now() });
-    await logChange('감독일지 작성', `${date} (${author})`);
+    await window.dbPut('dailylogs', { date, author, content, timestamp: Date.now() });
+    await window.logChange('감독일지 작성', `${date} (${author})`);
     if($('#diaryContent')) $('#diaryContent').value = '';
     await renderDiaryList();
     showToast('감독 일지가 저장되었습니다.');
@@ -1483,7 +1525,6 @@
     XLSX.writeFile(wb, `변경이력_${dateStr}.xlsx`);
   });
 
-  // ✨ 이력 삭제 (기록 지우기) 기능 추가 완료
   safeAddListener('#clearLogBtn', 'click', async () => {
     if(await showConfirm('현재 조회된 날짜의 이력을 모두 삭제하시겠습니까?\n(이 작업 자체는 삭제 기록으로 한 줄 남습니다)')){
         let dateStr = $('#logDateFilter').value || todayStr();
@@ -1496,7 +1537,7 @@
         for(const l of logsToDelete) {
             await dbDelete('changelog', l.id);
         }
-        await logChange('이력 삭제', `${dateStr} 일자 시스템 변경 이력 일괄 삭제됨`);
+        await window.logChange('이력 삭제', `${dateStr} 일자 시스템 변경 이력 일괄 삭제됨`);
         showToast('해당 날짜의 기록이 깨끗하게 삭제되었습니다.');
         renderChangeLog();
     }
@@ -1597,8 +1638,8 @@
           safeAddListener('#assignBtn', 'click', async () => {
             const sid = $('#assignSelect').value; if(!sid) return;
             const st = cache.students.find(s=>String(s.id)===String(sid)); st.deskId = deskId;
-            await dbPut('students', st);
-            await logChange('좌석 배정', `${st.name} → ${deskLabel(desk)}`);
+            await window.dbPut('students', st);
+            await window.logChange('좌석 배정', `${st.name} → ${deskLabel(desk)}`);
             closeOverlay('ovSeatDetail');
             showToast('좌석이 배정되었습니다.');
           });
@@ -1636,16 +1677,16 @@
       }
       body.innerHTML = html;
       if(adminMode){
-        safeAddListener('#setAway', 'click', async () => { await setSeatStatus(student.id,'away'); await logChange('출결 수동변경', `${student.name} → 자리비움`); closeOverlay('ovSeatDetail'); showToast('상태가 변경되었습니다.'); });
-        safeAddListener('#setPresent', 'click', async () => { await setSeatStatus(student.id,'present'); await logChange('출결 수동변경', `${student.name} → 재실`); closeOverlay('ovSeatDetail'); showToast('상태가 변경되었습니다.'); });
-        safeAddListener('#setLeft', 'click', async () => { await setSeatStatus(student.id,'left'); await logChange('출결 수동변경', `${student.name} → 퇴실`); closeOverlay('ovSeatDetail'); showToast('상태가 변경되었습니다.'); });
+        safeAddListener('#setAway', 'click', async () => { await setSeatStatus(student.id,'away'); await window.logChange('출결 수동변경', `${student.name} → 자리비움`); closeOverlay('ovSeatDetail'); showToast('상태가 변경되었습니다.'); });
+        safeAddListener('#setPresent', 'click', async () => { await setSeatStatus(student.id,'present'); await window.logChange('출결 수동변경', `${student.name} → 재실`); closeOverlay('ovSeatDetail'); showToast('상태가 변경되었습니다.'); });
+        safeAddListener('#setLeft', 'click', async () => { await setSeatStatus(student.id,'left'); await window.logChange('출결 수동변경', `${student.name} → 퇴실`); closeOverlay('ovSeatDetail'); showToast('상태가 변경되었습니다.'); });
         safeAddListener('#unassignBtn', 'click', async () => {
           if(student.seatMode === 'fixed'){
-            student.deskId = null; await dbPut('students', student);
+            student.deskId = null; await window.dbPut('students', student);
           } else if(record){
-            record.deskId = null; await dbPut('attendance', record);
+            record.deskId = null; await window.dbPut('attendance', record);
           }
-          await logChange('좌석 비우기', student.name); closeOverlay('ovSeatDetail'); showToast('좌석이 비워졌습니다.');
+          await window.logChange('좌석 비우기', student.name); closeOverlay('ovSeatDetail'); showToast('좌석이 비워졌습니다.');
         });
       }
     }
@@ -1694,8 +1735,8 @@
     if(editable){
       safeAddListener('#wkSave', 'click', async () => {
         DAYS.forEach(([key]) => { student.weeklySchedule[key] = { enabled: $('#wd_'+key).checked, start: getTimeSelectValue('wk_'+key+'_s'), end: getTimeSelectValue('wk_'+key+'_e') }; });
-        await dbPut('students', student);
-        await logChange('시간표 변경', `${student.name}님 주간 시간표 수정`);
+        await window.dbPut('students', student);
+        await window.logChange('시간표 변경', `${student.name}님 주간 시간표 수정`);
         closeOverlay('ovWeekly');
         showToast('주간 시간표가 저장되었습니다.');
       });
@@ -1751,8 +1792,8 @@
   safeAddListener('#pwSubmit', 'click', async () => {
     if($('#pwInput').value === settings.adminPassword){
       adminMode = true;
-      adminName = $('#pwAdminName').value.trim() || '관리자';
-      settings.lastAdminName = adminName; await saveSettings();
+      window.adminName = $('#pwAdminName').value.trim() || '관리자';
+      settings.lastAdminName = window.adminName; await saveSettings();
       if($('#btnAdmin')) $('#btnAdmin').textContent = '관리자 메뉴';
       if($('#adminFab')) $('#adminFab').style.display = 'flex';
       resetAdminIdleTimer();
@@ -1870,7 +1911,7 @@
           const sid = b.dataset.del; 
           const st = cache.students.find(s=>String(s.id)===String(sid));
           await dbDelete('students', sid);
-          await logChange('학생 삭제', st?st.name:('ID '+sid));
+          await window.logChange('학생 삭제', st?st.name:('ID '+sid));
           showToast('삭제되었습니다.');
         }
       };
@@ -1894,8 +1935,8 @@
     if(!name || !fp){ await showMessage('이름과 지문 ID를 입력해주세요.'); return; }
     if(findStudentByFp(fp)){ await showMessage('이미 사용 중인 지문 ID입니다.'); return; }
     const weeklySchedule = readScheduleGridValues('reg');
-    await dbPut('students', { name, studentNum: sNum, deskId, fingerprintId: fp, weeklySchedule, monthlyGoalMinutes: goal, monthlyElapsedSeconds:0, monthlyHistory:{}, seatMode });
-    await logChange('학생 등록', `${name} (지문ID ${fp}${deskId!=null?', '+deskLabel(findDesk(deskId)):''}, ${seatMode==='fixed'?'고정':'자율'})`);
+    await window.dbPut('students', { name, studentNum: sNum, deskId, fingerprintId: fp, weeklySchedule, monthlyGoalMinutes: goal, monthlyElapsedSeconds:0, monthlyHistory:{}, seatMode });
+    await window.logChange('학생 등록', `${name} (지문ID ${fp}${deskId!=null?', '+deskLabel(findDesk(deskId)):''}, ${seatMode==='fixed'?'고정':'자율'})`);
     $('#newName').value=''; $('#newFp').value=''; $('#newStudentNum').value=''; $('#newGoal').value=1200;
     resetScheduleGrid('reg');
     document.querySelector('input[name="newSeatMode"][value="fixed"]').checked = true;
@@ -1946,8 +1987,8 @@
     
     s.name = name; s.studentNum = sNum; s.fingerprintId = fp; s.monthlyGoalMinutes = goal; s.seatMode = seatMode; s.deskId = deskId;
     s.weeklySchedule = readScheduleGridValues('edit');
-    await dbPut('students', s);
-    await logChange('학생 정보 수정', name);
+    await window.dbPut('students', s);
+    await window.logChange('학생 정보 수정', name);
     closeOverlay('ovStudentEdit');
     showToast('수정되었습니다.');
   });
@@ -2026,10 +2067,10 @@
           const m = val.match(/^(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})$/);
           if(m){ weeklySchedule[key] = { enabled:true, start:m[1], end:m[2] }; }
         });
-        await dbPut('students', { name, studentNum: sNum, deskId:null, fingerprintId: fp, weeklySchedule, monthlyGoalMinutes: goal, monthlyElapsedSeconds:0, monthlyHistory:{}, seatMode });
+        await window.dbPut('students', { name, studentNum: sNum, deskId:null, fingerprintId: fp, weeklySchedule, monthlyGoalMinutes: goal, monthlyElapsedSeconds:0, monthlyHistory:{}, seatMode });
         added++;
       }
-      await logChange('학생 일괄 등록', `${added}명 등록${skipped.length ? ', 실패 '+skipped.length+'건' : ''}`);
+      await window.logChange('학생 일괄 등록', `${added}명 등록${skipped.length ? ', 실패 '+skipped.length+'건' : ''}`);
       e.target.value = '';
       await showMessage(`${added}명 등록 완료.` + (skipped.length ? `\n\n건너뜀:\n${skipped.join('\n')}` : ''));
     }catch(err){ await showMessage('엑셀 처리 중 오류: '+err.message); e.target.value=''; }
@@ -2089,12 +2130,11 @@
           if(pendingEnrollFpId != null) {
               const statusEl = $('#feStatus2');
               if(res.success) {
-                  // 성공 처리
                   const s = cache.students.find(x => String(x.id) === String(pendingEnrollStudentId));
                   if(s) {
                       s.fingerprintId = res.fpId;
-                      dbPut('students', s);
-                      logChange('지문 재등록', `${s.name} → 지문ID ${res.fpId}`);
+                      window.dbPut('students', s);
+                      window.logChange('지문 재등록', `${s.name} → 지문ID ${res.fpId}`);
                       if(statusEl) statusEl.textContent = `등록 성공! 지문 ID ${res.fpId}로 완료되었습니다. 창을 닫아주세요.`;
                   }
               } else {
@@ -2173,12 +2213,12 @@
         r.checkOut = endDt.getTime();
         r.status = 'left';
         r.elapsedSeconds = Math.round(Math.max(0, calcValidSeconds(r.checkIn, endDt) - (r.totalBreakSeconds||0)));
-        await dbPut('attendance', r);
+        await window.dbPut('attendance', r);
 
         const st = cache.students.find(s=>String(s.id)===String(r.studentId));
         if(st){
           st.monthlyElapsedSeconds = (st.monthlyElapsedSeconds||0) + r.elapsedSeconds;
-          await dbPut('students', st);
+          await window.dbPut('students', st);
         }
       }
     }
@@ -2211,19 +2251,19 @@
           record.status = 'left';
           let totalTime = calcValidSeconds(record.checkIn, targetEndDt);
           record.elapsedSeconds = Math.round(Math.max(0, totalTime - (record.totalBreakSeconds||0)));
-          await dbPut('attendance', record);
+          await window.dbPut('attendance', record);
 
           const st = cache.students.find(s=>String(s.id)===String(record.studentId));
           if(st){ 
             st.monthlyElapsedSeconds = (st.monthlyElapsedSeconds||0) + record.elapsedSeconds; 
-            await dbPut('students', st); 
+            await window.dbPut('students', st); 
           }
           changedCount++;
         }
       }
       
       if(changedCount > 0){
-        logChange('마감 일괄 퇴실', `${changedCount}명 운영 종료시간 기준 자동 퇴실 처리됨`);
+        window.logChange('마감 일괄 퇴실', `${changedCount}명 운영 종료시간 기준 자동 퇴실 처리됨`);
         showToast(`운영 시간이 종료되어 ${changedCount}명 일괄 퇴실 처리되었습니다.`);
       }
     }
@@ -2239,7 +2279,7 @@
           if(!s.monthlyHistory) s.monthlyHistory = {};
           s.monthlyHistory[prevMonth] = s.monthlyElapsedSeconds || 0;
           s.monthlyElapsedSeconds = 0;
-          await dbPut('students', s);
+          await window.dbPut('students', s);
         }
       }
       settings.currentDate = today; saveSettings();
@@ -2257,6 +2297,7 @@
     toggleNewSeatField(); 
     updateClock();
     
+    // 🚨 통신과 UI 렌더링 분리 (Non-Blocking)
     fbDB.ref('settings/app').on('value', snap => {
         if(snap.exists()) { settings = { ...settings, ...snap.val() }; applyDarkMode(); }
         else { saveSettings(); }
@@ -2282,15 +2323,6 @@
         warning.style.display = 'block';
         warning.classList.add('flash');
         warning.innerHTML = ICONS.alert + " 인터넷 연결 및 학교 방화벽을 확인해 주세요.";
-      }
-    });
-
-    // ✨ 원격 지문 스캔 결과를 수신하여 출결 처리
-    fbDB.ref('scans').on('child_added', snapshot => {
-      const scan = snapshot.val();
-      if(scan && scan.fpId) {
-        handleFingerprintMatch(scan.fpId);
-        snapshot.ref.remove(); 
       }
     });
 
