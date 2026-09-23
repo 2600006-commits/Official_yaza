@@ -254,7 +254,7 @@
 <div id="app-toast"></div>
 
 <!-- 클라우드 및 와이파이 경고 배너 -->
-<div id="serialWarning"><span id="icon-alert"></span> 클라우드 서버에 연결 중입니다...</div>
+<div id="serialWarning"><span id="icon-alert"></span> 클라우드 서버 통신 대기 중...</div>
 
 <header class="glass">
   <div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap; flex:1;">
@@ -620,7 +620,7 @@
   const $$ = sel => Array.from(document.querySelectorAll(sel));
   
   /* ========================================================
-     🔥 발급받으신 Firebase Config 값이 연동되었습니다! 🔥 
+     🔥 데이터 및 캐시 아키텍처 재설계 (로딩 속도 및 안정성 극대화)
      ======================================================== */
   const firebaseConfig = {
     apiKey: "AIzaSyBff6zfkpULYdtLG3b0n8jxDQWhkk5iqDk",
@@ -633,45 +633,48 @@
     measurementId: "G-ZE22W4FCRB"
   };
   
-  // Firebase 초기화
   firebase.initializeApp(firebaseConfig);
   const fbDB = firebase.database();
 
-  /* ---------------- Firebase 데이터베이스 래퍼 함수 (IndexedDB 대체) ---------------- */
-  async function dbGetAll(store){
-    const snap = await fbDB.ref(store).once('value');
-    return snap.exists() ? Object.values(snap.val()) : [];
-  }
-  async function dbGet(store, key){
-    const snap = await fbDB.ref(store + '/' + key).once('value');
-    return snap.val();
-  }
+  // 1. 오프라인에서도 즉시 작동하는 로컬 캐시 메모리
+  let settings = { id:'app', adminPassword:'0000', currentDate: todayStr(), studyEndTime:'22:00', lastBackupReminderDate:null, rulesText:'', darkMode:false, validStartTime:'16:00', validEndTime:'21:30' };
+  let cache = { students: [], desks: [], attendance: [], changelog: [], dailylogs: [] };
+  
+  // 2. 관리자 상태 및 기타 변수
+  let adminMode = false, adminIdleTimer = null;
+  let currentFloor = 1, layoutEditMode = false, newDeskType = 'open', fitToScreen = true;
+  let longPressTimer = null, longPressTriggered = false;
+  let serialPort = null, serialWriter = null, serialBuffer = '';
+  let adminName = '';
+  let pendingEnrollStudentId = null, pendingEnrollFpId = null;
+
+  /* ---------------- Firebase 초고속 데이터 래퍼 (Non-Blocking) ---------------- */
+  // 데이터를 읽어올 때 Firebase를 기다리지 않고 무조건 즉시 로컬 캐시를 반환합니다. (프리징 절대 방지)
+  async function dbGetAll(store){ return cache[store] || []; }
+  async function dbGet(store, key){ return (cache[store]||[]).find(x => String(x.id) === String(key)) || null; }
+  async function dbIndexGet(store, index, value){ return (cache[store]||[]).find(x => String(x[index]) === String(value)) || null; }
+  async function dbIndexGetAll(store, index, value){ return (cache[store]||[]).filter(x => String(x[index]) === String(value)); }
+
+  // 데이터를 저장할 때 캐시에 먼저 즉각 반영(낙관적 UI)하고 서버에는 비동기로 보냅니다.
   async function dbPut(store, val){
-    return new Promise((res, rej) => {
-      // 학생 정보는 Firebase에서 ESP32가 직접 읽어갈 수 있도록 fingerprintId를 고유 키로 사용합니다!
-      if (store === 'students') {
-        val.id = val.fingerprintId; 
-      } else if (!val.id) {
-        val.id = Date.now(); // 신규 생성 시 타임스탬프를 ID로 사용
-      }
-      fbDB.ref(store + '/' + val.id).set(val).then(() => res(val)).catch(rej);
-    });
+    if (store === 'students') val.id = val.fingerprintId; 
+    else if (!val.id) val.id = Date.now();
+    
+    const idx = (cache[store]||[]).findIndex(x => String(x.id) === String(val.id));
+    if(idx >= 0) cache[store][idx] = val;
+    else cache[store].push(val);
+    
+    fbDB.ref(store + '/' + val.id).set(val); // Fire and Forget
+    return val;
   }
+  
   async function dbDelete(store, key){
-    return fbDB.ref(store + '/' + key).remove();
+    cache[store] = (cache[store]||[]).filter(x => String(x.id) !== String(key));
+    fbDB.ref(store + '/' + key).remove();
   }
-  async function dbClear(store){
-    return fbDB.ref(store).remove();
-  }
-  async function dbIndexGet(store, index, value){
-    const snap = await fbDB.ref(store).orderByChild(index).equalTo(value).once('value');
-    if (snap.exists()) return Object.values(snap.val())[0];
-    return null;
-  }
-  async function dbIndexGetAll(store, index, value){
-    const snap = await fbDB.ref(store).orderByChild(index).equalTo(value).once('value');
-    if (snap.exists()) return Object.values(snap.val());
-    return [];
+
+  async function saveSettings(){
+    fbDB.ref('settings/app').set(settings);
   }
 
   /* ---- 아이콘 (픽토그램) ---- */
@@ -694,8 +697,7 @@
   $('#icon-trophy').innerHTML = ICONS.trophy;
   $$('.close-x').forEach(b => { b.innerHTML = ICONS.close; b.addEventListener('click', () => closeOverlay(b.dataset.close)); });
   
-  /* ---------------- 완벽한 로컬 날짜(KST 보장) 처리 ---------------- */
-  const todayStr = () => {
+  function todayStr() {
     const d = new Date();
     if (d.getHours() < 6) d.setDate(d.getDate() - 1);
     const pad = n => n < 10 ? '0' + n : n;
@@ -706,12 +708,11 @@
   const closeOverlay = id => $('#'+id).classList.remove('show');
   const DAYS = [['mon','월'],['tue','화'],['wed','수'],['thu','목'],['fri','금']];
 
-  /* ---------------- 커스텀 다이얼로그 & 토스트 알림 ---------------- */
   function showToast(msg) {
     const t = $('#app-toast');
     t.textContent = msg;
     t.classList.remove('show');
-    void t.offsetWidth; // reflow 트리거
+    void t.offsetWidth;
     t.classList.add('show');
     clearTimeout(t.timer);
     t.timer = setTimeout(() => t.classList.remove('show'), 3000);
@@ -743,17 +744,6 @@
       $('#promptCancel').onclick = () => { closeOverlay('ovPrompt'); resolve(null); };
     });
   }
-
-  /* ---------------- 상태 ---------------- */
-  let settings, students = [], desks = [];
-  let adminMode = false, adminIdleTimer = null;
-  let currentFloor = 1;
-  let layoutEditMode = false, newDeskType = 'open';
-  let fitToScreen = true;
-  let longPressTimer = null, longPressTriggered = false;
-  let serialPort = null, serialWriter = null, serialBuffer = '';
-  let adminName = '';
-  let pendingEnrollFpId = null;
 
   async function logChange(action, detail){
     try{ await dbPut('changelog', { timestamp: Date.now(), admin: adminName || '관리자', action, detail: detail||'' }); }
@@ -833,59 +823,28 @@
     return weeklySchedule;
   }
 
-  async function loadSettings(){
-    settings = await dbGet('settings','app');
-    if(!settings){
-      settings = { id:'app', adminPassword:'0000', currentDate: todayStr(), studyEndTime:'22:00', lastBackupReminderDate:null, rulesText:'', darkMode:false, validStartTime:'16:00', validEndTime:'21:30' };
-      await dbPut('settings', settings);
-    }
-    if(settings.validStartTime === undefined) settings.validStartTime = '16:00';
-    if(settings.validEndTime === undefined) settings.validEndTime = '21:30';
-  }
-  async function saveSettings(){ await dbPut('settings', settings); }
-  
-  // 🚨 방어 코드 추가: 설정 로드 전 렌더링 방지
+  // 렌더링 최적화
   let renderTimer = null;
   function triggerRender() {
-    if (!settings) return; // settings가 로딩되기 전이면 화면 그리기를 취소하여 사이트 멈춤 방지
     clearTimeout(renderTimer);
-    renderTimer = setTimeout(async () => { 
-      students = await dbGetAll('students');
-      desks = await dbGetAll('desks');
+    renderTimer = setTimeout(() => { 
       if(!layoutEditMode) renderFloor(); 
-      // 관리자 모드가 열려있을 때 실시간 데이터 갱신
       if(adminMode && $('#ovAdmin').classList.contains('show')){
           const activeTab = document.querySelector('.tabbtn.active');
           if(activeTab && activeTab.dataset.tab === 'students') renderAdminStudentList();
       }
-    }, 100);
+    }, 50);
   }
 
-  // 🚨 버그 수정: Firebase ID 비교 시 문자/숫자 타입 불일치 방지 (모두 String 변환)
-  function findDesk(id){ return desks.find(d => String(d.id) === String(id)); }
-  function findStudentByDesk(deskId){ return students.find(s => String(s.deskId) === String(deskId)); }
-  function findStudentByFp(fpId){ return students.find(s => String(s.fingerprintId) === String(fpId)); }
-  
+  function findDesk(id){ return cache.desks.find(d => String(d.id) === String(id)); }
+  function findStudentByDesk(deskId){ return cache.students.find(s => String(s.deskId) === String(deskId)); }
+  function findStudentByFp(fpId){ return cache.students.find(s => String(s.fingerprintId) === String(fpId)); }
   function deskLabel(desk){
     if (!desk) return '알 수 없는 좌석';
     if (desk.seatNumber) return `${desk.floor}층 ${desk.seatNumber}번 (${desk.type==='partition'?'칸막이':'오픈형'})`;
-    const sameFloor = desks.filter(d=>d.floor===desk.floor).sort((a,b)=>a.id-b.id);
+    const sameFloor = cache.desks.filter(d=>d.floor===desk.floor).sort((a,b)=>a.id-b.id);
     const idx = sameFloor.findIndex(d=>String(d.id)===String(desk.id))+1;
     return `${desk.floor}층 ${desk.type==='partition'?'칸막이':'오픈형'} #${idx}`;
-  }
-
-  async function seedDefaultDesks(){
-    for(const floor of [1,2]){
-      for(let r=0;r<3;r++){
-        for(let c=0;c<4;c++){
-          await dbPut('desks', { floor, type: (r===2?'partition':'open'), col:c, row:r, seatNumber:null });
-        }
-      }
-    }
-  }
-  async function ensureDeskSchema(){
-    const existing = await dbGetAll('desks');
-    if(existing.length === 0){ await seedDefaultDesks(); return; }
   }
 
   const GRID_COLS = 15, GRID_ROWS = 11, CELL_W = 90, CELL_H = 66, CELL_PAD = 16;
@@ -899,7 +858,7 @@
     return {col,row};
   }
   function resolveOverlapCell(col,row,floor,excludeId){
-    const occupied = new Set(desks.filter(d => d.floor===floor && String(d.id)!==String(excludeId)).map(d => d.col+'_'+d.row));
+    const occupied = new Set(cache.desks.filter(d => d.floor===floor && String(d.id)!==String(excludeId)).map(d => d.col+'_'+d.row));
     if(!occupied.has(col+'_'+row)) return {col,row};
     for(let radius=1; radius<Math.max(GRID_COLS,GRID_ROWS); radius++){
       for(let dc=-radius; dc<=radius; dc++){
@@ -944,21 +903,16 @@
   function getStreakMap(allAttendance) {
     const map = new Map();
     const todayStrVal = todayStr();
-    for(const s of students) {
+    for(const s of cache.students) {
       const records = allAttendance.filter(a => String(a.studentId) === String(s.id) && (a.elapsedSeconds > 0 || a.status === 'present' || a.status === 'away'));
       const dates = new Set(records.map(a => a.date));
-      
-      if (dates.size === 0) {
-        map.set(s.id, 0);
-        continue;
-      }
+      if (dates.size === 0) { map.set(s.id, 0); continue; }
 
       let streak = 0;
       let d = new Date();
       if (d.getHours() < 6) d.setDate(d.getDate() - 1); 
       
-      let checking = true;
-      let lookbackLimit = 365;
+      let checking = true; let lookbackLimit = 365;
 
       while(checking && streak < 30 && lookbackLimit > 0) {
         lookbackLimit--;
@@ -967,11 +921,8 @@
         const dayKey = DAY_KEYS[d.getDay()];
         const isScheduled = s.weeklySchedule && s.weeklySchedule[dayKey] && s.weeklySchedule[dayKey].enabled;
 
-        if(dates.has(dStr)) {
-          streak++;
-        } else if (isScheduled && dStr !== todayStrVal) {
-          checking = false;
-        }
+        if(dates.has(dStr)) { streak++; } 
+        else if (isScheduled && dStr !== todayStrVal) { checking = false; }
         d.setDate(d.getDate() - 1);
       }
       map.set(s.id, streak);
@@ -983,13 +934,13 @@
   async function getTodayRecords(){ return await dbIndexGetAll('attendance','date', todayStr()); }
   function occupiedDeskIdSet(todayRecords){
     const set = new Set();
-    students.forEach(s => { if(s.seatMode === 'fixed' && s.deskId != null) set.add(String(s.deskId)); });
+    cache.students.forEach(s => { if(s.seatMode === 'fixed' && s.deskId != null) set.add(String(s.deskId)); });
     todayRecords.forEach(r => { if(r.deskId != null) set.add(String(r.deskId)); });
     return set;
   }
   function findAvailableDeskForToday(floor, todayRecords){
     const occupied = occupiedDeskIdSet(todayRecords);
-    const floorDesks = desks.filter(d => d.floor === floor).sort((a,b) => a.id - b.id);
+    const floorDesks = cache.desks.filter(d => d.floor === floor).sort((a,b) => a.id - b.id);
     const emptyDesks = floorDesks.filter(d => !occupied.has(String(d.id)));
     if(emptyDesks.length === 0) return null;
 
@@ -1004,14 +955,14 @@
   }
   async function getDeskOccupant(deskId, todayRecords){
     todayRecords = todayRecords || await getTodayRecords();
-    const fixedStudent = students.find(s => s.seatMode === 'fixed' && String(s.deskId) === String(deskId));
+    const fixedStudent = cache.students.find(s => s.seatMode === 'fixed' && String(s.deskId) === String(deskId));
     if(fixedStudent){
       const record = todayRecords.find(r => String(r.studentId) === String(fixedStudent.id)) || null;
       return { student: fixedStudent, record };
     }
     const record = todayRecords.find(r => String(r.deskId) === String(deskId)) || null;
     if(record){
-      const student = students.find(s => String(s.id) === String(record.studentId)) || null;
+      const student = cache.students.find(s => String(s.id) === String(record.studentId)) || null;
       return { student, record };
     }
     return { student: null, record: null };
@@ -1030,7 +981,6 @@
       }, 7000);
 
       currentModalCancel = () => { clearTimeout(timer); closeOverlay('ovSeatChoice'); resolve(null); };
-
       const finish = (val) => { clearTimeout(timer); closeOverlay('ovSeatChoice'); resolve(val); currentModalCancel = null; };
 
       $('#scFull').onclick = () => finish('full');
@@ -1053,7 +1003,6 @@
       }, 7000);
 
       currentModalCancel = () => { clearTimeout(timer); closeOverlay('ovStudentAction'); resolve(null); };
-
       const finish = (val) => { clearTimeout(timer); closeOverlay('ovStudentAction'); resolve(val); currentModalCancel = null; };
 
       if (status === 'present') {
@@ -1172,7 +1121,7 @@
         let totalTime = calcValidSeconds(record.checkIn, now);
         record.elapsedSeconds = Math.round(Math.max(0, totalTime - (record.totalBreakSeconds||0)));
         
-        const student = students.find(s=>String(s.id)===String(studentId));
+        const student = cache.students.find(s=>String(s.id)===String(studentId));
         if(student){ student.monthlyElapsedSeconds = (student.monthlyElapsedSeconds||0) + record.elapsedSeconds; await dbPut('students', student); }
       }
     }
@@ -1253,7 +1202,7 @@
     const allAttendance = await dbGetAll('attendance');
     const streakMap = getStreakMap(allAttendance);
 
-    const floorDesks = desks.filter(d => d.floor === currentFloor);
+    const floorDesks = cache.desks.filter(d => d.floor === currentFloor);
     let presentCount = 0;
     const todayKey = todayDayKey();
     const todayRecords = await getTodayRecords();
@@ -1431,7 +1380,7 @@
     const now = new Date();
     const monthDates = [];
     for(let d=1; d<=now.getDate(); d++){ monthDates.push(new Date(now.getFullYear(), now.getMonth(), d)); }
-    return students.map(s => {
+    return cache.students.map(s => {
       const scheduledDays = monthDates.filter(d => {
         const key = DAY_KEYS[d.getDay()];
         return s.weeklySchedule[key] && s.weeklySchedule[key].enabled;
@@ -1593,7 +1542,7 @@
   }
   async function renderTodaySummary(){
     const key = todayDayKey();
-    const scheduled = students.filter(s => s.weeklySchedule[key] && s.weeklySchedule[key].enabled);
+    const scheduled = cache.students.filter(s => s.weeklySchedule[key] && s.weeklySchedule[key].enabled);
     let arrived = 0;
     for(const s of scheduled){ const r = await getTodayAttendance(s.id); if(r) arrived++; }
     if(scheduled.length===0){ $('#todaySummary').textContent = '오늘 자율학습 신청자가 없습니다.'; return; }
@@ -1636,7 +1585,7 @@
     const q = e.target.value.trim().toLowerCase();
     const resultsBox = $('#searchResults');
     if(!q){ resultsBox.style.display = 'none'; return; }
-    const matches = students.filter(s => s.name.toLowerCase().includes(q) || (s.studentNum && s.studentNum.includes(q)));
+    const matches = cache.students.filter(s => s.name.toLowerCase().includes(q) || (s.studentNum && s.studentNum.includes(q)));
     if(matches.length === 0){ resultsBox.style.display = 'none'; return; }
     if(matches.length === 1){ jumpToStudentDesk(matches[0]); return; }
     const todayRecords = await getTodayRecords();
@@ -1649,7 +1598,7 @@
     resultsBox.style.display = 'block';
     $$('#searchResults [data-sid]').forEach(item => {
       item.addEventListener('click', () => {
-        const st = students.find(s => String(s.id) === String(item.dataset.sid));
+        const st = cache.students.find(s => String(s.id) === String(item.dataset.sid));
         jumpToStudentDesk(st);
       });
     });
@@ -1665,7 +1614,7 @@
     if(!student){
       if(adminMode){
         const canAssignFixed = desk.floor === 2;
-        const fixedCandidates = students.filter(s => s.seatMode === 'fixed' && s.deskId == null);
+        const fixedCandidates = cache.students.filter(s => s.seatMode === 'fixed' && s.deskId == null);
         body.innerHTML = `<p class="muted">배정된 학생이 없습니다.</p>` +
           (canAssignFixed
             ? `<div class="field"><label>고정좌석 학생 배정</label><select id="assignSelect"><option value="">선택</option>
@@ -1676,7 +1625,7 @@
         if(canAssignFixed){
           $('#assignBtn').onclick = async () => {
             const sid = $('#assignSelect').value; if(!sid) return;
-            const st = students.find(s=>String(s.id)===String(sid)); st.deskId = deskId;
+            const st = cache.students.find(s=>String(s.id)===String(sid)); st.deskId = deskId;
             await dbPut('students', st);
             await logChange('좌석 배정', `${st.name} → ${deskLabel(desk)}`);
             closeOverlay('ovSeatDetail');
@@ -1881,8 +1830,8 @@
   });
 
   function renderDeskOptions(){
-    const assignedIds = new Set(students.filter(s => s.seatMode !== 'flexible' && s.deskId != null).map(s => String(s.deskId)));
-    const avail = desks.filter(d => d.floor === 2 && !assignedIds.has(String(d.id)));
+    const assignedIds = new Set(cache.students.filter(s => s.seatMode !== 'flexible' && s.deskId != null).map(s => String(s.deskId)));
+    const avail = cache.desks.filter(d => d.floor === 2 && !assignedIds.has(String(d.id)));
     $('#newSeat').innerHTML = '<option value="">미배정(추후 배정)</option>' + avail.map(d => `<option value="${d.id}">${deskLabel(d)}</option>`).join('');
   }
   function toggleNewSeatField(){
@@ -1896,7 +1845,7 @@
     const list = $('#studentList');
     const sortBy = $('#studentSort') ? $('#studentSort').value : 'name';
     const filterBy = $('#studentFilter') ? $('#studentFilter').value : 'all';
-    let arr = students.slice();
+    let arr = cache.students.slice();
     arr = arr.filter(s => {
       if(filterBy === 'assigned') return s.deskId != null;
       if(filterBy === 'unassigned') return s.deskId == null;
@@ -1925,7 +1874,7 @@
       b.onclick = async () => {
         if(await showConfirm('정말 삭제하시겠습니까?')){
           const sid = b.dataset.del; 
-          const st = students.find(s=>String(s.id)===String(sid));
+          const st = cache.students.find(s=>String(s.id)===String(sid));
           await dbDelete('students', sid);
           await logChange('학생 삭제', st?st.name:('ID '+sid));
           showToast('삭제되었습니다.');
@@ -1966,13 +1915,13 @@
     $('#editSeatField').style.display = mode === 'fixed' ? 'block' : 'none';
   }
   function renderEditDeskOptions(current){
-    const assignedIds = new Set(students.filter(s => s.seatMode !== 'flexible' && s.deskId != null && String(s.id) !== String(current.id)).map(s => String(s.deskId)));
-    const avail = desks.filter(d => d.floor === 2 && !assignedIds.has(String(d.id)));
+    const assignedIds = new Set(cache.students.filter(s => s.seatMode !== 'flexible' && s.deskId != null && String(s.id) !== String(current.id)).map(s => String(s.deskId)));
+    const avail = cache.desks.filter(d => d.floor === 2 && !assignedIds.has(String(d.id)));
     $('#editSeat').innerHTML = '<option value="">미배정(추후 배정)</option>' + avail.map(d => `<option value="${d.id}">${deskLabel(d)}</option>`).join('');
   }
   $$('input[name="editSeatMode"]').forEach(r => r.addEventListener('change', toggleEditSeatField));
   function openStudentEdit(studentId){
-    const s = students.find(x => String(x.id) === String(studentId)); if(!s) return;
+    const s = cache.students.find(x => String(x.id) === String(studentId)); if(!s) return;
     editingStudentId = studentId;
     $('#editName').value = s.name;
     $('#editStudentNum').value = s.studentNum || '';
@@ -1988,7 +1937,7 @@
     openOverlay('ovStudentEdit');
   }
   $('#editSaveBtn').addEventListener('click', async () => {
-    const s = students.find(x => String(x.id) === String(editingStudentId)); if(!s) return;
+    const s = cache.students.find(x => String(x.id) === String(editingStudentId)); if(!s) return;
     const name = $('#editName').value.trim();
     const sNum = $('#editStudentNum').value.trim();
     const fp = parseInt($('#editFp').value);
@@ -2007,7 +1956,7 @@
   });
 
   async function openAttendanceHistory(studentId){
-    const s = students.find(x => String(x.id) === String(studentId)); if(!s) return;
+    const s = cache.students.find(x => String(x.id) === String(studentId)); if(!s) return;
     $('#histTitle').textContent = s.name + '님의 출결 이력';
     const records = (await dbGetAll('attendance')).filter(a => String(a.studentId) === String(studentId)).sort((a,b) => b.date.localeCompare(a.date));
     const mPrefix = monthStr();
@@ -2092,7 +2041,7 @@
     const mPrefix = monthStr();
     const now = new Date();
     const monthDates = []; for(let d=1; d<=now.getDate(); d++){ monthDates.push(new Date(now.getFullYear(), now.getMonth(), d)); }
-    return students.map(s => {
+    return cache.students.map(s => {
       const scheduledDates = monthDates.filter(d => { const key = DAY_KEYS[d.getDay()]; return s.weeklySchedule[key] && s.weeklySchedule[key].enabled; }).map(d => {
         const pad = n=>n<10?'0'+n:n; return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
       });
@@ -2174,24 +2123,22 @@
     }
   }
   
-  // 🚨 버그 수정: 지문 변경 시 과거 출결 데이터까지 새 ID로 안전하게 이관
   async function handleEnrollResult(success, respondedId){
     if(pendingEnrollStudentId == null) return;
-    const s = students.find(x => String(x.id) === String(pendingEnrollStudentId));
+    const s = cache.students.find(x => String(x.id) === String(pendingEnrollStudentId));
     const statusEl = $('#feStatus');
     if(success && s){
       const finalId = pendingEnrollFpId != null ? pendingEnrollFpId : parseInt(respondedId);
 
+      // 🚨 버그 수정: 지문 번호 변경 시 과거 기록 이관
       if(String(s.fingerprintId) !== String(finalId)) {
           const oldId = s.id;
-          await dbDelete('students', oldId); // 구 데이터 삭제
+          await dbDelete('students', oldId); 
           s.fingerprintId = finalId;
           s.id = finalId;
-          await dbPut('students', s); // 새 데이터 저장
+          await dbPut('students', s);
 
-          // 연관된 출결 기록 동기화 (고아 데이터 방지)
-          const records = await dbGetAll('attendance');
-          for(const r of records) {
+          for(const r of cache.attendance) {
               if(String(r.studentId) === String(oldId)) {
                   r.studentId = finalId;
                   r.studentDate = finalId + '_' + r.date;
@@ -2218,7 +2165,7 @@
   });
 
   function openFingerprintEnroll(studentId){
-    const s = students.find(x => String(x.id) === String(studentId)); if(!s) return;
+    const s = cache.students.find(x => String(x.id) === String(studentId)); if(!s) return;
     pendingEnrollStudentId = studentId;
     pendingEnrollFpId = null;
     $('#feName').textContent = s.name;
@@ -2229,7 +2176,7 @@
     openOverlay('ovFingerprintEnroll');
   }
   $('#feStartBtn').addEventListener('click', async () => {
-    const s = students.find(x => String(x.id) === String(pendingEnrollStudentId)); if(!s) return;
+    const s = cache.students.find(x => String(x.id) === String(pendingEnrollStudentId)); if(!s) return;
     const newId = parseInt($('#feFpId').value);
     if(!newId || newId < 1 || newId > 199){ await showMessage('지문 ID는 1~199 사이 숫자로 입력해주세요.'); return; }
     const dupe = findStudentByFp(newId);
@@ -2241,16 +2188,15 @@
     logSerial('등록 명령 전송 (재등록): ENROLL:'+newId+' → '+s.name);
   });
 
-  /* ---------------- 백업 / 복원 ---------------- */
   $('#exportExcelBtn').addEventListener('click', async () => {
     const attendance = await dbGetAll('attendance');
     const wb = XLSX.utils.book_new();
-    const studentSheet = students.map(s => {
+    const studentSheet = cache.students.map(s => {
       const desk = s.deskId!=null ? findDesk(s.deskId) : null;
       return { 학번:s.studentNum||'', 이름:s.name, 위치: desk?deskLabel(desk):'미배정', 지문ID:s.fingerprintId, 월목표분:s.monthlyGoalMinutes, 이번달누적분:Math.round((s.monthlyElapsedSeconds||0)/60) };
     });
     const attSheet = attendance.map(a => {
-      const st = students.find(s=>String(s.id)===String(a.studentId));
+      const st = cache.students.find(s=>String(s.id)===String(a.studentId));
       return { 학생: st?st.name:a.studentId, 날짜:a.date, 입실: a.checkIn?new Date(a.checkIn).toLocaleString('ko-KR'):'', 퇴실: a.checkOut?new Date(a.checkOut).toLocaleString('ko-KR'):'', 상태:a.status, 순공부시간분:Math.round((a.elapsedSeconds||0)/60) };
     });
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(studentSheet), '학생현황');
@@ -2258,7 +2204,6 @@
     XLSX.writeFile(wb, 'yaja_backup_'+todayStr()+'.xlsx');
   });
 
-  /* ---------------- 백업 리마인더 / 자정 초기화 / 자동 마감 ---------------- */
   $('#reminderLater').addEventListener('click', () => closeOverlay('ovReminder'));
   $('#reminderBackup').addEventListener('click', () => { closeOverlay('ovReminder'); $('#exportExcelBtn').click(); });
   function checkBackupReminder(){
@@ -2287,7 +2232,7 @@
         r.elapsedSeconds = Math.round(Math.max(0, calcValidSeconds(r.checkIn, endDt) - (r.totalBreakSeconds||0)));
         await dbPut('attendance', r);
 
-        const st = students.find(s=>String(s.id)===String(r.studentId));
+        const st = cache.students.find(s=>String(s.id)===String(r.studentId));
         if(st){
           st.monthlyElapsedSeconds = (st.monthlyElapsedSeconds||0) + r.elapsedSeconds;
           await dbPut('students', st);
@@ -2325,7 +2270,7 @@
           record.elapsedSeconds = Math.round(Math.max(0, totalTime - (record.totalBreakSeconds||0)));
           await dbPut('attendance', record);
 
-          const st = students.find(s=>String(s.id)===String(record.studentId));
+          const st = cache.students.find(s=>String(s.id)===String(record.studentId));
           if(st){ 
             st.monthlyElapsedSeconds = (st.monthlyElapsedSeconds||0) + record.elapsedSeconds; 
             await dbPut('students', st); 
@@ -2335,7 +2280,7 @@
       }
       
       if(changedCount > 0){
-        logChange('마감 일괄 퇴실', `${changedCount}명 운영 종료시간 기준 자동 퇴실 처리됨`);
+        logChange('마감 일괄 퇴실', `${changedCount}명 운영 종료시간 자동 퇴실 처리됨`);
         showToast(`운영 시간이 종료되어 ${changedCount}명 일괄 퇴실 처리되었습니다.`);
       }
     }
@@ -2347,14 +2292,14 @@
       await cleanupStaleRecords(); 
       if(settings.currentDate.slice(0,7) !== today.slice(0,7)){
         const prevMonth = settings.currentDate.slice(0,7);
-        for(const s of students){
+        for(const s of cache.students){
           if(!s.monthlyHistory) s.monthlyHistory = {};
           s.monthlyHistory[prevMonth] = s.monthlyElapsedSeconds || 0;
           s.monthlyElapsedSeconds = 0;
           await dbPut('students', s);
         }
       }
-      settings.currentDate = today; await saveSettings();
+      settings.currentDate = today; saveSettings();
     }
     checkBackupReminder();
     runAutoCheckout(); 
@@ -2362,22 +2307,24 @@
 
   function updateClock(){ $('#clockText').textContent = new Date().toLocaleString('ko-KR',{hour:'2-digit',minute:'2-digit',month:'long',day:'numeric',weekday:'short'}); }
 
-  // 🚨 버그 수정: Firebase 연동 타이밍을 조절하여 사이트 먹통 방지
-  async function init(){
-    await loadSettings(); // 이 설정이 로드되기 전에 다른 코드가 먼저 실행되는 것을 완전히 차단
-    
+  function init(){
     applyDarkMode();
     buildScheduleGrid('regScheduleGrid','reg');
     buildScheduleGrid('editScheduleGrid','edit');
-    await ensureDeskSchema();
-    await cleanupStaleRecords(); 
-    toggleNewSeatField(); renderDeskOptions();
+    toggleNewSeatField(); 
+    updateClock();
     
-    // 설정이 모두 로드된 이후에만 실시간 리스너들을 부착합니다.
-    fbDB.ref('attendance').on('value', triggerRender);
-    fbDB.ref('desks').on('value', triggerRender);
-    fbDB.ref('students').on('value', triggerRender);
-    
+    // 🚨 핵심 수정: 실시간 데이터를 완전히 독립시켜 프리징 원천 차단
+    fbDB.ref('settings/app').on('value', snap => {
+        if(snap.exists()) { settings = { ...settings, ...snap.val() }; applyDarkMode(); }
+        else { saveSettings(); }
+    });
+    fbDB.ref('students').on('value', snap => { cache.students = snap.exists() ? Object.values(snap.val()) : []; triggerRender(); renderDeskOptions(); });
+    fbDB.ref('desks').on('value', snap => { cache.desks = snap.exists() ? Object.values(snap.val()) : []; triggerRender(); renderDeskOptions(); });
+    fbDB.ref('attendance').on('value', snap => { cache.attendance = snap.exists() ? Object.values(snap.val()) : []; triggerRender(); });
+    fbDB.ref('changelog').on('value', snap => { cache.changelog = snap.exists() ? Object.values(snap.val()) : []; });
+    fbDB.ref('dailylogs').on('value', snap => { cache.dailylogs = snap.exists() ? Object.values(snap.val()) : []; });
+
     fbDB.ref('.info/connected').on('value', snap => {
       const warning = $('#serialWarning');
       if (snap.val() === true) {
@@ -2385,12 +2332,13 @@
         $('#serialLabel').textContent = '클라우드 연동됨';
         warning.style.display = 'none';
         warning.classList.remove('flash');
+        cleanupStaleRecords(); runAutoCheckout();
       } else {
         $('#serialDot').className = 'dot off';
         $('#serialLabel').textContent = '서버 연결 끊김';
         warning.style.display = 'block';
         warning.classList.add('flash');
-        warning.innerHTML = ICONS.alert + " 인터넷 연결 또는 클라우드 서버와의 통신이 끊어졌습니다!";
+        warning.innerHTML = ICONS.alert + " 인터넷 연결 및 학교 방화벽을 확인해 주세요.";
       }
     });
 
@@ -2398,12 +2346,10 @@
       const scan = snapshot.val();
       if(scan && scan.fpId) {
         handleFingerprintMatch(scan.fpId);
-        snapshot.ref.remove(); // 큐에서 삭제
+        snapshot.ref.remove(); 
       }
     });
 
-    updateClock();
-    runAutoCheckout();
     setInterval(updateClock, 15000);
     setInterval(checkDateRollover, 30000);
   }
