@@ -682,6 +682,9 @@
   const isReady = () => loaded.settings && loaded.students && loaded.desks && loaded.attendance;
   let isOnline = false;
   let startedUp = false;
+  // 이 화면의 시계가 서버와 어긋나 있어도 동작하도록, 서버 시각과의 차이를 보정해서 사용
+  let serverOffset = 0;
+  const serverNow = () => Date.now() + serverOffset;
   
   let adminMode = false, adminIdleTimer = null;
   let currentFloor = 1, layoutEditMode = false, fitToScreen = true;
@@ -775,7 +778,7 @@
   
   const DAYS = [['mon','월'],['tue','화'],['wed','수'],['thu','목'],['fri','금']];
 
-  function showToast(msg) {
+  function showToast(msg, ms) {
     const t = $('#app-toast');
     if(!t) return;
     t.textContent = msg;
@@ -783,7 +786,7 @@
     void t.offsetWidth;
     t.classList.add('show');
     clearTimeout(t.timer);
-    t.timer = setTimeout(() => t.classList.remove('show'), 3000);
+    t.timer = setTimeout(() => t.classList.remove('show'), ms || 3000);
   }
 
   function showMessage(msg){
@@ -1044,23 +1047,31 @@
   window.requestScan = function(action) {
      closeOverlay('ovSeatDetail');
      if(!isOnline){ showToast('서버에 연결되지 않아 스캐너를 켤 수 없습니다. 연결 상태를 확인해주세요.'); return; }
-     fbWrite('scanRequest', { action: action, timestamp: Date.now() });
+     fbWrite('scanRequest', { action: action, timestamp: serverNow() });
      showToast('지문 인식기가 켜졌습니다. 10초 내에 손가락을 스캔해주세요.');
   };
 
   const lastScanMap = new Map();
 
+  const showToast6 = msg => showToast(msg, 6000);
+  // 스캔 결과가 화면의 어느 자리에 반영되는지 알려 줌 (자리가 없으면 자리 카드에는 표시되지 않으므로 이유를 안내)
+  function seatText(record){
+    if(!record) return '';
+    const d = record.deskId != null ? findDesk(record.deskId) : null;
+    return d ? ' [' + deskLabel(d) + ']' : ' [배정된 자리가 없어 자리 화면에는 표시되지 않습니다]';
+  }
+
   async function handleFingerprintMatch(fpId, deviceAction){
     fpId = parseInt(fpId);
     if(!fpId || isNaN(fpId)) return;
-    if(!isReady()){ showToast('데이터를 불러오는 중입니다. 잠시 후 다시 스캔해주세요.'); return; }
+    if(!isReady()){ showToast6('데이터를 불러오는 중입니다. 잠시 후 다시 스캔해주세요.'); return; }
     const now = Date.now();
     if (lastScanMap.has(fpId) && now - lastScanMap.get(fpId) < 3000) return;
     lastScanMap.set(fpId, now);
 
     try{
       const student = findStudentByFp(fpId);
-      if(!student){ showToast('등록되지 않은 지문입니다.'); return; }
+      if(!student){ showToast6('등록되지 않은 지문입니다.'); return; }
       let record = await getTodayAttendance(student.id);
 
       // 화면에서 누른 버튼(입실/외출/퇴실) 요청이 15초 이내면 그 동작으로, 없으면 입실로 처리
@@ -1070,7 +1081,7 @@
           action = deviceAction;
       } else {
           const snap = await fbDB.ref('scanRequest').once('value');
-          if(snap.exists() && snap.val() && snap.val().timestamp > Date.now() - 15000) {
+          if(snap.exists() && snap.val() && snap.val().timestamp > serverNow() - 15000) {
               action = snap.val().action;
               snap.ref.remove();
           }
@@ -1087,22 +1098,22 @@
                   const desk = findAvailableDeskForToday(targetFloor, todayRecords);
                   deskId = desk ? desk.id : null;
                   seatChoice = 'partial';
-                  if(!desk) showToast(`${targetFloor}층에 빈자리가 없어 좌석 없이 입실 처리됩니다.`);
+                  if(!desk) showToast6(`${targetFloor}층에 빈자리가 없어 좌석 없이 입실 처리됩니다.`);
               }
               record = { studentId: student.id, studentDate: student.id+'_'+todayStr(), date: todayStr(), checkIn: now, checkOut:null, status:'present', elapsedSeconds:0, totalBreakSeconds:0, lastBreakStart:null, deskId, seatChoice };
               await window.dbPut('attendance', record);
-              showToast(`${student.name}님 환영합니다! 입실 완료되었습니다.`);
+              showToast6(`${student.name}님 환영합니다! 입실 완료되었습니다.${seatText(record)}`);
            } else {
               if(record.status === 'away') {
                  if(record.lastBreakStart) record.totalBreakSeconds = (record.totalBreakSeconds||0) + calcValidSeconds(record.lastBreakStart, now);
                  record.lastBreakStart = null;
                  record.status = 'present';
                  await window.dbPut('attendance', record);
-                 showToast(`${student.name}님 재입실 처리되었습니다.`);
+                 showToast6(`${student.name}님 재입실 처리되었습니다.${seatText(record)}`);
               } else if (record.status === 'present'){
-                 showToast(`${student.name}님은 이미 입실 상태입니다.`);
+                 showToast6(`${student.name}님은 이미 입실 상태입니다.`);
               } else {
-                 showToast(`${student.name}님은 이미 퇴실 처리되었습니다.`);
+                 showToast6(`${student.name}님은 이미 퇴실 처리되었습니다.`);
               }
            }
       } else if (action === 'away') {
@@ -1110,9 +1121,9 @@
               record.lastBreakStart = now;
               record.status = 'away';
               await window.dbPut('attendance', record);
-              showToast(`${student.name}님 자리 비움 처리되었습니다.`);
+              showToast6(`${student.name}님 자리 비움 처리되었습니다.${seatText(record)}`);
            } else {
-              showToast(`입실 상태에서만 외출이 가능합니다.`);
+              showToast6(`입실 상태에서만 외출이 가능합니다.`);
            }
       } else if (action === 'left') {
            if(record && (record.status === 'present' || record.status === 'away')) {
@@ -1126,14 +1137,14 @@
               await window.dbPut('attendance', record);
               student.monthlyElapsedSeconds = (student.monthlyElapsedSeconds||0) + record.elapsedSeconds;
               await window.dbPut('students', student);
-              showToast(`${student.name}님 고생하셨습니다! 퇴실 처리되었습니다.`);
+              showToast6(`${student.name}님 고생하셨습니다! 퇴실 처리되었습니다.`);
            } else {
-              showToast(`이미 퇴실하셨거나 입실 기록이 없습니다.`);
+              showToast6(`이미 퇴실하셨거나 입실 기록이 없습니다.`);
            }
       }
     }catch(err){
       console.error('지문 처리 오류', err);
-      showToast('지문 처리 중 오류가 발생했습니다: ' + err.message);
+      showToast6('지문 처리 중 오류가 발생했습니다: ' + err.message);
     }
   }
 
@@ -1144,31 +1155,37 @@
     let n = Number(v);
     if(!n || n < 1e9) return true;         // 시각 정보가 없거나 epoch가 아니면(부팅 후 경과시간 등) 판단 불가 → 최신으로 간주
     if(n < 1e11) n *= 1000;                // 초 단위 epoch → ms
-    return n > Date.now() - windowMs;
+    return n > serverNow() - windowMs;
   }
   function initFingerprintListener(){
     const ref = fbDB.ref(FP_MATCH_PATH);
-    // 여러 화면(키오스크/관리자 폰 등)이 같은 신호를 받아도 한 곳에서만 처리하도록 항목별로 "선점"한다.
-    function consume(child){
+    const MAX_AGE = 60000;   // 서버 시각 기준 60초가 지난 신호는 무시
+    function consume(child, tries){
+      tries = tries || 0;
+      const v = child.val();
+      const isObj = v && typeof v === 'object';
+      // 오래된 신호는 처리하지 않고 정리만 한다 (서버 시각 기준이라 이 화면의 시계가 틀려도 안전)
+      if(isObj && !isFreshTs(v.timestamp, MAX_AGE)){ child.ref.remove(); return; }
+      // 아직 데이터를 다 못 받았으면 신호를 가져가지 않고 잠시 뒤 다시 시도 (가져가 놓고 버리면 스캔이 사라진다)
+      if(!isReady()){ if(tries < 20) setTimeout(() => consume(child, tries + 1), 750); return; }
+      // 여러 화면이 켜져 있어도 한 곳만 처리하도록 "선점". 값이 null이어도 중단하지 않고 서버 값으로 재시도되게 한다.
       let claimed = null;
-      child.ref.transaction(cur => { if(cur == null) return; claimed = cur; return null; }, (err, committed) => {
+      child.ref.transaction(cur => { claimed = cur; return null; }, (err, committed) => {
         if(err || !committed || claimed == null) return;
-        const isObj = typeof claimed === 'object';
-        const fpId = isObj ? (claimed.fpId != null ? claimed.fpId : (claimed.fingerprintId != null ? claimed.fingerprintId : claimed.id)) : claimed;
-        if(isObj && !isFreshTs(claimed.timestamp, 20000)) return;
-        if(isObj && claimed.success === false){ showToast('지문 인식에 실패했습니다. 다시 시도해주세요.'); return; }
-        handleFingerprintMatch(fpId, isObj ? claimed.action : undefined);
+        const o = typeof claimed === 'object';
+        const fpId = o ? (claimed.fpId != null ? claimed.fpId : (claimed.fingerprintId != null ? claimed.fingerprintId : claimed.id)) : claimed;
+        if(o && claimed.success === false){ showToast('지문 인식에 실패했습니다. 다시 시도해주세요.', 6000); return; }
+        handleFingerprintMatch(fpId, o ? claimed.action : undefined);
       });
     }
-    // 화면을 열기 전에 쌓여 있던 신호는 (펌웨어가 시각을 안 남기므로) 오래된 것으로 보고 버린다.
-    // 그렇지 않으면 화면을 여는 순간 예전 스캔이 출결로 기록될 수 있다.
+    // 화면을 열기 전에 쌓여 있던 신호는 오래된 것으로 보고 버린다. (시각이 없으면 오래된 것으로 간주)
     ref.once('value').then(snap => {
       snap.forEach(ch => {
         const v = ch.val();
-        const fresh = v && typeof v === 'object' && Number(v.timestamp) > 1e9 && isFreshTs(v.timestamp, 20000);
+        const fresh = v && typeof v === 'object' && Number(v.timestamp) > 1e9 && isFreshTs(v.timestamp, MAX_AGE);
         if(!fresh) ch.ref.remove();
       });
-      ref.on('child_added', consume);
+      ref.on('child_added', ch => consume(ch, 0));
     }).catch(e => console.error('scans 리스너 오류', e));
   }
 
@@ -2309,6 +2326,7 @@
     const e = String((res && res.error) || '');
     let why = '';
     if(/^id_over_capacity/.test(e)) why = '지문 ID가 센서 저장 용량(' + (e.split(':')[1] || '?') + ')을 넘었습니다. 더 작은 ID를 사용하세요.';
+    else if(/^no_finger/.test(e)) why = '기기의 지문 센서가 손가락을 감지하지 못했습니다. 센서 LED가 켜지는지, 센서 전원(VCC)이 충분한지 확인하세요.';
     else if(/^mismatch/.test(e)) why = '두 번 올린 지문이 서로 달랐습니다. 같은 손가락을 같은 자세로 올려주세요.';
     else if(/^image[12]/.test(e)) why = '지문 이미지가 흐리거나 특징이 부족합니다. 손가락과 센서를 닦고 센서 중앙에 살짝 힘주어 올려주세요.';
     else if(/^remove_timeout/.test(e)) why = '손가락을 센서에서 떼지 않았습니다.';
@@ -2322,7 +2340,7 @@
   fbDB.ref('enrollResult').on('value', snap => {
        const res = snap.val();
        if(!res) return;
-       if(!isFreshTs(res.timestamp, 30000)) return;   // 오래된 결과는 무시
+       if(!isFreshTs(res.timestamp, 60000)){ snap.ref.remove(); return; }   // 오래된 결과는 정리
        const newFp = res.fpId != null ? parseInt(res.fpId) : (pendingEnrollFpId != null ? pendingEnrollFpId : pendingNewEnrollFpId);
        if(pendingEnrollFpId != null) {
            clearTimeout(enrollTimer);
@@ -2355,6 +2373,8 @@
                if(statusEl) statusEl.textContent = enrollFailMsg(res);
            }
            pendingNewEnrollFpId = null;
+       } else {
+           return;   // 이 화면이 시작한 등록이 아니면 지우지 않는다 (등록을 시작한 다른 화면이 받아야 함)
        }
        snap.ref.remove();
   });
@@ -2370,7 +2390,7 @@
     pendingEnrollFpId = null;
     pendingNewEnrollFpId = id;
     if(statusEl) statusEl.textContent = '원격 지문 등록 대기 중... 기기에 손가락을 올려주세요 (30초 대기)';
-    fbWrite('enrollRequest', { fpId: id, timestamp: Date.now() });
+    fbWrite('enrollRequest', { fpId: id, timestamp: serverNow() });
     enrollTimeout(() => { if(pendingNewEnrollFpId != null){ pendingNewEnrollFpId = null; if(statusEl) statusEl.textContent = '기기 응답이 없습니다. 기기가 켜져 있고 와이파이에 연결되어 있는지 확인해주세요.'; } });
   });
 
@@ -2397,7 +2417,7 @@
     pendingEnrollFpId = newId;
     if($('#feStatus2')) $('#feStatus2').textContent = '원격 지문 등록 대기 중... 기기에 손가락을 올려주세요 (30초 대기)';
     
-    fbWrite('enrollRequest', { fpId: newId, timestamp: Date.now() });
+    fbWrite('enrollRequest', { fpId: newId, timestamp: serverNow() });
     enrollTimeout(() => { if(pendingEnrollFpId != null){ pendingEnrollFpId = null; if($('#feStatus2')) $('#feStatus2').textContent = '기기 응답이 없습니다. 기기가 켜져 있고 와이파이에 연결되어 있는지 확인해주세요.'; } });
   });
 
@@ -2567,6 +2587,7 @@
     fbDB.ref('changelog').on('value', snap => { cache.changelog = snapToList(snap); });
     fbDB.ref('dailylogs').on('value', snap => { cache.dailylogs = snapToList(snap); });
 
+    fbDB.ref('.info/serverTimeOffset').on('value', snap => { serverOffset = Number(snap.val()) || 0; });
     initFingerprintListener();
 
     fbDB.ref('.info/connected').on('value', snap => {
