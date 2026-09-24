@@ -5,6 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>자율학습실 관리 시스템 (Cloud)</title>
 
+<!-- PWA: 홈 화면 설치 / 전체화면 실행 -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0a84ff">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="자율학습실">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+
 <!-- ✨ Firebase v8 SDK 및 필수 라이브러리 로드 -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -12,6 +22,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <style>
+  html, body { overscroll-behavior: none; }
   :root{
     --color-green: 52,199,89;
     --color-yellow: 255,204,0;
@@ -280,6 +291,7 @@
       <div id="searchResults" class="glass" style="display:none; position:absolute; top:100%; left:0; right:0; margin-top:6px; border-radius:12px; overflow:hidden; z-index:100; max-height:300px; overflow-y:auto; text-align:left;"></div>
     </div>
     <span class="muted"><span class="dot wait" id="serialDot"></span><span id="serialLabel">서버 연결 중...</span></span>
+    <button class="btn btn-secondary" id="btnFullscreen" style="display:none">전체화면</button>
     <button class="btn btn-secondary" id="btnDarkToggle"></button>
     <button class="btn btn-secondary" id="btnRules">야자 규정</button>
     <!-- 시뮬레이션 버튼 깔끔하게 삭제 완료 -->
@@ -2629,6 +2641,62 @@
   }
   
   init();
+})();
+</script>
+<script>
+/* ===== PWA / 전체화면 / 화면 꺼짐 방지 ===== */
+(function(){
+  var de = document.documentElement;
+  var btn = document.getElementById('btnFullscreen');
+  function isInstalled(){
+    try{
+      return window.matchMedia('(display-mode: fullscreen)').matches ||
+             window.matchMedia('(display-mode: standalone)').matches ||
+             window.navigator.standalone === true;
+    }catch(e){ return false; }
+  }
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+  var canFs = !!(de.requestFullscreen || de.webkitRequestFullscreen);
+
+  // 브라우저 탭으로 볼 때만 "전체화면" 버튼 표시 (설치한 앱으로 실행 중이면 이미 전체화면)
+  function refreshBtn(){
+    if(!btn) return;
+    btn.style.display = (canFs && !isInstalled()) ? '' : 'none';
+    btn.textContent = isFs() ? '전체화면 해제' : '전체화면';
+  }
+  if(btn){
+    btn.addEventListener('click', function(){
+      try{
+        if(isFs()){ (document.exitFullscreen || document.webkitExitFullscreen).call(document); }
+        else { (de.requestFullscreen || de.webkitRequestFullscreen).call(de); }
+      }catch(e){ console.warn('전체화면 실패', e); }
+    });
+  }
+  document.addEventListener('fullscreenchange', function(){ refreshBtn(); wake(); });
+  document.addEventListener('webkitfullscreenchange', function(){ refreshBtn(); wake(); });
+  refreshBtn();
+
+  // 태블릿에 상시 띄워 둘 때 화면이 꺼지면 실시간 화면이 멈추므로, 앱/전체화면 상태에서는 화면 꺼짐을 막는다.
+  var wl = null;
+  async function wake(){
+    try{
+      if(!('wakeLock' in navigator)) return;
+      if(!(isInstalled() || isFs())) return;
+      if(document.visibilityState !== 'visible' || wl) return;
+      wl = await navigator.wakeLock.request('screen');
+      wl.addEventListener('release', function(){ wl = null; });
+    }catch(e){ wl = null; }
+  }
+  document.addEventListener('visibilitychange', function(){ if(document.visibilityState === 'visible') wake(); });
+  document.addEventListener('click', wake, { passive: true });   // 일부 브라우저는 사용자 조작 이후에만 허용
+  wake();
+
+  // 서비스 워커 (HTTPS 또는 localhost 에서만 동작)
+  if('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('sw.js').catch(function(e){ console.warn('서비스 워커 등록 실패', e); });
+    });
+  }
 })();
 </script>
 </body>
