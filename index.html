@@ -232,6 +232,22 @@
   .row > *{ flex:1; }
   .modal-actions{ display:flex; gap:10px; margin-top:18px; }
   .modal-actions .btn{ flex:1; }
+  /* 감독표 */
+  #supervisionBar{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin:0 12px 10px; padding:9px 16px; border-radius:var(--radius-md); font-size:13px; cursor:pointer; }
+  #supervisionBar .sup-label{ color:var(--text-secondary); font-size:12px; font-weight:600; }
+  #supervisionBar .sup-floor{ font-weight:700; }
+  #supervisionBar .sup-more{ color:var(--accent); font-size:12px; font-weight:600; }
+  .sup-row{ display:grid; grid-template-columns:78px 1fr 1fr; gap:6px; align-items:center; margin-bottom:6px; font-size:13px; }
+  .sup-row.head{ font-size:12px; color:var(--text-secondary); font-weight:700; margin-bottom:8px; }
+  .sup-row .sup-date{ font-size:12px; font-weight:600; }
+  .sup-row.weekend .sup-date{ color:#d70015; }
+  .sup-row.today{ background:rgba(10,132,255,0.12); border-radius:10px; padding:4px 6px; margin-left:-6px; margin-right:-6px; }
+  .sup-row input{ width:100%; min-width:0; padding:8px 9px; border-radius:10px; border:1px solid rgba(120,120,128,0.25); background:rgba(255,255,255,0.7); font-size:13px; font-family:inherit; box-sizing:border-box; }
+  .sup-row .sup-cell{ padding:8px 9px; border-radius:10px; background:rgba(255,255,255,0.5); min-height:18px; overflow-wrap:anywhere; }
+  .sup-scroll{ max-height:52vh; overflow-y:auto; padding-right:2px; }
+  body.dark .sup-row input{ background:rgba(255,255,255,0.08); color:#f2f2f5; border-color:rgba(255,255,255,0.18); }
+  body.dark .sup-row .sup-cell{ background:rgba(255,255,255,0.07); }
+  body.dark .sup-row.today{ background:rgba(10,132,255,0.22); }
   .tabbar{ display:flex; gap:6px; margin-bottom:16px; overflow-x:auto; padding-bottom:4px;}
   .tabbar button{ white-space:nowrap; border:none; background:rgba(120,120,128,0.14); padding:8px 14px; border-radius:999px; font-size:12px; cursor:pointer; font-family:inherit;}
   .tabbar button.active{ background:var(--accent); color:#fff; }
@@ -293,6 +309,7 @@
     <span class="muted"><span class="dot wait" id="serialDot"></span><span id="serialLabel">서버 연결 중...</span></span>
     <button class="btn btn-secondary" id="btnFullscreen" style="display:none">전체화면</button>
     <button class="btn btn-secondary" id="btnDarkToggle"></button>
+    <button class="btn btn-secondary" id="btnSupervision">감독표</button>
     <button class="btn btn-secondary" id="btnRules">야자 규정</button>
     <!-- 시뮬레이션 버튼 깔끔하게 삭제 완료 -->
     <button class="btn btn-primary" id="btnAdmin">관리자 모드</button>
@@ -312,6 +329,9 @@
 <div id="publicRanking" class="glass"><span id="icon-trophy"></span> 명예의 전당: 데이터 집계 중...</div>
 
 <div id="todaySummary" class="muted" style="margin:0 12px 10px;font-size:12px;"></div>
+
+<!-- 오늘의 야자 감독 (1층/2층) -->
+<div id="supervisionBar" class="glass" style="display:none;" role="button" tabindex="0"></div>
 
 <div class="legend glass">
   <span><i style="background:#8e8e93"></i>미입실</span>
@@ -346,8 +366,10 @@
     <button class="fab-item" data-action="layout">좌석 배치 모드</button>
     <button class="fab-item" data-action="rules">규정 관리</button>
     <button class="fab-item" data-action="settings">운영 설정 (마감)</button>
+    <button class="fab-item" data-action="floormode">층별 출석 모드</button>
     <button class="fab-item" data-action="ranking">랭킹</button>
     <button class="fab-item" data-action="stats">통계</button>
+    <button class="fab-item" data-action="supervision">감독표 (1·2층)</button>
     <button class="fab-item" data-action="diary">감독일지</button>
     <button class="fab-item" data-action="log">변경 이력</button>
     <button class="fab-item" data-action="device">기기 연결 (지문 등록)</button>
@@ -399,8 +421,10 @@
       <button class="tabbtn" data-tab="layout">좌석 배치</button>
       <button class="tabbtn" data-tab="rules">규정 관리</button>
       <button class="tabbtn" data-tab="settings">운영 설정</button>
+      <button class="tabbtn" data-tab="floormode">층별 출석 모드</button>
       <button class="tabbtn" data-tab="ranking">랭킹</button>
       <button class="tabbtn" data-tab="stats">통계</button>
+      <button class="tabbtn" data-tab="supervision">감독표</button>
       <button class="tabbtn" data-tab="diary">감독일지</button>
       <button class="tabbtn" data-tab="log">변경 이력</button>
       <button class="tabbtn" data-tab="device">기기 연결</button>
@@ -427,7 +451,7 @@
       <div class="field"><label>이름</label><input id="newName"></div>
       <div class="field"><label>좌석 유형</label>
         <div class="row">
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="radio" name="newSeatMode" value="fixed" checked> 고정좌석(2층)</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="radio" name="newSeatMode" value="fixed" checked> 고정좌석</label>
           <label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="radio" name="newSeatMode" value="flexible"> 자율(매일 자동배정)</label>
         </div>
       </div>
@@ -474,6 +498,16 @@
       <button class="btn btn-primary" id="changePwBtn" style="width:100%">비밀번호 변경하기</button>
     </div>
 
+    <div class="tabpane" id="tab-floormode">
+      <h3>층별 출석 모드</h3>
+      <p class="muted">층마다 출결 방식을 정합니다.<br>
+        <b>고정석</b>: 학생마다 지정된 좌석으로 출결합니다. (그 층 좌석에 학생을 고정 배정)<br>
+        <b>자율석</b>: 입실(지문 스캔)할 때 그 층의 빈자리가 자동 배정됩니다.</p>
+      <div id="floorModeBox"></div>
+      <button class="btn btn-primary" id="saveFloorModeBtn" style="width:100%; margin-top:12px;">층별 출석 모드 저장</button>
+      <p class="muted" style="margin-top:10px;">※ 이미 오늘 입실한 학생의 기록은 그대로 유지됩니다. 고정석 → 자율석으로 바꿔도 학생의 고정 좌석 정보는 지워지지 않고, 다시 고정석으로 바꾸면 그대로 적용됩니다.</p>
+    </div>
+
     <div class="tabpane" id="tab-layout">
       <h3>좌석 배치 모드</h3>
       <button class="btn btn-primary" id="startLayoutBtn" style="width:100%">좌석 배치 모드 시작</button>
@@ -492,6 +526,27 @@
       <div id="statsSummary" class="muted" style="margin-top:10px;"></div>
       <h3 style="margin-top:24px;">학생별 지각 · 결석 통계 (이번 달)</h3>
       <div id="lateAbsenceList"></div>
+    </div>
+
+    <div class="tabpane" id="tab-supervision">
+      <h3>야자 감독표 (1층 · 2층)</h3>
+      <p class="muted">달을 고르고 날짜별로 1층·2층 감독 선생님을 입력하세요. 여러 분이면 쉼표(,)로 구분합니다. 저장하면 메인 화면의 "오늘의 감독"과 감독표에 바로 표시됩니다.</p>
+      <div class="row" style="align-items:center;">
+        <button class="btn btn-secondary" id="supPrev" style="flex:0 0 auto;">◀</button>
+        <input type="month" id="supMonth" style="flex:1; min-width:0; padding:10px; border-radius:12px; border:1px solid rgba(120,120,128,0.25); font-family:inherit; font-size:14px;">
+        <button class="btn btn-secondary" id="supNext" style="flex:0 0 auto;">▶</button>
+      </div>
+      <div id="supTable" class="sup-scroll" style="margin-top:12px;"></div>
+      <button class="btn btn-primary" id="supSaveBtn" style="width:100%; margin-top:10px;">이 달 감독표 저장</button>
+
+      <h3 style="margin-top:22px;">엑셀로 올리기 / 내려받기</h3>
+      <p class="muted">양식에는 <b>날짜 · 요일 · 1층 감독 · 2층 감독</b> 열이 있습니다. 날짜는 2026-09-24, 2026.9.24, 9/24, 엑셀 날짜 형식 모두 읽습니다. 파일에 적힌 날짜는 파일 내용으로 바뀌고(빈 칸은 비워짐), 적히지 않은 날짜는 그대로 둡니다.</p>
+      <div class="row">
+        <button class="btn btn-secondary" id="supTemplateBtn" style="flex:1;">엑셀 양식 (이 달)</button>
+        <button class="btn btn-secondary" id="supExportBtn" style="flex:1;">이 달 엑셀 내보내기</button>
+      </div>
+      <input type="file" id="supImportFile" accept=".xlsx,.xls" style="margin-top:8px;width:100%;">
+      <button class="btn btn-danger" id="supClearBtn" style="width:100%; margin-top:14px;">이 달 감독표 전체 삭제</button>
     </div>
 
     <div class="tabpane" id="tab-diary">
@@ -545,6 +600,21 @@
     <button class="close-x" data-close="ovRules"></button>
     <h2>야간 자율학습 규정</h2>
     <p id="rulesDisplay" class="muted" style="white-space:pre-wrap;font-size:14px;color:var(--text-primary);"></p>
+  </div>
+</div>
+
+<!-- 야자 감독표 (조회) -->
+<div class="overlay" id="ovSupervision">
+  <div class="modal glass" style="max-width:520px;">
+    <button class="close-x" data-close="ovSupervision"></button>
+    <h2>야자 감독표</h2>
+    <div class="row" style="align-items:center; margin-bottom:10px;">
+      <button class="btn btn-secondary" id="supvPrev" style="flex:0 0 auto;">◀</button>
+      <div id="supvTitle" style="flex:1; text-align:center; font-weight:700;"></div>
+      <button class="btn btn-secondary" id="supvNext" style="flex:0 0 auto;">▶</button>
+    </div>
+    <div id="supvList" class="sup-scroll"></div>
+    <button class="btn btn-secondary" id="supvEdit" style="width:100%; margin-top:10px; display:none;">관리자: 감독표 편집</button>
   </div>
 </div>
 
@@ -602,7 +672,7 @@
     <div class="field"><label>학번</label><input id="editStudentNum" type="text"></div>
     <div class="field"><label>좌석 유형</label>
       <div class="row">
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="radio" name="editSeatMode" value="fixed"> 고정좌석(2층)</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="radio" name="editSeatMode" value="fixed"> 고정좌석</label>
         <label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="radio" name="editSeatMode" value="flexible"> 자율(매일 자동배정)</label>
       </div>
     </div>
@@ -687,8 +757,8 @@
   firebase.initializeApp(firebaseConfig);
   const fbDB = firebase.database();
 
-  let settings = { id:'app', adminPassword:'0000', currentDate: todayStr(), studyEndTime:'22:00', lastBackupReminderDate:null, rulesText:'', darkMode:false, validStartTime:'16:00', validEndTime:'21:30' };
-  let cache = { students: [], desks: [], attendance: [], changelog: [], dailylogs: [] };
+  let settings = { id:'app', adminPassword:'0000', currentDate: todayStr(), studyEndTime:'22:00', lastBackupReminderDate:null, rulesText:'', darkMode:false, validStartTime:'16:00', validEndTime:'21:30', floorModes:{ f1:'free', f2:'fixed' } };
+  let cache = { students: [], desks: [], attendance: [], changelog: [], dailylogs: [], supervision: [] };
   // 서버 데이터를 처음 다 받기 전에는 자동 마감/설정 저장 등을 하지 않도록 하는 플래그
   const loaded = { settings:false, students:false, desks:false, attendance:false };
   const isReady = () => loaded.settings && loaded.students && loaded.desks && loaded.attendance;
@@ -919,6 +989,28 @@
   }
 
   function findDesk(id){ return cache.desks.find(d => String(d.id) === String(id)); }
+
+  // ===== 층별 출석 모드 (고정석 / 자율석) =====
+  // 층마다 출결 방식을 정한다. 기본값은 기존 운영 방식(1층 자율석, 2층 고정석).
+  //  - 고정석: 학생마다 지정된 좌석으로 출결 (그 층 좌석에만 고정 배정 가능)
+  //  - 자율석: 입실할 때 그 층의 빈자리가 자동 배정됨 (그 층의 고정 배정은 적용되지 않음)
+  const FLOORS = [1, 2];
+  const DEFAULT_FLOOR_MODES = { f1:'free', f2:'fixed' };
+  function floorMode(f){
+    const m = settings.floorModes && settings.floorModes['f' + f];
+    return (m === 'fixed' || m === 'free') ? m : (DEFAULT_FLOOR_MODES['f' + f] || 'free');
+  }
+  const floorModeLabel = m => m === 'fixed' ? '고정석' : '자율석';
+  const fixedFloors = () => FLOORS.filter(f => floorMode(f) === 'fixed');
+  const freeFloors = () => FLOORS.filter(f => floorMode(f) === 'free');
+  // 이 학생이 지금 "고정석 방식"으로 출결하는가
+  //  (고정좌석 학생이고, 좌석이 아직 없거나 그 좌석이 있는 층이 고정석 모드일 때)
+  function effectiveFixed(s){
+    if(!s || s.seatMode !== 'fixed') return false;
+    if(s.deskId == null) return true;
+    const d = findDesk(s.deskId);
+    return d ? floorMode(d.floor) === 'fixed' : true;
+  }
   function findStudentByDesk(deskId){ return cache.students.find(s => String(s.deskId) === String(deskId)); }
   function findStudentByFp(fpId){ return cache.students.find(s => String(s.fingerprintId) === String(fpId)); }
   function deskLabel(desk){
@@ -1021,7 +1113,7 @@
   async function getTodayRecords(){ return await dbIndexGetAll('attendance','date', todayStr()); }
   function occupiedDeskIdSet(todayRecords){
     const set = new Set();
-    cache.students.forEach(s => { if(s.seatMode === 'fixed' && s.deskId != null) set.add(String(s.deskId)); });
+    cache.students.forEach(s => { if(effectiveFixed(s) && s.deskId != null) set.add(String(s.deskId)); });
     todayRecords.forEach(r => { if(r.deskId != null) set.add(String(r.deskId)); });
     return set;
   }
@@ -1042,7 +1134,7 @@
   }
   async function getDeskOccupant(deskId, todayRecords){
     todayRecords = todayRecords || await getTodayRecords();
-    const fixedStudent = cache.students.find(s => s.seatMode === 'fixed' && String(s.deskId) === String(deskId));
+    const fixedStudent = cache.students.find(s => effectiveFixed(s) && s.deskId != null && String(s.deskId) === String(deskId));
     if(fixedStudent){
       const record = todayRecords.find(r => String(r.studentId) === String(fixedStudent.id)) || null;
       return { student: fixedStudent, record };
@@ -1101,20 +1193,25 @@
 
       if (action === 'present') {
            if(!record) {
-              let deskId = null, seatChoice = null;
-              if(student.seatMode === 'fixed') {
+              let deskId = null, seatChoice = null, noSeatMsg = '';
+              if(effectiveFixed(student)) {
                   deskId = student.deskId != null ? student.deskId : null;
               } else {
+                  // 자율석 모드인 층들 중에서 빈자리를 찾는다 (낮은 층부터, 없으면 다음 층)
                   const todayRecords = await getTodayRecords();
-                  const targetFloor = 1; 
-                  const desk = findAvailableDeskForToday(targetFloor, todayRecords);
+                  const floors = freeFloors();
+                  let desk = null;
+                  for(const f of floors){ desk = findAvailableDeskForToday(f, todayRecords); if(desk) break; }
                   deskId = desk ? desk.id : null;
                   seatChoice = 'partial';
-                  if(!desk) showToast6(`${targetFloor}층에 빈자리가 없어 좌석 없이 입실 처리됩니다.`);
+                  // 안내를 따로 띄우면 바로 뒤의 "입실 완료" 알림에 덮여 보이지 않으므로, 입실 완료 알림에 합쳐서 표시
+                  if(!desk) noSeatMsg = floors.length
+                      ? ` ※ ${floors.join('·')}층(자율석)에 빈자리가 없어 좌석 없이 입실 처리되었습니다.`
+                      : ' ※ 자율석으로 운영되는 층이 없어 좌석 없이 입실 처리되었습니다. (관리자 메뉴 > 층별 출석 모드)';
               }
               record = { studentId: student.id, studentDate: student.id+'_'+todayStr(), date: todayStr(), checkIn: now, checkOut:null, status:'present', elapsedSeconds:0, totalBreakSeconds:0, lastBreakStart:null, deskId, seatChoice };
               await window.dbPut('attendance', record);
-              showToast6(`${student.name}님 환영합니다! 입실 완료되었습니다.${seatText(record)}`);
+              showToast6(`${student.name}님 환영합니다! 입실 완료되었습니다.${noSeatMsg || seatText(record)}`);
            } else {
               if(record.status === 'away') {
                  if(record.lastBreakStart) record.totalBreakSeconds = (record.totalBreakSeconds||0) + calcValidSeconds(record.lastBreakStart, now);
@@ -1304,6 +1401,7 @@
   async function renderFloor(opts){
     opts = opts || {};
     const mySeq = ++renderSeq;   // 더 최신 렌더가 시작되면 이전 렌더 결과는 버린다
+    renderSupervisionBar();      // 관리자 로그인/종료·키오스크 전환 때도 감독 표시 갱신
     const canvas = $('#deskCanvas');
     const viewport = $('#canvasViewport');
     const scrollWrap = $('#canvasScroll');
@@ -1313,7 +1411,7 @@
     if($('#editHint')) $('#editHint').style.display = layoutEditMode ? 'block' : 'none';
     
     // ✨ 1층에만 스캔 버튼 보이기
-    if($('#floor1Actions')) $('#floor1Actions').style.display = (currentFloor === 1 && !layoutEditMode) ? 'flex' : 'none';
+    if($('#floor1Actions')) $('#floor1Actions').style.display = (floorMode(currentFloor) === 'free' && !layoutEditMode) ? 'flex' : 'none';
 
     const size = canvasPixelSize();
     canvas.style.width = size.width+'px';
@@ -1439,7 +1537,7 @@
       canvas.style.transform = 'none';
     }
 
-    if($('#floorSummary')) $('#floorSummary').textContent = `재실 ${presentCount} / 전체 ${floorDesks.length}`;
+    if($('#floorSummary')) $('#floorSummary').textContent = `재실 ${presentCount} / 전체 ${floorDesks.length} · ${floorModeLabel(floorMode(currentFloor))}`;
     renderTodaySummary();
     renderPublicRanking(); 
   }
@@ -1761,7 +1859,7 @@
   });
 
   async function currentDeskForStudent(student, todayRecords){
-    if(student.seatMode === 'fixed') return student.deskId != null ? findDesk(student.deskId) : null;
+    if(effectiveFixed(student)) return student.deskId != null ? findDesk(student.deskId) : null;
     todayRecords = todayRecords || await getTodayRecords();
     const rec = todayRecords.find(r => String(r.studentId) === String(student.id));
     return (rec && rec.deskId != null) ? findDesk(rec.deskId) : null;
@@ -1814,15 +1912,15 @@
     
     if(!student){
       if(adminMode){
-        const canAssignFixed = desk.floor === 2;
+        const canAssignFixed = floorMode(desk.floor) === 'fixed';
         const fixedCandidates = cache.students.filter(s => s.seatMode === 'fixed' && s.deskId == null);
         body.innerHTML = `<p class="muted">배정된 학생이 없습니다.</p>` +
           (canAssignFixed
             ? `<div class="field"><label>고정좌석 학생 배정</label><select id="assignSelect"><option value="">선택</option>
                 ${fixedCandidates.map(s=>`<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('')}</select></div>
                <button class="btn btn-primary" id="assignBtn" style="width:100%">배정</button>
-               <p class="muted" style="margin-top:8px;">1층 좌석은 학생이 지문을 등록하면 자동으로 배정됩니다.</p>`
-            : `<p class="muted">1층 좌석은 학생이 지문을 등록하면 자동으로 배정됩니다. (고정좌석은 2층에서만 지정할 수 있습니다)</p>`);
+               <p class="muted" style="margin-top:8px;">${desk.floor}층은 고정석 방식입니다.</p>`
+            : `<p class="muted">${desk.floor}층은 자율석 방식이라 학생이 입실(지문 스캔)할 때 빈자리가 자동 배정됩니다. 고정 배정을 하려면 관리자 메뉴 > 층별 출석 모드에서 이 층을 고정석으로 바꾸세요.</p>`);
         if(canAssignFixed){
           safeAddListener('#assignBtn', 'click', async () => {
             const sid = $('#assignSelect').value; if(!sid) return;
@@ -1837,7 +1935,7 @@
       } else { body.innerHTML = '<p class="muted">배정된 학생이 없습니다.</p>'; }
     } else {
       const status = record ? record.status : '미입실';
-      const modeLabel = student.seatMode === 'fixed' ? '고정좌석'
+      const modeLabel = effectiveFixed(student) ? '고정좌석'
         : ('자율 · ' + (record && record.seatChoice === 'full' ? '전체 시간' : record && record.seatChoice === 'partial' ? '일부 시간' : '-'));
       let html = `<p><b>${esc(student.studentNum||'')} ${esc(student.name)}</b> <span class="muted">(${modeLabel})</span></p>
         <p class="muted">오늘 상태: <strong style="color:var(--accent);">${statusLabel(status)}</strong></p>
@@ -1871,7 +1969,7 @@
         safeAddListener('#setPresent', 'click', async () => { await setSeatStatus(student.id,'present'); await window.logChange('출결 수동변경', `${student.name} → 재실`); closeOverlay('ovSeatDetail'); showToast('상태가 변경되었습니다.'); });
         safeAddListener('#setLeft', 'click', async () => { await setSeatStatus(student.id,'left'); await window.logChange('출결 수동변경', `${student.name} → 퇴실`); closeOverlay('ovSeatDetail'); showToast('상태가 변경되었습니다.'); });
         safeAddListener('#unassignBtn', 'click', async () => {
-          if(student.seatMode === 'fixed'){
+          if(effectiveFixed(student)){
             student.deskId = null; await window.dbPut('students', student);
           } else if(record){
             record.deskId = null; await window.dbPut('attendance', record);
@@ -1954,7 +2052,203 @@
     if(!e.target.closest('#searchResults') && e.target.id !== 'studentSearch'){ if($('#searchResults')) $('#searchResults').style.display = 'none'; }
   });
 
-  function openAdminPanel(tab){
+
+  // =====================================================================
+  //  야자 감독표 (날짜별 1층/2층 감독) — Firebase: supervision/{YYYY-MM-DD} = { id, date, f1, f2 }
+  // =====================================================================
+  const WEEKDAY_KO = ['일','월','화','수','목','금','토'];
+  const supKey = (y, m, d) => `${y}-${pad2(m)}-${pad2(d)}`;
+  const supDaysIn = (y, m) => new Date(y, m, 0).getDate();
+  const supWeekday = (y, m, d) => new Date(y, m - 1, d).getDay();
+  const supFor = ds => cache.supervision.find(x => String(x.id) === ds) || null;
+  const supClean = v => String(v == null ? '' : v).replace(/\s+/g, ' ').trim().slice(0, 60);
+  function supMD(ds){ const [y, m, d] = ds.split('-').map(Number); return `${m}/${d} (${WEEKDAY_KO[supWeekday(y, m, d)]})`; }
+
+  // 메인 화면: 오늘의 감독
+  function renderSupervisionBar(){
+    const bar = $('#supervisionBar'); if(!bar) return;
+    const rec = supFor(todayStr());
+    const has = rec && (supClean(rec.f1) || supClean(rec.f2));
+    if(!has){
+      if(adminMode){
+        bar.style.display = 'flex';
+        bar.innerHTML = `<span class="sup-label">오늘의 감독</span><span class="muted">오늘 감독이 등록되어 있지 않습니다</span><span class="sup-more">감독표 열기 ›</span>`;
+      } else { bar.style.display = 'none'; bar.innerHTML = ''; }
+      return;
+    }
+    const cell = (label, v) => `<span><span class="sup-floor">${label}</span> ${supClean(v) ? esc(supClean(v)) : '<span class="muted">-</span>'}</span>`;
+    bar.style.display = 'flex';
+    bar.innerHTML = `<span class="sup-label">오늘의 감독</span><span style="display:flex;gap:16px;flex-wrap:wrap;">${cell('1층', rec.f1)}${cell('2층', rec.f2)}</span><span class="sup-more">감독표 ›</span>`;
+  }
+
+  // ----- 조회 모달 (모두) -----
+  let supvYM = null;   // { y, m }
+  function supThisMonth(){ const t = todayStr().split('-').map(Number); return { y: t[0], m: t[1] }; }
+  function renderSupervisionModal(){
+    if(!supvYM) supvYM = supThisMonth();
+    const { y, m } = supvYM;
+    if($('#supvTitle')) $('#supvTitle').textContent = `${y}년 ${m}월`;
+    const today = todayStr();
+    let html = `<div class="sup-row head"><span>날짜</span><span>1층</span><span>2층</span></div>`;
+    let any = false;
+    for(let d = 1; d <= supDaysIn(y, m); d++){
+      const ds = supKey(y, m, d), rec = supFor(ds), wd = supWeekday(y, m, d);
+      const f1 = rec ? supClean(rec.f1) : '', f2 = rec ? supClean(rec.f2) : '';
+      if(f1 || f2) any = true;
+      html += `<div class="sup-row${wd === 0 || wd === 6 ? ' weekend' : ''}${ds === today ? ' today' : ''}"><span class="sup-date">${esc(supMD(ds))}</span><span class="sup-cell">${esc(f1)}</span><span class="sup-cell">${esc(f2)}</span></div>`;
+    }
+    if($('#supvList')) $('#supvList').innerHTML = any ? html : `<p class="muted">${y}년 ${m}월 감독표가 아직 등록되지 않았습니다.</p>`;
+    if($('#supvEdit')) $('#supvEdit').style.display = adminMode ? 'block' : 'none';
+  }
+  function refreshSupervisionModal(){ const ov = $('#ovSupervision'); if(ov && ov.classList.contains('show')) renderSupervisionModal(); }
+  function openSupervisionModal(){ supvYM = supThisMonth(); renderSupervisionModal(); openOverlay('ovSupervision'); }
+  function shiftYM(o, delta){ let m = o.m + delta, y = o.y; while(m < 1){ m += 12; y--; } while(m > 12){ m -= 12; y++; } return { y, m }; }
+  safeAddListener('#btnSupervision', 'click', openSupervisionModal);
+  safeAddListener('#supervisionBar', 'click', () => { if(adminMode && !(supFor(todayStr()))){ openAdminPanel('supervision'); } else openSupervisionModal(); });
+  safeAddListener('#supvPrev', 'click', () => { supvYM = shiftYM(supvYM || supThisMonth(), -1); renderSupervisionModal(); });
+  safeAddListener('#supvNext', 'click', () => { supvYM = shiftYM(supvYM || supThisMonth(), 1); renderSupervisionModal(); });
+  safeAddListener('#supvEdit', 'click', () => { const y = (supvYM || supThisMonth()); closeOverlay('ovSupervision'); openAdminPanel('supervision', y); });
+
+  // ----- 관리자 편집 -----
+  let supAdminYM = null;
+  const supMonthValue = o => `${o.y}-${pad2(o.m)}`;
+  function readSupMonthInput(){
+    const v = $('#supMonth') ? $('#supMonth').value : '';
+    const mm = /^(\d{4})-(\d{2})$/.exec(v);
+    return mm ? { y: +mm[1], m: +mm[2] } : null;
+  }
+  function renderSupervisionAdmin(){
+    const box = $('#supTable'); if(!box) return;
+    if(!supAdminYM) supAdminYM = supThisMonth();
+    if($('#supMonth')) $('#supMonth').value = supMonthValue(supAdminYM);
+    const { y, m } = supAdminYM, today = todayStr();
+    let html = `<div class="sup-row head"><span>날짜</span><span>1층 감독</span><span>2층 감독</span></div>`;
+    for(let d = 1; d <= supDaysIn(y, m); d++){
+      const ds = supKey(y, m, d), rec = supFor(ds), wd = supWeekday(y, m, d);
+      html += `<div class="sup-row${wd === 0 || wd === 6 ? ' weekend' : ''}${ds === today ? ' today' : ''}" data-date="${ds}">
+        <span class="sup-date">${esc(supMD(ds))}</span>
+        <input class="sup-f1" maxlength="60" value="${esc(rec ? supClean(rec.f1) : '')}" placeholder="1층">
+        <input class="sup-f2" maxlength="60" value="${esc(rec ? supClean(rec.f2) : '')}" placeholder="2층"></div>`;
+    }
+    box.innerHTML = html;
+  }
+  safeAddListener('#supMonth', 'change', () => { const o = readSupMonthInput(); if(o){ supAdminYM = o; renderSupervisionAdmin(); } });
+  safeAddListener('#supPrev', 'click', () => { supAdminYM = shiftYM(supAdminYM || supThisMonth(), -1); renderSupervisionAdmin(); });
+  safeAddListener('#supNext', 'click', () => { supAdminYM = shiftYM(supAdminYM || supThisMonth(), 1); renderSupervisionAdmin(); });
+
+  // 날짜별로 저장/삭제 (바뀐 날짜만 서버에 쓴다). 반환: { saved, removed }
+  async function applySupervision(entries){
+    let saved = 0, removed = 0;
+    for(const e of entries){
+      const f1 = supClean(e.f1), f2 = supClean(e.f2), old = supFor(e.date);
+      if(!f1 && !f2){ if(old){ await dbDelete('supervision', e.date); removed++; } continue; }
+      if(old && supClean(old.f1) === f1 && supClean(old.f2) === f2) continue;
+      await window.dbPut('supervision', { id: e.date, date: e.date, f1, f2 });
+      saved++;
+    }
+    return { saved, removed };
+  }
+  safeAddListener('#supSaveBtn', 'click', async () => {
+    const rows = $$('#supTable .sup-row[data-date]');
+    const entries = rows.map(r => ({ date: r.dataset.date, f1: r.querySelector('.sup-f1').value, f2: r.querySelector('.sup-f2').value }));
+    const { saved, removed } = await applySupervision(entries);
+    const { y, m } = supAdminYM || supThisMonth();
+    if(saved || removed) await window.logChange('감독표 저장', `${y}년 ${m}월 (등록/수정 ${saved}일${removed ? ', 삭제 ' + removed + '일' : ''})`);
+    renderSupervisionBar();
+    showToast(saved || removed ? `감독표가 저장되었습니다. (수정 ${saved}일${removed ? ', 삭제 ' + removed + '일' : ''})` : '변경된 내용이 없습니다.');
+  });
+  safeAddListener('#supClearBtn', 'click', async () => {
+    const { y, m } = supAdminYM || supThisMonth();
+    const targets = cache.supervision.filter(x => String(x.id).startsWith(`${y}-${pad2(m)}-`));
+    if(targets.length === 0){ showToast('삭제할 감독표가 없습니다.'); return; }
+    if(!await showConfirm(`${y}년 ${m}월 감독표 ${targets.length}일치를 모두 삭제할까요?`)) return;
+    for(const x of targets) await dbDelete('supervision', x.id);
+    await window.logChange('감독표 삭제', `${y}년 ${m}월 ${targets.length}일`);
+    renderSupervisionAdmin(); renderSupervisionBar();
+    showToast('삭제되었습니다.');
+  });
+
+  // ----- 엑셀 -----
+  const SUP_HEAD = { date:'날짜', wd:'요일', f1:'1층 감독', f2:'2층 감독' };
+  function supSheetRows(y, m, withData){
+    const rows = [];
+    for(let d = 1; d <= supDaysIn(y, m); d++){
+      const ds = supKey(y, m, d), rec = withData ? supFor(ds) : null;
+      rows.push({ [SUP_HEAD.date]: ds, [SUP_HEAD.wd]: WEEKDAY_KO[supWeekday(y, m, d)], [SUP_HEAD.f1]: rec ? supClean(rec.f1) : '', [SUP_HEAD.f2]: rec ? supClean(rec.f2) : '' });
+    }
+    return rows;
+  }
+  function downloadSupSheet(withData){
+    const o = supAdminYM || supThisMonth();
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(supSheetRows(o.y, o.m, withData));
+    try{ ws['!cols'] = [{ wch: 12 }, { wch: 6 }, { wch: 18 }, { wch: 18 }]; }catch(e){}
+    XLSX.utils.book_append_sheet(wb, ws, `${o.y}-${pad2(o.m)} 감독표`);
+    XLSX.writeFile(wb, `야자_감독표_${o.y}-${pad2(o.m)}${withData ? '' : '_양식'}.xlsx`);
+  }
+  safeAddListener('#supTemplateBtn', 'click', () => downloadSupSheet(false));
+  safeAddListener('#supExportBtn', 'click', () => downloadSupSheet(true));
+
+  // 엑셀의 날짜 칸 → 'YYYY-MM-DD' (읽을 수 없으면 null). 월/연도가 없는 값은 defYM(선택한 달) 기준.
+  function parseSupDate(v, defYM){
+    const valid = (y, m, d) => (y >= 2000 && y <= 2100 && m >= 1 && m <= 12 && d >= 1 && d <= supDaysIn(y, m)) ? supKey(y, m, d) : null;
+    if(v instanceof Date && !isNaN(v)) return valid(v.getFullYear(), v.getMonth() + 1, v.getDate());
+    if(typeof v === 'number'){
+      if(v >= 20000 && v <= 80000){                       // 엑셀 날짜 일련번호
+        const dt = new Date(Math.round((v - 25569) * 86400000));
+        return valid(dt.getUTCFullYear(), dt.getUTCMonth() + 1, dt.getUTCDate());
+      }
+      if(Number.isInteger(v) && v >= 1 && v <= 31) return valid(defYM.y, defYM.m, v);   // "24" = 이 달 24일
+      return null;
+    }
+    const t = String(v == null ? '' : v).trim();
+    if(!t) return null;
+    let mm;
+    if((mm = /^(\d{4})\s*[-./년]\s*(\d{1,2})\s*[-./월]\s*(\d{1,2})/.exec(t))) return valid(+mm[1], +mm[2], +mm[3]);
+    if((mm = /^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/.exec(t))){ let y = +mm[3]; if(y < 100) y += 2000; return valid(y, +mm[1], +mm[2]); }   // 9/24/26 (미국식)
+    if((mm = /^(\d{1,2})\s*[-./월]\s*(\d{1,2})\s*일?$/.exec(t))) return valid(defYM.y, +mm[1], +mm[2]);
+    if((mm = /^(\d{1,2})\s*일?$/.exec(t))) return valid(defYM.y, defYM.m, +mm[1]);
+    return null;
+  }
+  const supFindKey = (row, pats) => Object.keys(row).find(k => { const n = String(k).replace(/\s+/g, '').toLowerCase(); return pats.some(p => n.includes(p)); });
+  safeAddListener('#supImportFile', 'change', async e => {
+    const file = e.target.files[0]; if(!file) return;
+    try{
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+      if(!rows.length){ await showMessage('엑셀 파일에 데이터가 없습니다.'); e.target.value = ''; return; }
+      const kDate = supFindKey(rows[0], ['날짜', '일자', 'date']);
+      const k1 = supFindKey(rows[0], ['1층']);
+      const k2 = supFindKey(rows[0], ['2층']);
+      if(!kDate || (!k1 && !k2)){
+        await showMessage('열 이름을 찾을 수 없습니다.\n첫 줄에 "날짜", "1층 감독", "2층 감독" 열이 있어야 합니다.\n(양식 다운로드로 받은 파일을 사용하면 편합니다)');
+        e.target.value = ''; return;
+      }
+      const defYM = supAdminYM || supThisMonth();
+      const byDate = new Map(); const bad = [];
+      rows.forEach((row, i) => {
+        const raw = row[kDate];
+        if(raw === '' || raw == null) return;                     // 빈 줄은 무시
+        const ds = parseSupDate(raw, defYM);
+        if(!ds){ bad.push(`${i + 2}번째 줄: 날짜 "${raw}"를 읽을 수 없음`); return; }
+        byDate.set(ds, { date: ds, f1: k1 ? row[k1] : (supFor(ds) || {}).f1, f2: k2 ? row[k2] : (supFor(ds) || {}).f2 });
+      });
+      if(byDate.size === 0){ await showMessage('읽을 수 있는 날짜가 없습니다.' + (bad.length ? '\n\n' + bad.slice(0, 8).join('\n') : '')); e.target.value = ''; return; }
+      const entries = Array.from(byDate.values()).sort((a, b) => a.date.localeCompare(b.date));
+      const months = Array.from(new Set(entries.map(x => x.date.slice(0, 7)))).join(', ');
+      if(!await showConfirm(`${entries.length}일치 감독표를 반영할까요? (${months})\n엑셀에 적힌 날짜는 파일 내용으로 바뀝니다.` + (bad.length ? `\n\n※ 읽지 못한 줄 ${bad.length}개는 건너뜁니다.` : ''))){ e.target.value = ''; return; }
+      const { saved, removed } = await applySupervision(entries);
+      await window.logChange('감독표 엑셀 업로드', `${months} · ${entries.length}일 (변경 ${saved}일${removed ? ', 삭제 ' + removed + '일' : ''})`);
+      const first = entries[0].date.split('-').map(Number); supAdminYM = { y: first[0], m: first[1] };
+      renderSupervisionAdmin(); renderSupervisionBar();
+      e.target.value = '';
+      await showMessage(`감독표 반영 완료: ${entries.length}일 (변경 ${saved}일)` + (bad.length ? `\n\n건너뜀:\n${bad.slice(0, 8).join('\n')}${bad.length > 8 ? '\n…' : ''}` : ''));
+    }catch(err){ await showMessage('엑셀 처리 중 오류: ' + err.message); e.target.value = ''; }
+  });
+
+  function openAdminPanel(tab, ym){
     $$('.tabbtn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
     $$('.tabpane').forEach(p=>p.classList.toggle('active', p.id==='tab-'+tab));
     if(tab==='students'){ renderAdminStudentList(); renderDeskOptions(); }
@@ -1963,12 +2257,44 @@
       if($('#validStartWrapper')) $('#validStartWrapper').innerHTML = timeSelectHTML('setValid_start', settings.validStartTime);
       if($('#validEndWrapper')) $('#validEndWrapper').innerHTML = timeSelectHTML('setValid_end', settings.validEndTime);
     }
+    if(tab==='floormode'){ renderFloorModeTab(); }
+    if(tab==='supervision'){ if(ym) supAdminYM = ym; renderSupervisionAdmin(); }
     if(tab==='ranking'){ renderRanking(); }
     if(tab==='stats'){ renderStatsChart(); renderLateAbsenceStats(); }
     if(tab==='diary'){ if($('#diaryDate') && !$('#diaryDate').value) $('#diaryDate').value = todayStr(); renderDiaryList(); }
     if(tab==='log'){ renderChangeLog(); }
     openOverlay('ovAdmin');
   }
+
+  function renderFloorModeTab(){
+    const box = $('#floorModeBox'); if(!box) return;
+    box.innerHTML = FLOORS.map(f => {
+      const m = floorMode(f);
+      const deskCount = cache.desks.filter(d => d.floor === f).length;
+      const assigned = cache.students.filter(s => s.seatMode === 'fixed' && s.deskId != null && (findDesk(s.deskId) || {}).floor === f).length;
+      return `<div class="list-item" style="flex-direction:column;align-items:stretch;gap:8px;">
+        <div><b>${f}층</b> <span class="muted">· 좌석 ${deskCount}개 · 고정 배정 학생 ${assigned}명</span></div>
+        <div class="row">
+          <label style="display:flex;align-items:center;gap:6px;font-size:14px;"><input type="radio" name="fm_${f}" value="fixed" ${m==='fixed'?'checked':''}> 고정석</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:14px;"><input type="radio" name="fm_${f}" value="free" ${m==='free'?'checked':''}> 자율석</label>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  safeAddListener('#saveFloorModeBtn', 'click', async () => {
+    const next = { f1: floorMode(1), f2: floorMode(2) };
+    FLOORS.forEach(f => { const el = document.querySelector(`input[name="fm_${f}"]:checked`); if(el) next['f' + f] = el.value; });
+    const changes = FLOORS.filter(f => next['f' + f] !== floorMode(f));
+    if(changes.length === 0){ showToast('변경된 내용이 없습니다.'); return; }
+    const desc = changes.map(f => `${f}층: ${floorModeLabel(floorMode(f))} → ${floorModeLabel(next['f' + f])}`).join('\n');
+    if(!await showConfirm(`다음과 같이 변경할까요?\n\n${desc}\n\n오늘 이미 입실한 학생의 기록은 유지됩니다.`)) return;
+    const before = changes.map(f => `${f}층 ${floorModeLabel(floorMode(f))}`).join(', ');
+    settings.floorModes = next;
+    await saveSettings();
+    await window.logChange('층별 출석 모드 변경', changes.map(f => `${f}층 ${floorModeLabel(next['f' + f])}`).join(', ') + ` (이전: ${before})`);
+    renderFloorModeTab(); renderDeskOptions(); renderFloor();
+    showToast('층별 출석 모드가 저장되었습니다.');
+  });
 
   safeAddListener('#saveTimeSettingsBtn', 'click', async () => {
     settings.validStartTime = getTimeSelectValue('setValid_start');
@@ -2069,7 +2395,7 @@
 
   function renderDeskOptions(){
     const assignedIds = new Set(cache.students.filter(s => s.seatMode !== 'flexible' && s.deskId != null).map(s => String(s.deskId)));
-    const avail = cache.desks.filter(d => d.floor === 2 && !assignedIds.has(String(d.id)));
+    const avail = cache.desks.filter(d => fixedFloors().includes(d.floor) && !assignedIds.has(String(d.id)));
     const sel = $('#newSeat');
     if(sel){
       const keep = sel.value;
@@ -2103,7 +2429,7 @@
     if(arr.length===0){ list.innerHTML = '<p class="muted">해당 조건의 학생이 없습니다.</p>'; return; }
     list.innerHTML = arr.map(s => {
       const desk = s.deskId!=null ? findDesk(s.deskId) : null;
-      const seatLabel = s.seatMode === 'fixed' ? (desk?deskLabel(desk):'좌석 미지정(고정)') : '자율(당일 자동배정)';
+      const seatLabel = s.seatMode === 'fixed' ? (desk ? deskLabel(desk) + (effectiveFixed(s) ? '' : ' (자율석 층이라 미적용)') : '좌석 미지정(고정)') : '자율(당일 자동배정)';
       return `<div class="list-item" style="flex-direction:column;align-items:stretch;gap:6px;">
         <div>${esc(s.studentNum||'')} ${esc(s.name)} <span class="muted">· ${esc(seatLabel)} · 지문ID ${esc(s.fingerprintId)}</span></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
@@ -2165,7 +2491,8 @@
   }
   function renderEditDeskOptions(current){
     const assignedIds = new Set(cache.students.filter(s => s.seatMode !== 'flexible' && s.deskId != null && String(s.id) !== String(current.id)).map(s => String(s.deskId)));
-    const avail = cache.desks.filter(d => d.floor === 2 && !assignedIds.has(String(d.id)));
+    // 현재 배정된 좌석은(자율석으로 바뀐 층에 있더라도) 목록에 남겨서, 저장할 때 배정이 사라지지 않게 한다
+    const avail = cache.desks.filter(d => (fixedFloors().includes(d.floor) && !assignedIds.has(String(d.id))) || (current.deskId != null && String(d.id) === String(current.deskId)));
     if($('#editSeat')) $('#editSeat').innerHTML = '<option value="">미배정(추후 배정)</option>' + avail.map(d => `<option value="${esc(d.id)}">${esc(deskLabel(d))}</option>`).join('');
   }
   $$('input[name="editSeatMode"]').forEach(r => r.addEventListener('change', toggleEditSeatField));
@@ -2558,7 +2885,7 @@
     } finally { rollingOver = false; }
   }
 
-  function updateClock(){ if($('#clockText')) $('#clockText').textContent = new Date().toLocaleString('ko-KR',{hour:'2-digit',minute:'2-digit',month:'long',day:'numeric',weekday:'short'}); }
+  function updateClock(){ if($('#clockText')) $('#clockText').textContent = new Date().toLocaleString('ko-KR',{hour:'2-digit',minute:'2-digit',month:'long',day:'numeric',weekday:'short'}); renderSupervisionBar(); }
 
   // 필요한 데이터를 모두 한 번씩 받은 뒤에만 시작 작업(날짜 전환·마감 처리)을 실행
   function onDataLoaded(){
@@ -2589,7 +2916,7 @@
     // 🚨 통신과 UI 렌더링 분리 (Non-Blocking)
     fbDB.ref('settings/app').on('value', snap => {
         loaded.settings = true;    // 존재 여부와 상관없이 "확인 완료" — 이후부터 저장 허용
-        if(snap.exists()) { settings = { ...settings, ...snap.val() }; applyDarkMode(); }
+        if(snap.exists()) { settings = { ...settings, ...snap.val() }; applyDarkMode(); if(startedUp){ triggerRender(); renderDeskOptions(); } }   // 다른 기기에서 층 모드를 바꿔도 바로 반영
         else { saveSettings(); }
         onDataLoaded();
     });
@@ -2598,6 +2925,7 @@
     fbDB.ref('attendance').on('value', snap => { cache.attendance = snapToList(snap); loaded.attendance = true; triggerRender(); onDataLoaded(); });
     fbDB.ref('changelog').on('value', snap => { cache.changelog = snapToList(snap); });
     fbDB.ref('dailylogs').on('value', snap => { cache.dailylogs = snapToList(snap); });
+    fbDB.ref('supervision').on('value', snap => { cache.supervision = snapToList(snap); renderSupervisionBar(); refreshSupervisionModal(); });
 
     fbDB.ref('.info/serverTimeOffset').on('value', snap => { serverOffset = Number(snap.val()) || 0; });
     initFingerprintListener();
