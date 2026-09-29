@@ -1697,7 +1697,7 @@
            } else { if(statusEl) statusEl.textContent = enrollFailMsg(res); }
            pendingEnrollFpId = null;
        } else if(pendingNewEnrollFpId != null) {
-           clearTimeout(enrollTimer); \1 setFpMark(newFp, Date.now()); if(statusEl) statusEl.textContent = `등록 성공! 지문 ID ${newFp}가 기기에 저장되었습니다.\n[학생 관리] 탭의 "새 학생 등록"에서 이 지문 ID로 학생을 추가하세요.`; if($('#newFp')) $('#newFp').value = newFp; window.logChange('지문 신규 등록', `지문ID ${newFp} 기기 등록`); } else { if(statusEl) statusEl.textContent = enrollFailMsg(res); }
+           clearTimeout(enrollTimer); const statusEl = $('#feStatus'); if(res.success) { setFpMark(newFp, Date.now()); if(statusEl) statusEl.textContent = `등록 성공! 지문 ID ${newFp}가 기기에 저장되었습니다.\n[학생 관리] 탭의 "새 학생 등록"에서 이 지문 ID로 학생을 추가하세요.`; if($('#newFp')) $('#newFp').value = newFp; window.logChange('지문 신규 등록', `지문ID ${newFp} 기기 등록`); } else { if(statusEl) statusEl.textContent = enrollFailMsg(res); }
            pendingNewEnrollFpId = null;
        } else { return; }
        snap.ref.remove();
