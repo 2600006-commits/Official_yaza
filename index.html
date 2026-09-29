@@ -689,7 +689,7 @@
     </h3>
     <div id="fpAvailableChipBox" style="font-size:12px; line-height:1.6; max-height:80px; overflow-y:auto; padding:8px 10px; background:rgba(255,255,255,0.5); border-radius:10px; margin-bottom:14px;"></div>
 
-    <!-- 1~199 전체 지문 번호 시각화 맵 -->
+    <!-- 1~300 전체 지문 번호 시각화 맵 -->
     <h3 style="margin:14px 0 6px; display:flex; justify-content:space-between; align-items:center;">
       <span>지문 번호 전체 맵 (1~300)</span>
       <span style="font-size:10px; font-weight:normal; display:flex; gap:6px;">
@@ -2017,7 +2017,7 @@
   function getUnusedFingerprintIds(){
     const used = new Set(cache.students.map(s => parseInt(s.fingerprintId)).filter(Boolean));
     const unused = [];
-    for(let i=1; i<=199; i++){
+    for(let i=1; i<=300; i++){
       if(!used.has(i)) unused.push(i);
     }
     return unused;
@@ -2028,7 +2028,7 @@
       $('#newFp').value = unused[0];
       showToast(`가장 빠른 빈 지문 ID: ${unused[0]}번으로 설정되었습니다.`);
     } else {
-      showToast('1~199번 지문 ID가 모두 사용 중입니다.');
+      showToast('1~300번 지문 ID가 모두 사용 중입니다.');
     }
   });
 
@@ -2041,7 +2041,7 @@
     const goal = parseInt($('#newGoal').value) || 1200;
     
     if(!name || !fp){ await showMessage('이름과 지문 ID를 입력해주세요.'); return; } 
-    if(fp < 1 || fp > 199){ await showMessage('지문 ID는 1~199 사이 숫자로 입력해주세요.'); return; } 
+    if(fp < 1 || fp > 300){ await showMessage('지문 ID는 1~300 사이 숫자로 입력해주세요.'); return; } 
     if(findStudentByFp(fp)){ await showMessage('이미 사용 중인 지문 ID입니다.'); return; }
     
     const weeklySchedule = readScheduleGridValues('reg'); 
@@ -2188,7 +2188,7 @@
       const dayColMap = { 월:'mon', 화:'tue', 수:'wed', 목:'thu', 금:'fri' }; let added = 0; const skipped = [];
       for(const row of rows){
         const name = String(row['이름']||'').trim(), sNum = String(row['학번']||'').trim(), fp = parseInt(row['지문ID']), goal = parseInt(row['월목표시간_분']) || 1200; const seatModeRaw = String(row['좌석유형']||'').trim(); const seatMode = (seatModeRaw === '자율' || seatModeRaw.toLowerCase() === 'flexible') ? 'flexible' : 'fixed';
-        if(!name || !fp || isNaN(fp)){ skipped.push(`${name||'(이름없음)'}: 이름/지문ID 누락`); continue; } if(fp < 1 || fp > 199){ skipped.push(`${name}: 지문ID ${fp} 범위 오류(1~199)`); continue; } if(findStudentByFp(fp)){ skipped.push(`${name}: 지문ID ${fp} 중복`); continue; }
+        if(!name || !fp || isNaN(fp)){ skipped.push(`${name||'(이름없음)'}: 이름/지문ID 누락`); continue; } if(fp < 1 || fp > 300){ skipped.push(`${name}: 지문ID ${fp} 범위 오류(1~300)`); continue; } if(findStudentByFp(fp)){ skipped.push(`${name}: 지문ID ${fp} 중복`); continue; }
         const weeklySchedule = defaultWeekly(); Object.entries(dayColMap).forEach(([col,key]) => { const val = String(row[col]||'').trim(); const m = val.match(/^(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})$/); if(m){ weeklySchedule[key] = { enabled:true, start:normTime(m[1],'18:00'), end:normTime(m[2],'21:00') }; } });
         await window.dbPut('students', { name, studentNum: sNum, deskId:null, fingerprintId: fp, weeklySchedule, monthlyGoalMinutes: goal, monthlyElapsedSeconds:0, monthlyHistory:{}, seatMode, fpRegistered: false }); added++;
       } await window.logChange('학생 일괄 등록', `${added}명 등록${skipped.length ? ', 실패 '+skipped.length+'건' : ''}`); e.target.value = ''; await showMessage(`${added}명 등록 완료. (지문 등록 필요)` + (skipped.length ? `
@@ -2263,7 +2263,7 @@ ${skipped.join('\n')}` : ''));
 
   safeAddListener('#enrollBtn', 'click', async () => {
     const id = parseInt($('#enrollFpId').value); const statusEl = $('#feStatus');
-    if(!id || id < 1 || id > 199){ await showMessage('지문 ID는 1~199 사이 숫자로 입력해주세요.'); return; } const dupe = findStudentByFp(id); if(dupe){ await showMessage(`지문 ID ${id}는 이미 ${dupe.name}님이 사용 중입니다.`); return; } if(!isOnline){ await showMessage('서버에 연결되지 않았습니다. 연결 상태를 확인해주세요.'); return; }
+    if(!id || id < 1 || id > 300){ await showMessage('지문 ID는 1~300 사이 숫자로 입력해주세요.'); return; } const dupe = findStudentByFp(id); if(dupe){ await showMessage(`지문 ID ${id}는 이미 ${dupe.name}님이 사용 중입니다.`); return; } if(!isOnline){ await showMessage('서버에 연결되지 않았습니다. 연결 상태를 확인해주세요.'); return; }
     pendingEnrollFpId = null; pendingNewEnrollFpId = id; if(statusEl) statusEl.textContent = '원격 지문 등록 대기 중... 기기에 손가락을 올려주세요 (30초 대기)'; fbWrite('enrollRequest', { fpId: id, timestamp: serverNow() });
     enrollTimeout(() => { if(pendingNewEnrollFpId != null){ pendingNewEnrollFpId = null; if(statusEl) statusEl.textContent = '기기 응답이 없습니다. 기기가 켜져 있고 와이파이에 연결되어 있는지 확인해주세요.'; } });
   });
@@ -2277,7 +2277,7 @@ ${skipped.join('\n')}` : ''));
   
   safeAddListener('#feStartBtn', 'click', async () => {
     const s = cache.students.find(x => String(x.id) === String(pendingEnrollStudentId)); if(!s) return;
-    const newId = parseInt($('#feFpId2').value); if(!newId || newId < 1 || newId > 199){ await showMessage('지문 ID는 1~199 사이 숫자로 입력해주세요.'); return; }
+    const newId = parseInt($('#feFpId2').value); if(!newId || newId < 1 || newId > 300){ await showMessage('지문 ID는 1~300 사이 숫자로 입력해주세요.'); return; }
     const dupe = findStudentByFp(newId); if(dupe && String(dupe.id) !== String(s.id)){ await showMessage(`지문 ID ${newId}는 이미 ${dupe.name}님이 사용 중입니다.`); return; }
     if(!isOnline){ await showMessage('서버에 연결되지 않았습니다. 연결 상태를 확인해주세요.'); return; }
     pendingNewEnrollFpId = null; pendingEnrollFpId = newId; if($('#feStatus2')) $('#feStatus2').textContent = '원격 지문 등록 대기 중... 기기에 손가락을 올려주세요 (30초 대기)';
@@ -2294,7 +2294,7 @@ ${skipped.join('\n')}` : ''));
     const enrolledStudents = cache.students.filter(s => !!s.fpRegistered);
     const unregStudents = cache.students.filter(s => !s.fpRegistered);
     const unusedIds = [];
-    for(let i=1; i<=199; i++){
+    for(let i=1; i<=300; i++){
       if(!studentsByFp.has(i)) unusedIds.push(i);
     }
 
@@ -2362,7 +2362,7 @@ ${skipped.join('\n')}` : ''));
     const chipBox = $('#fpAvailableChipBox');
     if(chipBox){
       if(unusedIds.length === 0){
-        chipBox.innerHTML = '<span class="muted">1~199번 지문 ID가 모두 할당되어 있습니다.</span>';
+        chipBox.innerHTML = '<span class="muted">1~300번 지문 ID가 모두 할당되어 있습니다.</span>';
       } else {
         chipBox.innerHTML = unusedIds.map(id => `<span style="display:inline-block; background:rgba(120,120,128,0.16); padding:2px 7px; border-radius:4px; margin:2px; font-weight:600;">${id}</span>`).join(' ');
       }
@@ -2371,7 +2371,7 @@ ${skipped.join('\n')}` : ''));
     const grid = $('#fpGridContainer');
     if(grid){
       let gridHtml = '';
-      for(let i=1; i<=199; i++){
+      for(let i=1; i<=300; i++){
         const st = studentsByFp.get(i);
         if(!st){
           gridHtml += `<div class="fp-tile empty" title="${i}번: 미지정 빈 번호" data-fpid="${i}">${i}</div>`;
