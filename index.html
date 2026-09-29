@@ -430,8 +430,10 @@
 
     <div class="tabpane active" id="tab-students">
       <h3>학생 목록</h3>
-      <div class="field"><label>학생 검색</label><input id="studentSearch" type="search" placeholder="이름 또는 학번으로 검색" autocomplete="off"></div>
-      <button class="btn btn-secondary fpStatusBtn" style="width:100%;margin-bottom:8px;">지문 등록 현황 보기</button>
+      <div class="row" style="margin-bottom:8px;">
+        <input id="adminStudentSearchInput" type="text" placeholder="학생 이름 또는 학번 검색..." style="flex:1; padding:11px 12px; border-radius:12px; border:1px solid rgba(120,120,128,0.25); font-family:inherit; font-size:14px;">
+        <button class="btn btn-danger" id="deleteAllStudentsBtn" style="white-space:nowrap; padding: 0 16px;">전체 삭제</button>
+      </div>
       <div class="row">
         <div class="field"><label>정렬</label><select id="studentSort">
           <option value="name">이름순</option>
@@ -447,11 +449,9 @@
           <option value="unassigned">좌석 미배정</option>
           <option value="fixed">고정좌석</option>
           <option value="flexible">자율</option>
-          <option value="fpUnreg">지문 미등록</option>
         </select></div>
       </div>
       <div id="studentList"></div>
-      <button class="btn btn-danger" id="deleteAllStudentsBtn" style="width:100%;margin-top:8px;">학생 전체 삭제</button>
       <h3>새 학생 등록</h3>
       <div class="field"><label>이름</label><input id="newName"></div>
       <div class="field"><label>좌석 유형</label>
@@ -579,12 +579,14 @@
         <button class="btn btn-primary" id="enrollBtn" style="align-self:flex-end;height:44px;">원격 등록 시작</button>
       </div>
       <div id="feStatus" class="muted" style="margin-top:12px;white-space:pre-wrap;">기기가 와이파이에 켜져있어야 합니다.</div>
-      <button class="btn btn-secondary fpStatusBtn" style="width:100%;margin-top:16px;">지문 등록 현황 보기</button>
+      <h3 style="margin-top:24px;">지문 번호 관리 현황</h3>
+      <div id="fingerprintStatusDiv" class="glass" style="padding:16px; border-radius:12px; font-size:13px; max-height: 250px; overflow-y:auto;">
+        <!-- Loaded dynamically -->
+      </div>
     </div>
   </div>
 </div>
 
-<div class="overlay" id="ovFpStatus"><div class="modal glass" style="max-width:520px;"><button class="close-x" data-close="ovFpStatus"></button><h2>지문 등록 현황</h2><div id="fpStatusBody"></div></div></div>
 <div class="overlay" id="ovPassword"><div class="modal glass"><button class="close-x" data-close="ovPassword"></button><h2>관리자 인증</h2><div class="field"><label>관리자 이름</label><input type="text" id="pwAdminName"></div><div class="field"><label>비밀번호</label><input type="password" id="pwInput" inputmode="numeric"></div><div class="modal-actions"><button class="btn btn-primary" id="pwSubmit" style="width:100%">확인</button></div></div></div>
 <div class="overlay" id="ovSeatDetail"><div class="modal glass"><button class="close-x" data-close="ovSeatDetail"></button><h2 id="sdTitle">좌석 정보</h2><div id="sdBody"></div></div></div>
 <div class="overlay" id="ovWeekly"><div class="modal glass"><button class="close-x" data-close="ovWeekly"></button><h2 id="wkTitle">주간 자율학습 시간표</h2><div id="wkBody"></div><div class="modal-actions" id="wkActions"></div></div></div>
@@ -761,53 +763,6 @@
   const freeFloors = () => FLOORS.filter(f => floorMode(f) === 'free');
   function effectiveFixed(s){ if(!s || s.seatMode !== 'fixed') return false; if(s.deskId == null) return true; const d = findDesk(s.deskId); return d ? floorMode(d.floor) === 'fixed' : true; }
   function findStudentByDesk(deskId){ return cache.students.find(s => String(s.deskId) === String(deskId)); }
-  // ── 고정좌석 공유(요일이 겹치지 않을 때만) ──
-  let shownStudents = []; const openMore = new Set();
-  function enabledDays(s){ const w = (s && s.weeklySchedule) || {}; return DAYS.map(([k]) => k).filter(k => w[k] && w[k].enabled); }
-  function daysText(s){ const d = enabledDays(s); return d.length ? DAYS.filter(([k]) => d.includes(k)).map(([,l]) => l).join('·') : '요일 미설정'; }
-  function daysOverlap(a, b){ const A = enabledDays(a), B = enabledDays(b); if(!A.length || !B.length) return true; return B.some(k => A.includes(k)); }
-  function fixedStudentsAtDesk(deskId, exceptId){ return cache.students.filter(s => effectiveFixed(s) && s.deskId != null && String(s.deskId) === String(deskId) && String(s.id) !== String(exceptId)); }
-  function canShareDesk(student, deskId){ return fixedStudentsAtDesk(deskId, student.id).every(o => !daysOverlap(student, o)); }
-  function pickDeskStudent(list, todayRecords){ if(!list.length) return null; const k = todayDayKey(); return list.find(s => (todayRecords||[]).some(r => String(r.studentId) === String(s.id))) || list.find(s => s.weeklySchedule && s.weeklySchedule[k] && s.weeklySchedule[k].enabled) || list[0]; }
-  function deskOptionLabel(d, exceptId){ const o = fixedStudentsAtDesk(d.id, exceptId); return deskLabel(d) + (o.length ? ' — 사용중: ' + o.map(s => s.name + '(' + daysText(s) + ')').join(', ') : ''); }
-  function conflictMsg(bad){ return '같은 좌석을 쓰는 ' + bad.map(o => o.name + '(' + daysText(o) + ')').join(', ') + '님과 요일이 겹치거나 요일이 설정되지 않았습니다.\n요일이 겹치지 않아야 한 좌석을 함께 쓸 수 있습니다.'; }
-
-  // ── 지문 등록 상태 (센서 내부는 웹에서 읽을 수 없어 등록 기록/출결 기록으로 판단) ──
-  const FP_MAX = 199;
-  function isFpIdRegistered(fpId){ const m = settings.fpEnrolled || {}; const v = m[fpId]; if(v === -1) return false; if(v) return true; return cache.attendance.some(a => String(a.studentId) === String(fpId)); }
-  function isFpRegistered(s){ return isFpIdRegistered(s.fingerprintId); }
-  function setFpMark(fpId, val){
-    settings.fpEnrolled = settings.fpEnrolled || {}; if(val === null) delete settings.fpEnrolled[fpId]; else settings.fpEnrolled[fpId] = val;
-    try{ fbDB.ref('settings/app/fpEnrolled/' + fpId).set(val); }catch(e){}
-    const ov = $('#ovFpStatus'); if(ov && ov.classList.contains('show')) renderFpStatus(); renderAdminStudentList();
-  }
-  function renderFpStatus(){
-    const body = $('#fpStatusBody'); if(!body) return;
-    const byFp = new Map(cache.students.map(s => [String(s.fingerprintId), s]));
-    const unreg = cache.students.filter(s => !isFpRegistered(s)).sort((a,b) => a.fingerprintId - b.fingerprintId);
-    let free = 0, orphan = 0, cells = '';
-    for(let n = 1; n <= FP_MAX; n++){
-      const st = byFp.get(String(n)), reg = isFpIdRegistered(n); let bg, fg = '#fff', tip;
-      if(st && reg){ bg = '#34c759'; tip = st.name + ' · 등록됨'; }
-      else if(st){ bg = '#ff9500'; tip = st.name + ' · 지문 미등록'; }
-      else if(reg){ bg = '#5ac8fa'; tip = '기기에 등록됨 · 학생 미지정'; orphan++; }
-      else { bg = 'rgba(120,120,128,0.25)'; fg = 'inherit'; tip = '미사용 번호'; free++; }
-      cells += `<button data-fpnum="${n}" title="${esc(tip)}" style="border:0;border-radius:6px;padding:6px 0;font-size:11px;font-weight:600;color:${fg};background:${bg};cursor:pointer;">${n}</button>`;
-    }
-    const rows = unreg.length ? unreg.map(s => `<div class="list-item" style="gap:6px;"><div style="flex:1;min-width:0;">${esc(s.studentNum||'')} ${esc(s.name)} <span class="muted">· 지문ID ${esc(s.fingerprintId)}</span></div><button class="btn btn-primary" data-fpenroll="${esc(s.id)}" style="padding:4px 10px;font-size:12px;">지문 등록</button><button class="btn btn-secondary" data-fpok="${esc(s.fingerprintId)}" style="padding:4px 10px;font-size:12px;">등록됨 표시</button></div>`).join('') : '<p class="muted">지문 미등록 학생이 없습니다.</p>';
-    body.innerHTML = `<p class="muted">학생 ${cache.students.length}명 중 <b>지문 미등록 ${unreg.length}명</b> · 미사용 번호 ${free}개 · 학생 없이 기기에만 등록된 번호 ${orphan}개</p>
-      <h4 style="margin:12px 0 6px;">지문 미등록 학생 (번호는 지정됨)</h4>${rows}
-      ${unreg.length ? '<button class="btn btn-secondary" id="fpMarkAll" style="width:100%;margin-top:8px;">위 학생 모두 등록됨으로 표시</button>' : ''}
-      <h4 style="margin:16px 0 6px;">지문 번호 1~${FP_MAX}</h4>
-      <div class="muted" style="font-size:12px;line-height:1.7;"><span style="color:#34c759;">■</span> 학생 지정+등록됨 <span style="color:#ff9500;">■</span> 학생 지정+미등록 <span style="color:#5ac8fa;">■</span> 기기에만 등록(학생 없음) <span style="color:#999;">■</span> 미사용 번호</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(38px,1fr));gap:4px;margin-top:8px;">${cells}</div>
-      <p class="muted" style="font-size:12px;margin-top:10px;">번호를 누르면 학생 등록/원격 등록 입력칸에 채워집니다. 기기 센서 내부는 웹에서 직접 읽을 수 없어, 이 앱에서 등록 성공한 기록·출결 기록이 있는지로 판단합니다. 이전에 등록한 학생은 "등록됨 표시"로 한 번만 정리해 주세요.</p>`;
-    $$('#fpStatusBody [data-fpenroll]').forEach(b => { b.onclick = () => { closeOverlay('ovFpStatus'); openFingerprintEnroll(b.dataset.fpenroll); }; });
-    $$('#fpStatusBody [data-fpok]').forEach(b => { b.onclick = () => setFpMark(b.dataset.fpok, Date.now()); });
-    const all = $('#fpMarkAll'); if(all) all.onclick = async () => { if(await showConfirm(`${unreg.length}명을 지문 등록됨으로 표시합니다.\n실제로 기기에 등록된 학생만 해 주세요.`)) unreg.forEach(s => setFpMark(s.fingerprintId, Date.now())); };
-    $$('#fpStatusBody [data-fpnum]').forEach(b => { b.onclick = () => { if($('#newFp')) $('#newFp').value = b.dataset.fpnum; if($('#enrollFpId')) $('#enrollFpId').value = b.dataset.fpnum; showToast('지문 ID ' + b.dataset.fpnum + '번이 입력칸에 채워졌습니다.'); }; });
-  }
-  $$('.fpStatusBtn').forEach(b => b.addEventListener('click', () => { renderFpStatus(); openOverlay('ovFpStatus'); }));
   function findStudentByFp(fpId){ return cache.students.find(s => String(s.fingerprintId) === String(fpId)); }
   function deskLabel(desk){ if (!desk) return '알 수 없는 좌석'; if (desk.seatNumber) return `${desk.floor}층 ${desk.seatNumber}번 (${desk.type==='partition'?'칸막이':'오픈형'})`; const sameFloor = cache.desks.filter(d=>d.floor===desk.floor).sort((a,b)=>a.id-b.id); const idx = sameFloor.findIndex(d=>String(d.id)===String(desk.id))+1; return `${desk.floor}층 ${desk.type==='partition'?'칸막이':'오픈형'} #${idx}`; }
 
@@ -867,13 +822,25 @@
     } return emptyDesks[0];
   }
   async function getDeskOccupant(deskId, todayRecords){
-    todayRecords = todayRecords || await getTodayRecords();
-    const fixedStudent = pickDeskStudent(fixedStudentsAtDesk(deskId), todayRecords);
-    if(fixedStudent){ const record = todayRecords.find(r => String(r.studentId) === String(fixedStudent.id)) || null; return { student: fixedStudent, record }; }
-    const record = todayRecords.find(r => String(r.deskId) === String(deskId)) || null;
-    if(record){ const student = cache.students.find(s => String(s.id) === String(record.studentId)) || null; return { student, record }; }
-    return { student: null, record: null };
+  todayRecords = todayRecords || await getTodayRecords();
+  const todayKey = todayDayKey();
+  
+  const fixedStudents = cache.students.filter(s => effectiveFixed(s) && String(s.deskId) === String(deskId));
+  let fixedStudent = fixedStudents.find(s => s.weeklySchedule && s.weeklySchedule[todayKey] && s.weeklySchedule[todayKey].enabled);
+  if(!fixedStudent && fixedStudents.length > 0) fixedStudent = fixedStudents[0];
+  
+  if(fixedStudent){ 
+    const record = todayRecords.find(r => String(r.studentId) === String(fixedStudent.id)) || null; 
+    return { student: fixedStudent, record }; 
   }
+  
+  const record = todayRecords.find(r => String(r.deskId) === String(deskId)) || null;
+  if(record){ 
+    const student = cache.students.find(s => String(s.id) === String(record.studentId)) || null; 
+    return { student, record }; 
+  }
+  return { student: null, record: null };
+}
 
   window.requestScan = function(action) {
      closeOverlay('ovSeatDetail');
@@ -981,7 +948,7 @@
   
   async function deleteDesk(id){
     const desk = findDesk(id); const label = desk ? deskLabel(desk) : ('ID '+id);
-    if(desk){ for(const st of cache.students.filter(x => String(x.deskId) === String(id))){ st.deskId = null; await window.dbPut('students', st); } }
+    if(desk){ const st = findStudentByDesk(id); if(st){ st.deskId = null; await window.dbPut('students', st); } }
     await dbDelete('desks', id); await window.logChange('좌석 삭제', label);
   }
 
@@ -1042,7 +1009,6 @@
           <div class="d-time">${checkIn}~${checkOut}<br>${elapsedMin}분</div>
           <div class="goal-bar"><div class="goal-fill" style="width:${pct}%"></div></div>`;
         cell.dataset.studentName = student.name;
-        if(fixedStudentsAtDesk(desk.id).length > 1){ const sh = document.createElement('span'); sh.textContent = '공유'; sh.style.cssText = 'position:absolute;left:4px;bottom:2px;font-size:9px;opacity:.7;'; cell.appendChild(sh); }
         if(expectedNotArrived){ const dot = document.createElement('span'); dot.className='expected-dot'; dot.title='오늘 신청함'; cell.appendChild(dot); }
       } else {
         cell.innerHTML = `<span class="badge">${desk.type==='partition'?'칸막이':'오픈형'}</span><div class="muted" style="font-size:10px; margin-top:14px;">미배정</div>`;
@@ -1298,37 +1264,71 @@
   });
 
   async function openSeatDetail(deskId){
-    const desk = findDesk(deskId); if (!desk) return;
-    const todayRecords = await getTodayRecords(); const { student, record } = await getDeskOccupant(deskId, todayRecords);
-    if($('#sdTitle')) $('#sdTitle').textContent = deskLabel(desk); const body = $('#sdBody'); if(!body) return;
-    if(!student){
-      if(adminMode){
-        const canAssignFixed = floorMode(desk.floor) === 'fixed'; const fixedCandidates = cache.students.filter(s => s.seatMode === 'fixed' && s.deskId == null);
-        body.innerHTML = `<p class="muted">배정된 학생이 없습니다.</p>` + (canAssignFixed ? `<div class="field"><label>고정좌석 학생 배정</label><select id="assignSelect"><option value="">선택</option>${fixedCandidates.map(s=>`<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('')}</select></div><button class="btn btn-primary" id="assignBtn" style="width:100%">배정</button><p class="muted" style="margin-top:8px;">${desk.floor}층은 고정석 방식입니다.</p>` : `<p class="muted">${desk.floor}층은 자율석 방식이라 학생이 입실(지문 스캔)할 때 빈자리가 자동 배정됩니다. 고정 배정을 하려면 관리자 메뉴 > 층별 출석 모드에서 이 층을 고정석으로 바꾸세요.</p>`);
-        if(canAssignFixed){ safeAddListener('#assignBtn', 'click', async () => { const sid = $('#assignSelect').value; if(!sid) return; const st = cache.students.find(s=>String(s.id)===String(sid)); if(!st) return; st.deskId = deskId; await window.dbPut('students', st); await window.logChange('좌석 배정', `${st.name} → ${deskLabel(desk)}`); closeOverlay('ovSeatDetail'); showToast('좌석이 배정되었습니다.'); }); }
-      } else { body.innerHTML = '<p class="muted">배정된 학생이 없습니다.</p>'; }
-    } else {
-      const status = record ? record.status : '미입실'; const modeLabel = effectiveFixed(student) ? '고정좌석' : ('자율 · ' + (record && record.seatChoice === 'full' ? '전체 시간' : record && record.seatChoice === 'partial' ? '일부 시간' : '-'));
-      let html = `<p><b>${esc(student.studentNum||'')} ${esc(student.name)}</b> <span class="muted">(${modeLabel})</span></p><p class="muted">오늘 상태: <strong style="color:var(--accent);">${statusLabel(status)}</strong></p><p class="muted">입실 ${record?fmtTime(record.checkIn):'-'} / 퇴실 ${record&&record.checkOut?fmtTime(record.checkOut):'-'}</p>`;
-      html += `<div style="margin-top:16px; padding-top:16px; border-top:1px solid rgba(0,0,0,0.1);"><h4 style="margin:0 0 10px; font-size:13px; color:var(--text-secondary);">학생 본인 인증 (지문 스캐너 켜기)</h4><div class="row"><button class="btn btn-primary" onclick="requestScan('present')">입실</button><button class="btn btn-secondary" onclick="requestScan('away')">외출</button><button class="btn btn-danger" onclick="requestScan('left')">퇴실</button></div></div>`;
-      if(adminMode){ html += `<div style="margin-top:20px; padding-top:16px; border-top:1px dashed rgba(0,0,0,0.2);"><h4 style="margin:0 0 10px; font-size:12px; color:var(--text-secondary);">관리자 전용 수동 변경</h4><div class="row"><button class="btn btn-secondary" id="setAway">수동 외출</button><button class="btn btn-secondary" id="setPresent">수동 입실</button><button class="btn btn-danger" id="setLeft">수동 퇴실</button></div><button class="btn btn-danger" id="unassignBtn" style="width:100%;margin-top:8px;">좌석 비우기</button></div>`; }
-      body.innerHTML = html; renderShareBox(desk, student, body);
-      if(adminMode){ safeAddListener('#setAway', 'click', async () => { await setSeatStatus(student.id,'away'); await window.logChange('출결 수동변경', `${student.name} → 자리비움`); closeOverlay('ovSeatDetail'); showToast('상태가 변경되었습니다.'); }); safeAddListener('#setPresent', 'click', async () => { await setSeatStatus(student.id,'present'); await window.logChange('출결 수동변경', `${student.name} → 재실`); closeOverlay('ovSeatDetail'); showToast('상태가 변경되었습니다.'); }); safeAddListener('#setLeft', 'click', async () => { await setSeatStatus(student.id,'left'); await window.logChange('출결 수동변경', `${student.name} → 퇴실`); closeOverlay('ovSeatDetail'); showToast('상태가 변경되었습니다.'); }); safeAddListener('#unassignBtn', 'click', async () => { if(effectiveFixed(student)){ student.deskId = null; await window.dbPut('students', student); } else if(record){ record.deskId = null; await window.dbPut('attendance', record); } await window.logChange('좌석 비우기', student.name); closeOverlay('ovSeatDetail'); showToast('좌석이 비워졌습니다.'); }); }
-    } openOverlay('ovSeatDetail');
-  }
-  function renderShareBox(desk, student, body){
-    if(!effectiveFixed(student)) return;
-    const all = fixedStudentsAtDesk(desk.id); const div = document.createElement('div'); div.style.cssText = 'margin-top:16px;padding-top:16px;border-top:1px solid rgba(0,0,0,0.1);';
-    let h = `<h4 style="margin:0 0 8px;font-size:13px;color:var(--text-secondary);">이 좌석을 쓰는 학생 (${all.length}명)</h4>` + all.map(s => `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;"><div style="flex:1;font-size:13px;">${esc(s.name)} <span class="muted">${esc(daysText(s))}</span></div>${adminMode && all.length > 1 ? `<button class="btn btn-secondary" data-unshare="${esc(s.id)}" style="padding:4px 10px;font-size:12px;">해제</button>` : ''}</div>`).join('');
-    if(adminMode){
-      const cands = cache.students.filter(s => s.seatMode === 'fixed' && s.deskId == null && canShareDesk(s, desk.id));
-      h += `<div class="field" style="margin-top:8px;"><label>요일이 겹치지 않는 학생 추가 배정</label><select id="shareSelect"><option value="">${cands.length ? '선택' : '배정 가능한 학생 없음'}</option>${cands.map(s => `<option value="${esc(s.id)}">${esc(s.name)} (${esc(daysText(s))})</option>`).join('')}</select></div><button class="btn btn-primary" id="shareBtn" style="width:100%">추가 배정</button>`;
+  const desk = findDesk(deskId); if (!desk) return;
+  const todayRecords = await getTodayRecords(); 
+  const { student, record } = await getDeskOccupant(deskId, todayRecords);
+  if($('#sdTitle')) $('#sdTitle').textContent = deskLabel(desk); 
+  const body = $('#sdBody'); if(!body) return;
+  
+  if(adminMode){
+    const fixedOccupants = cache.students.filter(s => s.seatMode === 'fixed' && String(s.deskId) === String(deskId));
+    const canAssignFixed = floorMode(desk.floor) === 'fixed';
+    
+    let occupantHtml = '';
+    if(fixedOccupants.length > 0) {
+        occupantHtml = `<h4 style="margin:0 0 8px; font-size:13px;">현재 고정 배정된 학생</h4><ul style="padding-left:20px; margin-top:0; font-size:13px; display:flex; flex-direction:column; gap:6px;">`;
+        fixedOccupants.forEach(s => {
+            const days = DAYS.filter(([k]) => s.weeklySchedule[k] && s.weeklySchedule[k].enabled).map(([k,l])=>l).join(', ') || '요일없음';
+            occupantHtml += `<li>${s.name} (${days}) <button class="btn btn-danger" style="padding:2px 8px; font-size:10px; margin-left:8px;" onclick="window.unassignDesk(${s.id})">배정 해제</button></li>`;
+        });
+        occupantHtml += `</ul>`;
     }
-    div.innerHTML = h; body.appendChild(div);
-    if(!adminMode) return;
-    const sb = div.querySelector('#shareBtn'); if(sb) sb.onclick = async () => { const sid = div.querySelector('#shareSelect').value; if(!sid) return; const st = cache.students.find(s => String(s.id) === String(sid)); if(!st || !canShareDesk(st, desk.id)) return; st.deskId = desk.id; await window.dbPut('students', st); await window.logChange('좌석 공유 배정', `${st.name} → ${deskLabel(desk)} (${daysText(st)})`); closeOverlay('ovSeatDetail'); showToast('좌석이 배정되었습니다.'); };
-    div.querySelectorAll('[data-unshare]').forEach(b => { b.onclick = async () => { const st = cache.students.find(s => String(s.id) === String(b.dataset.unshare)); if(!st) return; st.deskId = null; await window.dbPut('students', st); await window.logChange('좌석 비우기', st.name); closeOverlay('ovSeatDetail'); showToast('좌석 배정이 해제되었습니다.'); }; });
+
+    const usedDays = new Set();
+    fixedOccupants.forEach(s => { DAYS.forEach(([k]) => { if(s.weeklySchedule[k] && s.weeklySchedule[k].enabled) usedDays.add(k); }); });
+
+    const fixedCandidates = cache.students.filter(s => {
+        if(s.seatMode !== 'fixed' || s.deskId != null) return false;
+        let overlaps = false;
+        DAYS.forEach(([k]) => { if(s.weeklySchedule[k] && s.weeklySchedule[k].enabled && usedDays.has(k)) overlaps = true; });
+        return !overlaps;
+    });
+
+    let html = occupantHtml;
+    if(canAssignFixed){ 
+        html += `<div class="field" style="margin-top:12px;"><label>추가 고정좌석 배정 (요일이 안 겹치는 학생만 나옴)</label><select id="assignSelect"><option value="">선택</option>${fixedCandidates.map(s=>`<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('')}</select></div><button class="btn btn-primary" id="assignBtn" style="width:100%">배정</button><p class="muted" style="margin-top:8px;">${desk.floor}층은 고정석 방식입니다. (요일만 다르면 중복 배정 가능)</p>`;
+    } else { 
+        html += `<p class="muted" style="margin-top:12px;">${desk.floor}층은 자율석 방식이라 학생이 입실할 때 빈자리가 자동 배정됩니다.</p>`; 
+    }
+
+    if(student) {
+        const status = record ? record.status : '미입실';
+        html += `<div style="margin-top:20px; padding-top:16px; border-top:1px dashed rgba(0,0,0,0.2);"><h4 style="margin:0 0 10px; font-size:12px; color:var(--text-secondary);">오늘 출석 상태: <strong style="color:var(--accent);">${statusLabel(status)}</strong> (${student.name})</h4><div class="row"><button class="btn btn-secondary" onclick="window.manualSetStatus(${student.id},'away')">외출</button><button class="btn btn-secondary" onclick="window.manualSetStatus(${student.id},'present')">입실</button><button class="btn btn-danger" onclick="window.manualSetStatus(${student.id},'left')">퇴실</button></div></div>`;
+    }
+
+    body.innerHTML = html;
+
+    if(canAssignFixed){ 
+        safeAddListener('#assignBtn', 'click', async () => { 
+            const sid = $('#assignSelect').value; if(!sid) return; 
+            const st = cache.students.find(s=>String(s.id)===String(sid)); if(!st) return; 
+            st.deskId = deskId; await window.dbPut('students', st); 
+            await window.logChange('좌석 배정', `${st.name} → ${deskLabel(desk)}`); 
+            closeOverlay('ovSeatDetail'); showToast('좌석이 배정되었습니다.'); renderFloor();
+        }); 
+    }
+  } else {
+    if(!student) {
+        body.innerHTML = '<p class="muted">현재 배정된 학생이 없습니다.</p>';
+    } else {
+        const status = record ? record.status : '미입실';
+        let html = `<p><b>${esc(student.studentNum||'')} ${esc(student.name)}</b></p><p class="muted">오늘 상태: <strong style="color:var(--accent);">${statusLabel(status)}</strong></p><p class="muted">입실 ${record?fmtTime(record.checkIn):'-'} / 퇴실 ${record&&record.checkOut?fmtTime(record.checkOut):'-'}</p>`;
+        html += `<div style="margin-top:16px; padding-top:16px; border-top:1px solid rgba(0,0,0,0.1);"><h4 style="margin:0 0 10px; font-size:13px; color:var(--text-secondary);">학생 본인 인증 (지문 스캐너 켜기)</h4><div class="row"><button class="btn btn-primary" onclick="requestScan('present')">입실</button><button class="btn btn-secondary" onclick="requestScan('away')">외출</button><button class="btn btn-danger" onclick="requestScan('left')">퇴실</button></div></div>`;
+        body.innerHTML = html;
+    }
   }
+  openOverlay('ovSeatDetail');
+}
   function statusLabel(s){ return {present:'재실', away:'자리비움', left:'퇴실', empty:'미입실', '미입실':'미입실'}[s] || s; }
 
   async function openWeeklyModal(deskId){
@@ -1339,7 +1339,7 @@
     if($('#wkBody')) $('#wkBody').innerHTML = rows;
     if(editable){ DAYS.forEach(([key]) => { const cb = $('#wd_'+key); const timeRow = document.querySelector(`#wkBody .day-sched-time[data-day="${key}"]`); if(cb && timeRow) cb.addEventListener('change', () => { timeRow.style.display = cb.checked ? 'flex' : 'none'; }); }); }
     if($('#wkActions')) $('#wkActions').innerHTML = editable ? `<button class="btn btn-primary" id="wkSave" style="width:100%">저장</button>` : '';
-    if(editable){ safeAddListener('#wkSave', 'click', async () => { const tmpSched = {}; DAYS.forEach(([key]) => { tmpSched[key] = { enabled: $('#wd_'+key).checked }; }); if(effectiveFixed(student) && student.deskId != null){ const bad = fixedStudentsAtDesk(student.deskId, student.id).filter(o => daysOverlap({weeklySchedule:tmpSched}, o)); if(bad.length){ await showMessage(conflictMsg(bad)); return; } } DAYS.forEach(([key]) => { student.weeklySchedule[key] = { enabled: $('#wd_'+key).checked, start: getTimeSelectValue('wk_'+key+'_s'), end: getTimeSelectValue('wk_'+key+'_e') }; }); await window.dbPut('students', student); await window.logChange('시간표 변경', `${student.name}님 주간 시간표 수정`); closeOverlay('ovWeekly'); showToast('주간 시간표가 저장되었습니다.'); }); }
+    if(editable){ safeAddListener('#wkSave', 'click', async () => { DAYS.forEach(([key]) => { student.weeklySchedule[key] = { enabled: $('#wd_'+key).checked, start: getTimeSelectValue('wk_'+key+'_s'), end: getTimeSelectValue('wk_'+key+'_e') }; }); await window.dbPut('students', student); await window.logChange('시간표 변경', `${student.name}님 주간 시간표 수정`); closeOverlay('ovWeekly'); showToast('주간 시간표가 저장되었습니다.'); }); }
     openOverlay('ovWeekly');
   }
 
@@ -1542,85 +1542,99 @@
   safeAddListener('#btnRules', 'click', () => { if($('#rulesDisplay')) $('#rulesDisplay').textContent = settings.rulesText && settings.rulesText.trim() ? settings.rulesText : '등록된 규정이 없습니다. 관리자에게 문의해주세요.'; openOverlay('ovRules'); });
 
   function renderDeskOptions(){
-    const avail = cache.desks.filter(d => fixedFloors().includes(d.floor));
-    const sel = $('#newSeat');
-    if(sel){ const keep = sel.value; sel.innerHTML = '<option value="">미배정(추후 배정)</option>' + avail.map(d => `<option value="${esc(d.id)}">${esc(deskOptionLabel(d, null))}</option>`).join(''); if(keep && avail.some(d => String(d.id) === keep)) sel.value = keep; }
+  const avail = cache.desks.filter(d => fixedFloors().includes(d.floor));
+  const sel = $('#newSeat');
+  if(sel){ 
+      const keep = sel.value; 
+      sel.innerHTML = '<option value="">미배정(추후 배정)</option>' + avail.map(d => {
+          const owners = cache.students.filter(s => s.seatMode === 'fixed' && String(s.deskId) === String(d.id));
+          const usedDays = new Set();
+          owners.forEach(o => { DAYS.forEach(([k]) => { if(o.weeklySchedule && o.weeklySchedule[k].enabled) usedDays.add(k); }); });
+          const dayStr = usedDays.size > 0 ? ` (사용중: ${Array.from(usedDays).map(k=>DAYS.find(x=>x[0]===k)[1]).join(',')})` : '';
+          return `<option value="${esc(d.id)}">${esc(deskLabel(d))}${dayStr}</option>`;
+      }).join('');
+      if(keep && avail.some(d => String(d.id) === keep)) sel.value = keep; 
   }
+}
   function toggleNewSeatField(){ const modeEl = document.querySelector('input[name="newSeatMode"]:checked'); const mode = modeEl ? modeEl.value : 'fixed'; if($('#newSeatField')) $('#newSeatField').style.display = mode === 'fixed' ? 'block' : 'none'; }
   $$('input[name="newSeatMode"]').forEach(r => r.addEventListener('change', () => { toggleNewSeatField(); renderDeskOptions(); }));
   
   // 탭 정렬 및 필터 적용 (재실 상태 비동기 조회 포함)
   async function renderAdminStudentList(){
-    const list = $('#studentList'); if(!list) return;
-    const sortBy = $('#studentSort') ? $('#studentSort').value : 'name';
-    const filterBy = $('#studentFilter') ? $('#studentFilter').value : 'all';
-    
-    // 재실중 여부 판단을 위해 오늘의 출석 기록 가져오기
-    const todayRecords = await getTodayRecords();
-    
-    let arr = cache.students.slice();
-    arr = arr.filter(s => {
-      const q = ($('#studentSearch') ? $('#studentSearch').value : '').trim().toLowerCase();
-      if(q && !(String(s.name).toLowerCase().includes(q) || String(s.studentNum||'').toLowerCase().includes(q))) return false;
-      if(filterBy === 'fpUnreg') return !isFpRegistered(s);
-      if(filterBy === 'assigned') return s.deskId != null;
-      if(filterBy === 'unassigned') return s.deskId == null;
-      if(filterBy === 'fixed') return s.seatMode === 'fixed';
-      if(filterBy === 'flexible') return s.seatMode !== 'fixed';
-      if(filterBy === 'present') {
-          const rec = todayRecords.find(r => String(r.studentId) === String(s.id));
-          return rec && rec.status === 'present';
-      }
-      return true;
-    });
-    
-    if(sortBy === 'name') arr.sort((a,b) => a.name.localeCompare(b.name, 'ko'));
-    else if(sortBy === 'studentNum') arr.sort((a,b) => (a.studentNum||'').localeCompare(b.studentNum||'', undefined, {numeric:true}));
-    else if(sortBy === 'seat') arr.sort((a,b) => (a.deskId!=null?0:1) - (b.deskId!=null?0:1));
-    else if(sortBy === 'seatMode') arr.sort((a,b) => (a.seatMode||'').localeCompare(b.seatMode||''));
-    else if(sortBy === 'recent') arr.sort((a,b) => b.id - a.id); // 더 높은 ID가 최근에 등록된 데이터
-    
-    shownStudents = arr.slice(); updateBulkDeleteBtn();
-    if(arr.length===0){ list.innerHTML = '<p class="muted">해당 조건의 학생이 없습니다.</p>'; return; }
-    list.innerHTML = arr.map(s => {
-      const desk = s.deskId!=null ? findDesk(s.deskId) : null;
-      const seatLabel = s.seatMode === 'fixed' ? (desk ? deskLabel(desk) + (effectiveFixed(s) ? '' : ' (자율석 층이라 미적용)') : '좌석 미지정(고정)') : '자율(당일 자동배정)';
-      const open = openMore.has(String(s.id)); const fpWarn = isFpRegistered(s) ? '' : ' <span style="color:#ff9500;font-size:12px;">⚠ 지문 미등록</span>';
-      return `<div class="list-item" style="flex-direction:column;align-items:stretch;gap:6px;"><div style="display:flex;align-items:center;gap:8px;"><div style="flex:1;min-width:0;">${esc(s.studentNum||'')} ${esc(s.name)}${fpWarn}<div class="muted" style="font-size:12px;">${esc(seatLabel)} · 지문ID ${esc(s.fingerprintId)}</div></div><button class="btn btn-secondary" data-more="${esc(s.id)}" style="padding:4px 10px;font-size:12px;white-space:nowrap;">더보기 ${open ? '▴' : '▾'}</button></div><div class="more-actions" style="display:${open ? 'grid' : 'none'};grid-template-columns:1fr 1fr;gap:6px;"><button class="btn btn-secondary" data-edit="${esc(s.id)}">수정</button><button class="btn btn-secondary" data-hist="${esc(s.id)}">출결 이력</button><button class="btn btn-secondary" data-enroll="${esc(s.id)}">지문 재등록</button><button class="btn btn-danger" data-del="${esc(s.id)}">삭제</button></div></div>`;
-    }).join('');
-    
-    $$('#studentList [data-del]').forEach(b => { b.onclick = async () => { if(await showConfirm('정말 삭제하시겠습니까?\n이 학생의 출결 기록도 함께 삭제됩니다. (필요하면 먼저 엑셀 백업을 받아두세요)')){ const sid = b.dataset.del; const st = cache.students.find(s=>String(s.id)===String(sid)); const oldRecords = cache.attendance.filter(a => String(a.studentId) === String(sid)); for(const r of oldRecords) await dbDelete('attendance', r.id); await dbDelete('students', sid); await window.logChange('학생 삭제', (st?st.name:('ID '+sid)) + (oldRecords.length ? ` (출결 기록 ${oldRecords.length}건 함께 삭제)` : '')); showToast('삭제되었습니다.'); } }; });
-    $$('#studentList [data-edit]').forEach(b => { b.onclick = () => openStudentEdit(b.dataset.edit); });
-    $$('#studentList [data-hist]').forEach(b => { b.onclick = () => openAttendanceHistory(b.dataset.hist); });
-    $$('#studentList [data-enroll]').forEach(b => { b.onclick = () => openFingerprintEnroll(b.dataset.enroll); });
-    $$('#studentList [data-more]').forEach(b => { b.onclick = () => { const box = b.closest('.list-item').querySelector('.more-actions'); const show = box.style.display === 'none'; box.style.display = show ? 'grid' : 'none'; b.textContent = show ? '더보기 ▴' : '더보기 ▾'; if(show) openMore.add(b.dataset.more); else openMore.delete(b.dataset.more); }; });
+  const list = $('#studentList'); if(!list) return;
+  const sortBy = $('#studentSort') ? $('#studentSort').value : 'name';
+  const filterBy = $('#studentFilter') ? $('#studentFilter').value : 'all';
+  const searchQ = $('#adminStudentSearchInput') ? $('#adminStudentSearchInput').value.trim().toLowerCase() : '';
+  
+  const todayRecords = await getTodayRecords();
+  let arr = cache.students.slice();
+  arr = arr.filter(s => {
+    if(filterBy === 'assigned') return s.deskId != null;
+    if(filterBy === 'unassigned') return s.deskId == null;
+    if(filterBy === 'fixed') return s.seatMode === 'fixed';
+    if(filterBy === 'flexible') return s.seatMode !== 'fixed';
+    if(filterBy === 'present') { const rec = todayRecords.find(r => String(r.studentId) === String(s.id)); return rec && rec.status === 'present'; }
+    return true;
+  });
+  if(searchQ) {
+      arr = arr.filter(s => String(s.name||'').toLowerCase().includes(searchQ) || String(s.studentNum||'').toLowerCase().includes(searchQ));
   }
   
-  if($('#studentSort')) $('#studentSort').addEventListener('change', renderAdminStudentList);
-  if($('#studentSearch')) $('#studentSearch').addEventListener('input', renderAdminStudentList);
-  function updateBulkDeleteBtn(){ const b = $('#deleteAllStudentsBtn'); if(!b) return; const filtered = shownStudents.length !== cache.students.length; b.textContent = filtered ? `검색·필터 결과 ${shownStudents.length}명 삭제` : `학생 전체 삭제 (${shownStudents.length}명)`; b.disabled = shownStudents.length === 0; }
-  safeAddListener('#deleteAllStudentsBtn', 'click', async () => {
-    const targets = shownStudents.slice(); if(!targets.length) return; const filtered = targets.length !== cache.students.length;
-    if(!(await showConfirm(`${filtered ? '현재 표시된' : '등록된 모든'} 학생 ${targets.length}명과 출결 기록을 모두 삭제합니다.\n되돌릴 수 없으니 먼저 엑셀 백업을 받아두세요.\n(기기 센서에 저장된 지문은 삭제되지 않습니다.)`))) return;
-    const typed = await showPrompt('계속하려면 "삭제"라고 입력하세요.', '삭제'); if(typed !== '삭제'){ showToast('삭제가 취소되었습니다.'); return; }
-    const ids = new Set(targets.map(s => String(s.id))); const updates = {}; let recCount = 0;
-    cache.attendance.forEach(a => { if(ids.has(String(a.studentId))){ updates['attendance/' + a.id] = null; recCount++; } });
-    targets.forEach(s => { updates['students/' + s.id] = null; });
-    cache.attendance = cache.attendance.filter(a => !ids.has(String(a.studentId))); cache.students = cache.students.filter(s => !ids.has(String(s.id)));
-    try{ await fbDB.ref().update(updates); }catch(e){ await showMessage('삭제 중 오류가 발생했습니다: ' + e.message); return; }
-    await window.logChange('학생 일괄 삭제', `${targets.length}명 (출결 기록 ${recCount}건 함께 삭제)`); showToast(`${targets.length}명이 삭제되었습니다.`); renderAdminStudentList();
-  });
-  if($('#studentFilter')) $('#studentFilter').addEventListener('change', renderAdminStudentList);
+  if(sortBy === 'name') arr.sort((a,b) => a.name.localeCompare(b.name, 'ko'));
+  else if(sortBy === 'studentNum') arr.sort((a,b) => (a.studentNum||'').localeCompare(b.studentNum||'', undefined, {numeric:true}));
+  else if(sortBy === 'seat') arr.sort((a,b) => (a.deskId!=null?0:1) - (b.deskId!=null?0:1));
+  else if(sortBy === 'seatMode') arr.sort((a,b) => (a.seatMode||'').localeCompare(b.seatMode||''));
+  else if(sortBy === 'recent') arr.sort((a,b) => b.id - a.id);
+  
+  if(arr.length===0){ list.innerHTML = '<p class="muted">해당 조건의 학생이 없습니다.</p>'; return; }
+  list.innerHTML = arr.map(s => {
+    const desk = s.deskId!=null ? findDesk(s.deskId) : null;
+    const seatLabel = s.seatMode === 'fixed' ? (desk ? deskLabel(desk) : '좌석 미지정(고정)') : '자율(당일 배정)';
+    return `<div class="list-item" style="flex-direction:column;align-items:stretch;gap:6px; background:rgba(255,255,255,0.6); border-radius:12px; margin-bottom:10px;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div><strong style="font-size:14px;">${esc(s.studentNum||'')} ${esc(s.name)}</strong><br><span class="muted" style="font-size:11px;">지문ID ${esc(s.fingerprintId)} · ${esc(seatLabel)}</span></div>
+        <button class="btn btn-secondary" style="padding:6px 12px; font-size:12px;" onclick="window.toggleStudentMenu('${s.id}')">더보기 ▾</button>
+      </div>
+      <div id="stuMenu_${s.id}" style="display:none; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px; border-top:1px solid rgba(0,0,0,0.05); padding-top:8px;">
+        <button class="btn btn-secondary" style="font-size:12px;" data-edit="${esc(s.id)}">수정</button>
+        <button class="btn btn-secondary" style="font-size:12px;" data-hist="${esc(s.id)}">출결 이력</button>
+        <button class="btn btn-secondary" style="font-size:12px;" data-enroll="${esc(s.id)}">지문 재등록</button>
+        <button class="btn btn-danger" style="font-size:12px;" data-del="${esc(s.id)}">삭제</button>
+      </div>
+    </div>`;
+  }).join('');
+  
+  $$('#studentList [data-del]').forEach(b => { b.onclick = async () => { if(await showConfirm('정말 삭제하시겠습니까?')){ const sid = b.dataset.del; const st = cache.students.find(s=>String(s.id)===String(sid)); const oldRecords = cache.attendance.filter(a => String(a.studentId) === String(sid)); for(const r of oldRecords) await dbDelete('attendance', r.id); await dbDelete('students', sid); await window.logChange('학생 삭제', (st?st.name:('ID '+sid))); showToast('삭제되었습니다.'); renderAdminStudentList(); } }; });
+  $$('#studentList [data-edit]').forEach(b => { b.onclick = () => openStudentEdit(b.dataset.edit); });
+  $$('#studentList [data-hist]').forEach(b => { b.onclick = () => openAttendanceHistory(b.dataset.hist); });
+  $$('#studentList [data-enroll]').forEach(b => { b.onclick = () => openFingerprintEnroll(b.dataset.enroll); });
+}
+if($('#studentSort')) $('#studentSort').addEventListener('change', renderAdminStudentList);
+if($('#studentFilter')) $('#studentFilter').addEventListener('change', renderAdminStudentList);
   
   safeAddListener('#addStudentBtn', 'click', async () => {
     const name = $('#newName').value.trim(), sNum = $('#newStudentNum').value.trim(); const seatModeEl = document.querySelector('input[name="newSeatMode"]:checked'); const seatMode = seatModeEl ? seatModeEl.value : 'fixed'; const deskId = (seatMode === 'fixed' && $('#newSeat').value !== '') ? parseInt($('#newSeat').value) : null; const fp = parseInt($('#newFp').value); const goal = parseInt($('#newGoal').value) || 1200;
     if(!name || !fp){ await showMessage('이름과 지문 ID를 입력해주세요.'); return; } if(fp < 1 || fp > 199){ await showMessage('지문 ID는 1~199 사이 숫자로 입력해주세요.'); return; } if(findStudentByFp(fp)){ await showMessage('이미 사용 중인 지문 ID입니다.'); return; }
-    const weeklySchedule = readScheduleGridValues('reg'); if(seatMode === 'fixed' && deskId != null){ const bad = fixedStudentsAtDesk(deskId, null).filter(o => daysOverlap({weeklySchedule}, o)); if(bad.length){ await showMessage(conflictMsg(bad)); return; } } await window.dbPut('students', { name, studentNum: sNum, deskId, fingerprintId: fp, weeklySchedule, monthlyGoalMinutes: goal, monthlyElapsedSeconds:0, monthlyHistory:{}, seatMode }); await window.logChange('학생 등록', `${name} (지문ID ${fp}${deskId!=null&&findDesk(deskId)?', '+deskLabel(findDesk(deskId)):''}, ${seatMode==='fixed'?'고정':'자율'})`); $('#newName').value=''; $('#newFp').value=''; $('#newStudentNum').value=''; $('#newGoal').value=1200; resetScheduleGrid('reg'); document.querySelector('input[name="newSeatMode"][value="fixed"]').checked = true; toggleNewSeatField(); showToast('학생이 등록되었습니다.');
+    const weeklySchedule = readScheduleGridValues('reg'); if(window.checkSeatConflict(deskId, weeklySchedule, null)){ await showMessage('선택한 좌석은 해당 요일에 이미 다른 학생이 배정되어 있습니다. 겹치지 않게 일정을 조정하세요.'); return; }
+    const weeklySchedule = readScheduleGridValues('reg'); await window.dbPut('students', { name, studentNum: sNum, deskId, fingerprintId: fp, weeklySchedule, monthlyGoalMinutes: goal, monthlyElapsedSeconds:0, monthlyHistory:{}, seatMode }); await window.logChange('학생 등록', `${name} (지문ID ${fp}${deskId!=null&&findDesk(deskId)?', '+deskLabel(findDesk(deskId)):''}, ${seatMode==='fixed'?'고정':'자율'})`); $('#newName').value=''; $('#newFp').value=''; $('#newStudentNum').value=''; $('#newGoal').value=1200; resetScheduleGrid('reg'); document.querySelector('input[name="newSeatMode"][value="fixed"]').checked = true; toggleNewSeatField(); showToast('학생이 등록되었습니다.');
   });
 
   let editingStudentId = null;
   function toggleEditSeatField(){ const modeEl = document.querySelector('input[name="editSeatMode"]:checked'); const mode = modeEl ? modeEl.value : 'fixed'; if($('#editSeatField')) $('#editSeatField').style.display = mode === 'fixed' ? 'block' : 'none'; }
-  function renderEditDeskOptions(current){ const avail = cache.desks.filter(d => fixedFloors().includes(d.floor) || (current.deskId != null && String(d.id) === String(current.deskId))); if($('#editSeat')) $('#editSeat').innerHTML = '<option value="">미배정(추후 배정)</option>' + avail.map(d => `<option value="${esc(d.id)}">${esc(deskOptionLabel(d, current.id))}</option>`).join(''); }
+  function renderEditDeskOptions(current){ 
+  const avail = cache.desks.filter(d => fixedFloors().includes(d.floor));
+  if($('#editSeat')) {
+      const keep = $('#editSeat').value;
+      $('#editSeat').innerHTML = '<option value="">미배정(추후 배정)</option>' + avail.map(d => {
+          const owners = cache.students.filter(s => s.seatMode === 'fixed' && String(s.deskId) === String(d.id) && String(s.id) !== String(current.id));
+          const usedDays = new Set();
+          owners.forEach(o => { DAYS.forEach(([k]) => { if(o.weeklySchedule && o.weeklySchedule[k].enabled) usedDays.add(k); }); });
+          const dayStr = usedDays.size > 0 ? ` (사용중: ${Array.from(usedDays).map(k=>DAYS.find(x=>x[0]===k)[1]).join(',')})` : '';
+          return `<option value="${esc(d.id)}">${esc(deskLabel(d))}${dayStr}</option>`;
+      }).join('');
+      if(keep && avail.some(d => String(d.id) === keep)) $('#editSeat').value = keep;
+  }
+}
   $$('input[name="editSeatMode"]').forEach(r => r.addEventListener('change', toggleEditSeatField));
   
   function openStudentEdit(studentId){
@@ -1634,8 +1648,8 @@
     const s = cache.students.find(x => String(x.id) === String(editingStudentId)); if(!s) return;
     const name = $('#editName').value.trim(), sNum = $('#editStudentNum').value.trim(), fp = parseInt($('#editFp').value), goal = parseInt($('#editGoal').value) || 1200; const seatModeEl = document.querySelector('input[name="editSeatMode"]:checked'); const seatMode = seatModeEl ? seatModeEl.value : 'fixed'; const deskId = (seatMode === 'fixed' && $('#editSeat').value !== '') ? parseInt($('#editSeat').value) : null;
     if(!name || !fp){ await showMessage('이름과 지문 ID를 입력해주세요.'); return; }
-    const newSched = readScheduleGridValues('edit'); if(seatMode === 'fixed' && deskId != null){ const bad = fixedStudentsAtDesk(deskId, s.id).filter(o => daysOverlap({weeklySchedule:newSched}, o)); if(bad.length){ await showMessage(conflictMsg(bad)); return; } }
     s.name = name; s.studentNum = sNum; s.fingerprintId = fp; s.monthlyGoalMinutes = goal; s.seatMode = seatMode; s.deskId = deskId; s.weeklySchedule = readScheduleGridValues('edit');
+    if(window.checkSeatConflict(deskId, s.weeklySchedule, s.id)){ await showMessage('선택한 좌석은 해당 요일에 이미 다른 학생이 배정되어 있습니다. 겹치지 않게 일정을 조정하세요.'); return; }
     await window.dbPut('students', s); await window.logChange('학생 정보 수정', name); closeOverlay('ovStudentEdit'); showToast('수정되었습니다.');
   });
 
@@ -1693,11 +1707,12 @@
            if(res.success) {
                const s = cache.students.find(x => String(x.id) === String(pendingEnrollStudentId)); const dupe = findStudentByFp(newFp);
                if(s && dupe && String(dupe.id) !== String(s.id)) { if(statusEl) statusEl.textContent = `지문 ID ${newFp}는 이미 ${dupe.name}님이 사용 중입니다.`; }
-               else if(s) { setFpMark(newFp, Date.now()); changeStudentFingerprint(s, newFp).then(ns => { pendingEnrollStudentId = ns.id; if($('#feFpId2')) $('#feFpId2').value = newFp; window.logChange('지문 재등록', `${ns.name} → 지문ID ${newFp}`); }).catch(e => { if(statusEl) statusEl.textContent = '저장 중 오류: ' + e.message; }); if(statusEl) statusEl.textContent = `등록 성공! 지문 ID ${newFp}로 완료되었습니다. 창을 닫아주세요.`; }
+               else if(s) { changeStudentFingerprint(s, newFp).then(ns => { ns.fpEnrolled = true; window.dbPut('students', ns); window.renderFingerprintStatus(); pendingEnrollStudentId = ns.id; if($('#feFpId2')) $('#feFpId2').value = newFp; window.logChange('지문 재등록', `${ns.name} → 지문ID ${newFp}`); }).catch(e => { if(statusEl) statusEl.textContent = '저장 중 오류: ' + e.message; }); if(statusEl) statusEl.textContent = `등록 성공! 지문 ID ${newFp}로 완료되었습니다. 창을 닫아주세요.`; }
            } else { if(statusEl) statusEl.textContent = enrollFailMsg(res); }
            pendingEnrollFpId = null;
        } else if(pendingNewEnrollFpId != null) {
-           clearTimeout(enrollTimer); const statusEl = $('#feStatus'); if(res.success) { setFpMark(newFp, Date.now()); if(statusEl) statusEl.textContent = `등록 성공! 지문 ID ${newFp}가 기기에 저장되었습니다.\n[학생 관리] 탭의 "새 학생 등록"에서 이 지문 ID로 학생을 추가하세요.`; if($('#newFp')) $('#newFp').value = newFp; window.logChange('지문 신규 등록', `지문ID ${newFp} 기기 등록`); } else { if(statusEl) statusEl.textContent = enrollFailMsg(res); }
+           clearTimeout(enrollTimer); const statusEl = $('#feStatus');
+           if(res.success) { if(statusEl) statusEl.textContent = `등록 성공! 지문 ID ${newFp}가 기기에 저장되었습니다.\n[학생 관리] 탭의 "새 학생 등록"에서 이 지문 ID로 학생을 추가하세요.`; if($('#newFp')) $('#newFp').value = newFp; window.logChange('지문 신규 등록', `지문ID ${newFp} 기기 등록`); } else { if(statusEl) statusEl.textContent = enrollFailMsg(res); }
            pendingNewEnrollFpId = null;
        } else { return; }
        snap.ref.remove();
@@ -1758,6 +1773,78 @@
     setInterval(() => { if(!isReady() || layoutEditMode) return; if(document.querySelector('.overlay.show')) return; triggerRender(); }, 60000);
   }
   
+  
+window.checkSeatConflict = function(deskId, schedule, excludeStudentId) {
+    if(!deskId) return false;
+    const requestedDays = DAYS.map(([k]) => k).filter(k => schedule[k].enabled);
+    const owners = cache.students.filter(s => s.seatMode === 'fixed' && String(s.deskId) === String(deskId) && String(s.id) !== String(excludeStudentId));
+    for(const o of owners) {
+        const overlap = requestedDays.some(k => o.weeklySchedule && o.weeklySchedule[k].enabled);
+        if(overlap) return true;
+    }
+    return false;
+};
+
+  window.unassignDesk = async function(sid) {
+      const s = cache.students.find(x=>String(x.id)===String(sid));
+      if(s) { s.deskId = null; await window.dbPut('students', s); await window.logChange('좌석 해제', s.name); closeOverlay('ovSeatDetail'); showToast('좌석 배정이 해제되었습니다.'); renderFloor(); }
+  };
+  window.manualSetStatus = async function(sid, status) {
+      const s = cache.students.find(x=>String(x.id)===String(sid));
+      if(s) { await setSeatStatus(sid, status); await window.logChange('출결 수동변경', `${s.name} → ${status}`); closeOverlay('ovSeatDetail'); showToast('상태가 변경되었습니다.'); renderFloor(); }
+  };
+  window.toggleStudentMenu = function(id) {
+      const m = document.getElementById('stuMenu_'+id);
+      if(m) m.style.display = m.style.display==='none' ? 'grid' : 'none';
+  };
+  window.markFpEnrolled = async function(id) {
+      const s = cache.students.find(x=>String(x.id)===String(id));
+      if(s) { s.fpEnrolled = true; await window.dbPut('students', s); window.renderFingerprintStatus(); showToast('지문 등록 완료 처리되었습니다.'); }
+  };
+  window.renderFingerprintStatus = function() {
+      const used = new Set(cache.students.map(s => parseInt(s.fingerprintId)).filter(id => !isNaN(id)));
+      let ranges = [], start = null;
+      for(let i=1; i<=199; i++) {
+          if(!used.has(i)) { if(start === null) start = i; } else { if(start !== null) { ranges.push(start === i-1 ? `${start}` : `${start}~${i-1}`); start = null; } }
+      }
+      if(start !== null) ranges.push(start === 199 ? `199` : `${start}~199`);
+      const availStr = ranges.join(', ');
+      
+      const unenrolled = cache.students.filter(s => !s.fpEnrolled);
+      let html = `<div style="margin-bottom:12px;"><b>사용 가능한 지문 번호 (총 ${199 - used.size}개)</b><div class="muted" style="margin-top:4px; line-height:1.4;">${availStr}</div></div>`;
+      html += `<div><b>지문 미등록 학생 (${unenrolled.length}명)</b>`;
+      if(unenrolled.length === 0) html += `<div class="muted" style="margin-top:4px;">모든 학생의 지문이 등록되어 있습니다.</div>`;
+      else {
+          html += `<ul style="margin:6px 0 0 0; padding-left:20px; color:var(--text-secondary); font-size:12px; display:flex; flex-direction:column; gap:6px;">`;
+          unenrolled.forEach(s => { html += `<li>${esc(s.studentNum||'')} ${esc(s.name)} (지문ID: ${s.fingerprintId}) <button class="btn btn-secondary" style="padding:4px 8px; font-size:11px; margin-left:6px;" onclick="window.markFpEnrolled(${s.id})">수동 완료</button></li>`; });
+          html += `</ul>`;
+      }
+      html += `</div>`;
+      const div = document.getElementById('fingerprintStatusDiv');
+      if(div) div.innerHTML = html;
+  };
+
+  // Ensure fingerprint rendering updates on tab open
+  const oldOpenAdminPanel = openAdminPanel;
+  openAdminPanel = function(tab, ym) {
+      oldOpenAdminPanel(tab, ym);
+      if(tab === 'device') window.renderFingerprintStatus();
+  };
+  
+  if($('#adminStudentSearchInput')) $('#adminStudentSearchInput').addEventListener('input', renderAdminStudentList);
+  if($('#deleteAllStudentsBtn')) $('#deleteAllStudentsBtn').addEventListener('click', async () => {
+      if(await showConfirm('경고: 모든 학생과 출결 기록이 완전히 삭제됩니다! 정말로 모두 삭제하시겠습니까?')) {
+          const oldAttendance = [...cache.attendance];
+          for(const a of oldAttendance) await dbDelete('attendance', a.id);
+          const oldStudents = [...cache.students];
+          for(const s of oldStudents) await dbDelete('students', s.id);
+          await window.logChange('학생 전체 삭제', `학생 및 출결 데이터 일괄 삭제됨`);
+          showToast('모든 학생 데이터가 삭제되었습니다.');
+          renderAdminStudentList();
+          renderFloor();
+      }
+  });
+
   init();
 })();
 </script>
