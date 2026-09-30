@@ -15,7 +15,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icon-192.png">
 
-<!-- ✨ Firebase v8 SDK 및 필수 라이브러리 로드 -->
+<!-- Firebase v8 SDK 및 필수 라이브러리 로드 -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -269,7 +269,7 @@
   .muted{ color:var(--text-secondary); font-size:12px; }
   .close-x{ position:absolute; top:16px; right:16px; background:rgba(120,120,128,0.16); border:none; width:30px; height:30px; border-radius:50%; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--text-primary); }
 
-  /* ✨ 컴팩트 학생 카드 및 더보기 메뉴 스타일 */
+  /* 컴팩트 학생 카드 및 더보기 메뉴 스타일 */
   .student-compact-row {
     display: flex; flex-direction: column; padding: 10px 12px; border-radius: var(--radius-sm);
     background: rgba(255,255,255,0.5); margin-bottom: 6px; font-size: 13px; transition: all .2s;
@@ -297,7 +297,7 @@
   }
   .student-more-actions.show { display: grid; }
 
-  /* ✨ 지문 번호 시각화 그리드 타일 */
+  /* 지문 번호 시각화 그리드 타일 */
   .fp-grid-container {
     display: grid; grid-template-columns: repeat(auto-fill, minmax(36px, 1fr)); gap: 4px; max-height: 240px;
     overflow-y: auto; padding: 8px; background: rgba(0,0,0,0.03); border-radius: 12px; margin-top: 8px;
@@ -310,6 +310,19 @@
   .fp-tile.empty { background: rgba(120,120,128,0.12); color: var(--text-secondary); }
   .fp-tile.enrolled { background: #34c759; color: #fff; }
   .fp-tile.assigned-only { background: #ff9500; color: #fff; }
+
+  /* ---------------- 픽토그램(SVG) 공통 ---------------- */
+  .ico{ width:1.15em; height:1.15em; vertical-align:-0.2em; flex:none; }
+  .btn .ico{ vertical-align:middle; }
+  .fab-main{ display:flex; align-items:center; justify-content:center; }
+  .fab-main .ico{ width:26px; height:26px; }
+  .legend i.sq{ width:11px; height:11px; border-radius:3px; background:transparent; border:2px solid rgba(80,80,86,0.6); }
+  .legend i.ci{ width:11px; height:11px; border-radius:50%; background:transparent; border:2px solid rgba(120,120,128,0.75); }
+  .student-more-actions .full{ grid-column:1 / -1; }
+  .se-pulse{ animation:pulseText 1.6s infinite; }
+  .rt-opt{ display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border-radius:12px; background:rgba(255,255,255,0.5); margin-bottom:8px; cursor:pointer; font-size:13px; }
+  .rt-opt input{ margin-top:3px; width:auto; }
+  body.dark .rt-opt{ background:rgba(255,255,255,0.06); }
 
   /* ---------------- 다크 모드 ---------------- */
   body.dark{ background:linear-gradient(135deg,#0b0f1a 0%,#151225 45%,#1a1015 100%); color:#f2f2f5; }
@@ -381,10 +394,11 @@
 <div class="kiosk-instruction"><span id="icon-fingerprint"></span>아래 버튼을 눌러 스캐너를 켠 후 지문을 스캔하세요</div>
 
 <!-- 1층 스캔 전용 버튼 -->
-<div id="floor1Actions" style="display:flex; gap:10px; margin: 0 12px 16px; justify-content:center;">
+<div id="floor1Actions" style="display:flex; flex-wrap:wrap; gap:10px; margin: 0 12px 16px; justify-content:center;">
     <button class="btn btn-primary" style="flex:1; height:48px; font-size:15px; border-radius:14px;" onclick="requestScan('present')">입실 스캔</button>
     <button class="btn btn-secondary" style="flex:1; height:48px; font-size:15px; border-radius:14px;" onclick="requestScan('away')">외출 스캔</button>
     <button class="btn btn-danger" style="flex:1; height:48px; font-size:15px; border-radius:14px;" onclick="requestScan('left')">퇴실 스캔</button>
+    <button class="btn btn-secondary" id="btnSelfEnroll" style="flex:1 1 100%; height:48px; font-size:15px; border-radius:14px; background:rgba(10,132,255,0.12); color:var(--accent); font-weight:700;"><span data-ico="fingerprint"></span> 지문 등록 (처음 이용하는 학생)</button>
 </div>
 
 <!-- 명예의 전당 -->
@@ -401,10 +415,10 @@
   <span><i style="background:#ff9500"></i>지각</span>
   <span><i style="background:#ffcc00"></i>자리비움</span>
   <span><i style="background:#ff3b30"></i>퇴실</span>
-  <span>▢ 칸막이 / ◯ 오픈형</span>
+  <span><i class="sq"></i>칸막이</span><span><i class="ci"></i>오픈형</span>
 </div>
 
-<div id="editHint">빈 공간을 탭해 책상 추가 · 책상을 드래그해서 이동(자동 정렬) · ✕로 삭제 · 좌우/아래로 스크롤하면 더 많은 자리를 배치할 수 있어요</div>
+<div id="editHint">빈 공간을 탭해 책상 추가 · 책상을 드래그해서 이동(자동 정렬) · <span data-ico="close"></span> 버튼으로 삭제 · 좌우/아래로 스크롤하면 더 많은 자리를 배치할 수 있어요</div>
 
 <main>
   <div class="fit-toggle">
@@ -422,7 +436,7 @@
   <label><input type="radio" name="deskType" value="open" checked> 오픈형</label>
   <label><input type="radio" name="deskType" value="partition"> 칸막이</label>
   <button class="btn btn-primary" id="finishEditBtn">완료</button>
-  <div class="hint2">빈 공간을 탭하면 책상 추가 · 책상을 드래그해서 이동 · ✕로 삭제</div>
+  <div class="hint2">빈 공간을 탭하면 책상 추가 · 책상을 드래그해서 이동 · <span data-ico="close"></span> 버튼으로 삭제</div>
 </div>
 
 <div class="fab-wrap" id="adminFab">
@@ -441,7 +455,7 @@
     <button class="fab-item danger" data-action="kiosk">키오스크 모드 시작</button>
     <button class="fab-item danger" data-action="exit">관리자 모드 종료</button>
   </div>
-  <button class="fab-main" id="fabToggle">☰</button>
+  <button class="fab-main" id="fabToggle" aria-label="메뉴"><span data-ico="menu"></span></button>
 </div>
 
 <button id="exitKioskBtn" class="kiosk-exit-btn">길게 눌러 키오스크 종료</button>
@@ -460,7 +474,7 @@
         <button class="tabbtn" data-tab="supervision">감독표</button>
         <button class="tabbtn" data-tab="stats">통계</button>
         <div style="position:relative;">
-          <button class="btn btn-secondary" id="moreTabsBtn" style="padding:8px 14px; border-radius:999px; font-size:12px; white-space:nowrap; background:rgba(120,120,128,0.14);">더보기 ▾</button>
+          <button class="btn btn-secondary" id="moreTabsBtn" style="padding:8px 14px; border-radius:999px; font-size:12px; white-space:nowrap; background:rgba(120,120,128,0.14);">더보기 <span data-ico="chevD"></span></button>
           <div id="moreTabsMenu" class="glass" style="display:none; position:absolute; right:0; top:100%; margin-top:4px; flex-direction:column; padding:6px; border-radius:12px; z-index:100; min-width:110px;">
             <button class="tabbtn" data-tab="rules" style="width:100%; text-align:left; background:transparent; padding:8px 12px;">규정 관리</button>
             <button class="tabbtn" data-tab="settings" style="width:100%; text-align:left; background:transparent; padding:8px 12px;">운영 설정</button>
@@ -478,17 +492,20 @@
     <div class="tabpane active" id="tab-students">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
         <h3 style="margin:0;">학생 목록</h3>
-        <button class="btn btn-danger" id="deleteAllStudentsBtn" style="padding:5px 12px; font-size:12px; height:30px;">전체 학생 삭제</button>
+        <div style="display:flex; gap:6px;">
+          <button class="btn btn-secondary" id="btnResetTimeAll" style="padding:5px 12px; font-size:12px; height:30px;">학습시간 초기화</button>
+          <button class="btn btn-danger" id="deleteAllStudentsBtn" style="padding:5px 12px; font-size:12px; height:30px;">전체 학생 삭제</button>
+        </div>
       </div>
 
-      <!-- ✨ 요구사항 3: 지문 등록 현황 조회 바로가기 버튼 -->
+      <!-- 요구사항 3: 지문 등록 현황 조회 바로가기 버튼 -->
       <button class="btn btn-secondary" id="btnViewFpStatus" style="width:100%; margin-bottom:10px; font-weight:600; padding:9px 12px; background:rgba(10,132,255,0.12); color:var(--accent);">
-        📊 지문 등록 현황 및 미등록 번호 조회
+        <span data-ico="chart"></span> 지문 등록 현황 및 미등록 번호 조회
       </button>
 
-      <!-- ✨ 요구사항 2: 실시간 학생 이름/학번 검색창 -->
+      <!-- 요구사항 2: 실시간 학생 이름/학번 검색창 -->
       <div class="field" style="margin-bottom:8px;">
-        <input id="adminStudentSearch" type="text" placeholder="🔍 학생 이름 또는 학번으로 검색..." style="width:100%; padding:9px 14px; border-radius:999px;">
+        <input id="adminStudentSearch" type="text" placeholder="학생 이름 또는 학번으로 검색" style="width:100%; padding:9px 14px; border-radius:999px;">
       </div>
 
       <div class="row" style="margin-bottom:8px;">
@@ -501,8 +518,8 @@
         </select></div>
         <div class="field" style="margin-bottom:0;"><label>필터</label><select id="studentFilter">
           <option value="all">전체</option>
-          <option value="fp_unregistered">⚠️ 지문 정보 미등록</option>
-          <option value="fp_registered">✅ 지문 정보 등록완료</option>
+          <option value="fp_unregistered">지문 정보 미등록</option>
+          <option value="fp_registered">지문 정보 등록완료</option>
           <option value="present">재실중만 보기</option>
           <option value="assigned">좌석 배정됨</option>
           <option value="unassigned">좌석 미배정</option>
@@ -512,7 +529,7 @@
       </div>
 
       <div id="studentListCount" class="muted" style="margin-bottom:6px; font-size:11px;"></div>
-      <!-- ✨ 요구사항 2: 컴팩트 학생 목록 (더보기 메뉴 적용) -->
+      <!-- 요구사항 2: 컴팩트 학생 목록 (더보기 메뉴 적용) -->
       <div id="studentList" style="max-height:45vh; overflow-y:auto; padding-right:2px;"></div>
 
       <h3 style="margin-top:22px;">새 학생 등록</h3>
@@ -580,12 +597,15 @@
     
     <!-- 탭 5: 운영 설정 -->
     <div class="tabpane" id="tab-settings">
-      <h3>학습 인정 및 자동 마감 설정</h3>
-      <p class="muted">운영 시간이 종료되면 미퇴실자(재실 및 자리 비움)는 일괄 자동 퇴실 처리됩니다.</p>
-      <div class="row" style="align-items:center; gap:8px;">
-        <div id="validStartWrapper" style="flex:1;"></div><span>~</span><div id="validEndWrapper" style="flex:1;"></div>
-      </div>
-      <button class="btn btn-primary" id="saveTimeSettingsBtn" style="width:100%; margin-top:12px;">운영 설정 저장</button>
+      <h3>요일별 운영 시간 설정</h3>
+      <p class="muted">요일마다 운영 여부와 시간을 따로 정합니다. 학습시간은 각 요일의 운영 시간 안에서만 인정되고, 운영하지 않는 요일에 입실하면 0분으로 계산됩니다. 종료 시간이 시작 시간보다 빠르면 다음 날 새벽까지로 계산합니다.</p>
+      <div id="opHoursBox"></div>
+      <button class="btn btn-secondary" id="opCopyMonBtn" style="width:100%; margin-top:4px;">월요일 설정을 모든 요일에 적용</button>
+      <button class="btn btn-primary" id="saveTimeSettingsBtn" style="width:100%; margin-top:10px;">운영 시간 저장</button>
+
+      <h3 style="margin-top:24px;">학습 시간 초기화</h3>
+      <p class="muted">전체 학생의 누적 학습시간을 초기화합니다. 진행 전에 아래 엑셀 백업을 먼저 받아두는 것을 권장합니다.</p>
+      <button class="btn btn-danger" id="btnResetTimeAll2" style="width:100%">전체 학생 학습시간 초기화</button>
       <h3 style="margin-top:24px;">전체 데이터 엑셀 백업</h3>
       <button class="btn btn-secondary" id="exportExcelBtn" style="width:100%">모든 학생 및 출결 기록 다운로드</button>
       <h3 style="margin-top:24px;">관리자 비밀번호 변경</h3>
@@ -612,9 +632,9 @@
     <div class="tabpane" id="tab-supervision">
       <h3>야자 감독표 (1층 · 2층)</h3>
       <div class="row" style="align-items:center;">
-        <button class="btn btn-secondary" id="supPrev" style="flex:0 0 auto;">◀</button>
+        <button class="btn btn-secondary" id="supPrev" style="flex:0 0 auto;"><span data-ico="chevL"></span></button>
         <input type="month" id="supMonth" style="flex:1; min-width:0; padding:10px; border-radius:12px; border:1px solid rgba(120,120,128,0.25); font-family:inherit; font-size:14px;">
-        <button class="btn btn-secondary" id="supNext" style="flex:0 0 auto;">▶</button>
+        <button class="btn btn-secondary" id="supNext" style="flex:0 0 auto;"><span data-ico="chevR"></span></button>
       </div>
       <div id="supTable" class="sup-scroll" style="margin-top:12px;"></div>
       <button class="btn btn-primary" id="supSaveBtn" style="width:100%; margin-top:10px;">이 달 감독표 저장</button>
@@ -653,20 +673,31 @@
     
     <!-- 탭 11: 기기 연결 (지문 등록) -->
     <div class="tabpane" id="tab-device">
-      <h3>지문 원격 신규 등록</h3>
+      <h3>지문 기기 상태</h3>
+      <div id="deviceStatusBox" style="margin-bottom:6px;"></div>
+      <h3 style="margin-top:20px;">지문 원격 신규 등록</h3>
       <button class="btn btn-secondary" id="btnViewFpStatus2" style="width:100%; margin-bottom:12px; font-weight:600; padding:9px 12px; background:rgba(10,132,255,0.12); color:var(--accent);">
-        📊 전체 지문 등록 현황 및 미등록 번호 확인
+        <span data-ico="chart"></span> 전체 지문 등록 현황 및 미등록 번호 확인
       </button>
       <div class="row">
+        <div class="field"><label>등록할 기기</label><select id="enrollFloor"><option value="1">1층 기기</option><option value="2">2층 기기</option></select></div>
         <div class="field"><label>지문 ID (1~300)</label><input id="enrollFpId" type="number" min="1" max="300"></div>
         <button class="btn btn-primary" id="enrollBtn" style="align-self:flex-end;height:44px;">원격 등록 시작</button>
       </div>
       <div id="feStatus" class="muted" style="margin-top:12px;white-space:pre-wrap;">기기가 와이파이에 켜져있어야 합니다.</div>
+      <p class="muted" style="margin-top:6px;">등록이 끝나면 다른 층 센서에도 자동으로 복사됩니다.</p>
+
+      <h3 style="margin-top:22px;">센서 동기화 (백업 복원)</h3>
+      <p class="muted">서버에 백업된 지문을 층별 센서에 다시 써 넣습니다. 센서를 교체했거나 한쪽 층에서 인식이 안 될 때 사용하세요. 진행 중에는 해당 층 기기가 스캔에 응답하지 않을 수 있습니다.</p>
+      <div class="row">
+        <button class="btn btn-secondary" id="syncF1Btn">1층 센서 복원</button>
+        <button class="btn btn-secondary" id="syncF2Btn">2층 센서 복원</button>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- ✨ 요구사항 3: 지문 등록 현황 및 미등록 번호 확인 모달 -->
+<!-- 요구사항 3: 지문 등록 현황 및 미등록 번호 확인 모달 -->
 <div class="overlay" id="ovFingerprintStatus">
   <div class="modal glass" style="max-width:520px;">
     <button class="close-x" data-close="ovFingerprintStatus"></button>
@@ -677,7 +708,7 @@
     
     <!-- 미등록 학생 목록 섹션 -->
     <h3 style="margin:14px 0 6px; display:flex; justify-content:space-between; align-items:center;">
-      <span>⚠️ 지문 정보 미등록 학생 명단</span>
+      <span><span data-ico="alert"></span> 지문 정보 미등록 학생 명단</span>
       <span id="fpUnregCount" class="muted" style="font-size:12px;"></span>
     </h3>
     <div id="fpUnregisteredList" style="max-height:180px; overflow-y:auto; padding-right:2px; margin-bottom:14px;"></div>
@@ -707,7 +738,7 @@
 <div class="overlay" id="ovWeekly"><div class="modal glass"><button class="close-x" data-close="ovWeekly"></button><h2 id="wkTitle">주간 자율학습 시간표</h2><div id="wkBody"></div><div class="modal-actions" id="wkActions"></div></div></div>
 <div class="overlay" id="ovStudentAction"><div class="modal glass"><h2><span id="saName"></span>님, 무엇을 할까요?</h2><div class="modal-actions" id="saActions" style="gap:12px;"></div><button class="btn btn-secondary" id="saCancel" style="width:100%;margin-top:12px;">취소</button></div></div>
 <div class="overlay" id="ovRules"><div class="modal glass"><button class="close-x" data-close="ovRules"></button><h2>야간 자율학습 규정</h2><p id="rulesDisplay" class="muted" style="white-space:pre-wrap;font-size:14px;color:var(--text-primary);"></p></div></div>
-<div class="overlay" id="ovSupervision"><div class="modal glass" style="max-width:520px;"><button class="close-x" data-close="ovSupervision"></button><h2>야자 감독표</h2><div class="row" style="align-items:center; margin-bottom:10px;"><button class="btn btn-secondary" id="supvPrev">◀</button><div id="supvTitle" style="flex:1; text-align:center; font-weight:700;"></div><button class="btn btn-secondary" id="supvNext">▶</button></div><div id="supvList" class="sup-scroll"></div><button class="btn btn-secondary" id="supvEdit" style="width:100%; margin-top:10px; display:none;">관리자: 감독표 편집</button></div></div>
+<div class="overlay" id="ovSupervision"><div class="modal glass" style="max-width:520px;"><button class="close-x" data-close="ovSupervision"></button><h2>야자 감독표</h2><div class="row" style="align-items:center; margin-bottom:10px;"><button class="btn btn-secondary" id="supvPrev"><span data-ico="chevL"></span></button><div id="supvTitle" style="flex:1; text-align:center; font-weight:700;"></div><button class="btn btn-secondary" id="supvNext"><span data-ico="chevR"></span></button></div><div id="supvList" class="sup-scroll"></div><button class="btn btn-secondary" id="supvEdit" style="width:100%; margin-top:10px; display:none;">관리자: 감독표 편집</button></div></div>
 <div class="overlay" id="ovMessage"><div class="modal glass"><p id="msgText" style="margin:0 0 16px;font-size:14px;"></p><button class="btn btn-primary" id="msgOk" style="width:100%">확인</button></div></div>
 <div class="overlay" id="ovConfirm"><div class="modal glass"><p id="confirmMsg" style="margin:0 0 16px;font-size:14px;"></p><div class="modal-actions"><button class="btn btn-secondary" id="confirmNo" style="flex:1">취소</button><button class="btn btn-danger" id="confirmYes" style="flex:1">확인</button></div></div></div>
 <div class="overlay" id="ovPrompt"><div class="modal glass"><p id="promptMsg" style="margin:0 0 12px;font-size:14px;"></p><div class="field"><input id="promptInput" type="text"></div><div class="modal-actions"><button class="btn btn-secondary" id="promptCancel" style="flex:1">취소</button><button class="btn btn-primary" id="promptOk" style="flex:1">확인</button></div></div></div>
@@ -750,7 +781,43 @@
   </div>
 </div>
 
-<div class="overlay" id="ovFingerprintEnroll"><div class="modal glass"><button class="close-x" data-close="ovFingerprintEnroll"></button><h2><span id="feName"></span>님 지문 재등록</h2><div class="field"><label>지문 ID (1~300)</label><input id="feFpId2" type="number" min="1" max="300"></div><button class="btn btn-primary" id="feStartBtn" style="width:100%">원격 등록 시작</button><p id="feStatus2" class="muted" style="margin-top:12px;white-space:pre-wrap;"></p></div></div>
+<div class="overlay" id="ovFingerprintEnroll"><div class="modal glass"><button class="close-x" data-close="ovFingerprintEnroll"></button><h2><span id="feName"></span>님 지문 재등록</h2><div class="field"><label>등록할 기기</label><select id="feFloor"><option value="1">1층 기기</option><option value="2">2층 기기</option></select></div><div class="field"><label>지문 ID (1~300)</label><input id="feFpId2" type="number" min="1" max="300"></div><button class="btn btn-primary" id="feStartBtn" style="width:100%">원격 등록 시작</button><p id="feStatus2" class="muted" style="margin-top:12px;white-space:pre-wrap;"></p></div></div>
+<!-- 자율석 지문 자가 등록 -->
+<div class="overlay" id="ovSelfEnroll">
+  <div class="modal glass">
+    <button class="close-x" data-close="ovSelfEnroll"></button>
+    <h2>지문 등록</h2>
+    <div id="seFormBox">
+      <p class="muted" style="margin:0 0 12px; font-size:13px;">학번과 이름을 입력하고 [등록 시작]을 누르면, 비어 있는 지문 번호가 자동으로 배정됩니다.</p>
+      <div class="field"><label>학번</label><input id="seStudentNum" type="text" inputmode="numeric" maxlength="15" autocomplete="off" placeholder="예: 20101"></div>
+      <div class="field"><label>이름</label><input id="seName" type="text" maxlength="20" autocomplete="off" placeholder="이름"></div>
+      <div class="modal-actions"><button class="btn btn-primary" id="seStartBtn" style="width:100%">등록 시작</button></div>
+    </div>
+    <div id="seProgress" style="display:none; text-align:center; padding:6px 0;">
+      <div id="seIcon"></div>
+      <div id="seStatus" style="font-size:16px; font-weight:700; margin:12px 0 6px; white-space:pre-wrap;"></div>
+      <div id="seSub" class="muted" style="white-space:pre-wrap; font-size:13px;"></div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="seCancelBtn">취소</button>
+        <button class="btn btn-primary" id="seRetryBtn" style="display:none;">다시 시도</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 학습시간 초기화 -->
+<div class="overlay" id="ovResetTime">
+  <div class="modal glass">
+    <button class="close-x" data-close="ovResetTime"></button>
+    <h2>학습 시간 초기화</h2>
+    <p id="rtTarget" style="margin:0 0 12px; font-size:14px; font-weight:600;"></p>
+    <label class="rt-opt"><input type="radio" name="rtMode" value="time" checked><span><b>누적 학습시간만 초기화</b><br><span class="muted">월 누적 시간과 일별 학습시간을 0으로 만듭니다. 입·퇴실 시각, 지각·결석 기록은 그대로 남습니다.</span></span></label>
+    <label class="rt-opt"><input type="radio" name="rtMode" value="all"><span><b>출결 기록까지 모두 삭제</b><br><span class="muted">학습시간과 입·퇴실 기록, 지각·결석 통계가 모두 사라집니다.</span></span></label>
+    <p class="muted" style="margin:4px 0 0;">현재 입실 중이거나 자리비움 상태인 학생의 오늘 기록은 제외되며, 퇴실할 때 정상 반영됩니다.</p>
+    <div class="modal-actions"><button class="btn btn-secondary" id="rtCancel">취소</button><button class="btn btn-danger" id="rtRun">초기화</button></div>
+  </div>
+</div>
+
 <div class="overlay" id="ovAttendanceHistory"><div class="modal glass"><button class="close-x" data-close="ovAttendanceHistory"></button><h2 id="histTitle">출결 이력</h2><div id="histSummary" class="muted" style="margin-bottom:10px;"></div><div id="histList"></div></div></div>
 <div class="overlay" id="ovReminder"><div class="modal glass"><h2>오늘의 데이터를 백업할까요?</h2><div class="modal-actions"><button class="btn btn-secondary" id="reminderLater" style="flex:1;">나중에</button><button class="btn btn-primary" id="reminderBackup" style="flex:1;">지금 백업</button></div></div></div>
 
@@ -781,7 +848,7 @@
   firebase.initializeApp(firebaseConfig);
   const fbDB = firebase.database();
 
-  let settings = { id:'app', adminPassword:'0000', currentDate: todayStr(), studyEndTime:'22:00', lastBackupReminderDate:null, rulesText:'', darkMode:false, validStartTime:'16:00', validEndTime:'21:30', floorModes:{ f1:'free', f2:'fixed' } };
+  let settings = { id:'app', adminPassword:'0000', currentDate: todayStr(), studyEndTime:'22:00', lastBackupReminderDate:null, rulesText:'', darkMode:false, validStartTime:'16:00', validEndTime:'21:30', weeklyHours:null, floorModes:{ f1:'free', f2:'fixed' } };
   let cache = { students: [], desks: [], attendance: [], changelog: [], dailylogs: [], supervision: [] };
   const loaded = { settings:false, students:false, desks:false, attendance:false };
   const isReady = () => loaded.settings && loaded.students && loaded.desks && loaded.attendance;
@@ -844,8 +911,26 @@
     moon: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`
   };
   
+  // ---- 픽토그램(SVG) 세트: 글자 크기에 맞춰 자동으로 크기가 조절됩니다 ----
+  const PATHS = {
+    close:'<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+    alert:'<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+    check:'<polyline points="20 6 9 17 4 12"/>',
+    checkCircle:'<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
+    chart:'<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',
+    pin:'<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
+    chevL:'<polyline points="15 18 9 12 15 6"/>',
+    chevR:'<polyline points="9 18 15 12 9 6"/>',
+    chevD:'<polyline points="6 9 12 15 18 9"/>',
+    chevU:'<polyline points="18 15 12 9 6 15"/>',
+    menu:'<line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>',
+    fingerprint:'<path d="M2 12C2 6.48 6.48 2 12 2s10 4.48 10 10"/><path d="M5 15c0-3.87 3.13-7 7-7s7 3.13 7 7"/><path d="M8 18c0-2.21 1.79-4 4-4s4 1.79 4 4"/><path d="M11 21c0-.55.45-1 1-1s1 .45 1 1"/>'
+  };
+  const ico = n => `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${PATHS[n] || ''}</svg>`;
+
   if($('#icon-fingerprint')) $('#icon-fingerprint').innerHTML = ICONS.fingerprint;
   if($('#icon-trophy')) $('#icon-trophy').innerHTML = ICONS.trophy;
+  $$('[data-ico]').forEach(el => { el.innerHTML = ico(el.dataset.ico); });
   $$('.close-x').forEach(b => { b.innerHTML = ICONS.close; b.addEventListener('click', () => closeOverlay(b.dataset.close)); });
   
   function bizDate() { const d = new Date(); if (d.getHours() < 6) d.setDate(d.getDate() - 1); return d; }
@@ -951,20 +1036,41 @@
   function posToCell(px,py){ let col = Math.round((px - CELL_PAD - CELL_W/2)/CELL_W), row = Math.round((py - CELL_PAD - CELL_H/2)/CELL_H); col = Math.max(0, Math.min(GRID_COLS-1, col)); row = Math.max(0, Math.min(GRID_ROWS-1, row)); return {col,row}; }
   function resolveOverlapCell(col,row,floor,excludeId){ const occupied = new Set(cache.desks.filter(d => d.floor===floor && String(d.id)!==String(excludeId)).map(d => d.col+'_'+d.row)); if(!occupied.has(col+'_'+row)) return {col,row}; for(let radius=1; radius<Math.max(GRID_COLS,GRID_ROWS); radius++){ for(let dc=-radius; dc<=radius; dc++){ for(let dr=-radius; dr<=radius; dr++){ if(Math.max(Math.abs(dc),Math.abs(dr)) !== radius) continue; const c = col+dc, r = row+dr; if(c<0||c>=GRID_COLS||r<0||r>=GRID_ROWS) continue; if(!occupied.has(c+'_'+r)) return {col:c,row:r}; } } } return {col,row}; }
 
+  // ---- 요일별 운영 시간 ----
+  const OP_DAYS = [['mon','월'],['tue','화'],['wed','수'],['thu','목'],['fri','금'],['sat','토'],['sun','일']];
+  function normWeeklyHours(w){
+    const baseS = normTime(settings.validStartTime, '16:00'), baseE = normTime(settings.validEndTime, '21:30');
+    const out = {};
+    OP_DAYS.forEach(([k]) => {
+      const d = w && w[k] && typeof w[k] === 'object' ? w[k] : null;
+      out[k] = { enabled: d ? !!d.enabled : true, start: normTime(d ? d.start : baseS, baseS), end: normTime(d ? d.end : baseE, baseE) };
+    });
+    return out;
+  }
+  // 해당 요일의 운영 시간. 운영하지 않는 요일이면 null.
+  function opHoursFor(dayKey){
+    if(!settings.weeklyHours) return { start: normTime(settings.validStartTime, '16:00'), end: normTime(settings.validEndTime, '21:30') };
+    const d = normWeeklyHours(settings.weeklyHours)[dayKey];
+    return d && d.enabled ? { start: d.start, end: d.end } : null;
+  }
+
   function calcValidSeconds(t1, t2) {
     if (!settings || !t1 || !t2 || t1 >= t2) return 0;
     let total = 0, current = new Date(t1); current = new Date(current.getFullYear(), current.getMonth(), current.getDate() - 1);
     const end = new Date(t2); let safety = 0;
-    const [sh, sm] = (settings.validStartTime || '16:00').split(':').map(Number);
-    const [eh, em] = (settings.validEndTime || '21:30').split(':').map(Number);
     while (current <= end && safety < 10) {
       safety++;
-      let dStart = new Date(current.getFullYear(), current.getMonth(), current.getDate(), sh, sm, 0, 0);
-      let dEnd = new Date(current.getFullYear(), current.getMonth(), current.getDate(), eh, em, 0, 0);
-      if (sh > eh || (sh === eh && sm > em)) { dEnd.setDate(dEnd.getDate() + 1); }
-      let overlapStart = Math.max(t1, dStart.getTime());
-      let overlapEnd = Math.min(t2, dEnd.getTime());
-      if (overlapStart < overlapEnd) { total += (overlapEnd - overlapStart) / 1000; }
+      const win = opHoursFor(DAY_KEYS[current.getDay()]);
+      if (win) {
+        const [sh, sm] = win.start.split(':').map(Number);
+        const [eh, em] = win.end.split(':').map(Number);
+        let dStart = new Date(current.getFullYear(), current.getMonth(), current.getDate(), sh, sm, 0, 0);
+        let dEnd = new Date(current.getFullYear(), current.getMonth(), current.getDate(), eh, em, 0, 0);
+        if (sh > eh || (sh === eh && sm > em)) { dEnd.setDate(dEnd.getDate() + 1); }
+        let overlapStart = Math.max(t1, dStart.getTime());
+        let overlapEnd = Math.min(t2, dEnd.getTime());
+        if (overlapStart < overlapEnd) { total += (overlapEnd - overlapStart) / 1000; }
+      }
       current.setDate(current.getDate() + 1);
     } return total;
   }
@@ -1033,15 +1139,19 @@
   window.requestScan = function(action) {
      closeOverlay('ovSeatDetail');
      if(!isOnline){ showToast('서버에 연결되지 않아 스캐너를 켤 수 없습니다. 연결 상태를 확인해주세요.'); return; }
-     fbWrite('scanRequest', { action: action, timestamp: serverNow() });
-     showToast('지문 인식기가 켜졌습니다. 10초 내에 손가락을 스캔해주세요.');
+     // 화면에 보이는 층의 기기에만 요청을 보냅니다 (다른 층 기기는 반응하지 않음)
+     const floor = currentFloor;
+     fbWrite('scanRequest/f' + floor, { action: action, floor: floor, timestamp: serverNow() });
+     const di = deviceInfo['f' + floor];
+     if(di && !deviceOnline(floor)){ showToast(`${floor}층 지문 기기가 응답하지 않는 상태일 수 있습니다. 전원과 와이파이를 확인해주세요.`, 6000); return; }
+     showToast(`${floor}층 지문 인식기가 켜졌습니다. 10초 내에 손가락을 스캔해주세요.`);
   };
 
   const lastScanMap = new Map();
   const showToast6 = msg => showToast(msg, 6000);
   function seatText(record){ if(!record) return ''; const d = record.deskId != null ? findDesk(record.deskId) : null; return d ? ' [' + deskLabel(d) + ']' : ' [배정된 자리가 없어 자리 화면에는 표시되지 않습니다]'; }
 
-  async function handleFingerprintMatch(fpId, deviceAction){
+  async function handleFingerprintMatch(fpId, deviceAction, scanFloor){
     fpId = parseInt(fpId); if(!fpId || isNaN(fpId)) return;
     if(!isReady()){ showToast6('데이터를 불러오는 중입니다. 잠시 후 다시 스캔해주세요.'); return; }
     const now = Date.now();
@@ -1059,22 +1169,22 @@
       let record = await getTodayAttendance(student.id);
       let action = 'present';
       if(['present','away','left'].indexOf(deviceAction) >= 0){ action = deviceAction; } else {
-          const snap = await fbDB.ref('scanRequest').once('value');
-          if(snap.exists() && snap.val() && snap.val().timestamp > serverNow() - 15000) { action = snap.val().action; snap.ref.remove(); }
+          const snap = await fbDB.ref('scanRequest/f' + (scanFloor || currentFloor)).once('value'); const rv = snap.val();
+          if(rv && rv.timestamp > serverNow() - 15000 && ['present','away','left'].indexOf(rv.action) >= 0) { action = rv.action; snap.ref.remove(); }
       }
 
       if (action === 'present') {
            if(!record) {
               let deskId = null, seatChoice = null, noSeatMsg = '';
               if(effectiveFixed(student)) { deskId = student.deskId != null ? student.deskId : null; } else {
-                  const todayRecords = await getTodayRecords(); const floors = freeFloors(); let desk = null;
+                  const todayRecords = await getTodayRecords(); const floors = freeFloors().slice().sort((a, b) => (b === scanFloor) - (a === scanFloor)); let desk = null;
                   for(const f of floors){ desk = findAvailableDeskForToday(f, todayRecords); if(desk) break; }
                   deskId = desk ? desk.id : null; seatChoice = 'partial';
                   if(!desk) noSeatMsg = floors.length ? ` ※ ${floors.join('·')}층(자율석)에 빈자리가 없어 좌석 없이 입실 처리되었습니다.` : ' ※ 자율석으로 운영되는 층이 없어 좌석 없이 입실 처리되었습니다.';
               }
               record = { studentId: student.id, studentDate: student.id+'_'+todayStr(), date: todayStr(), checkIn: now, checkOut:null, status:'present', elapsedSeconds:0, totalBreakSeconds:0, lastBreakStart:null, deskId, seatChoice };
               await window.dbPut('attendance', record);
-              showToast6(`${student.name}님 환영합니다! 입실 완료되었습니다.${noSeatMsg || seatText(record)}`);
+              showToast6(`${student.name}님 환영합니다! 입실 완료되었습니다.${noSeatMsg || seatText(record)}${opHoursFor(todayDayKey()) ? '' : ' ※ 오늘은 운영하지 않는 요일이라 학습시간이 인정되지 않습니다.'}`);
            } else {
               if(record.status === 'away') {
                  if(record.lastBreakStart) record.totalBreakSeconds = (record.totalBreakSeconds||0) + calcValidSeconds(record.lastBreakStart, now);
@@ -1109,7 +1219,7 @@
         if(err || !committed || claimed == null) return;
         const o = typeof claimed === 'object'; const fpId = o ? (claimed.fpId != null ? claimed.fpId : (claimed.fingerprintId != null ? claimed.fingerprintId : claimed.id)) : claimed;
         if(o && claimed.success === false){ showToast('지문 인식에 실패했습니다. 다시 시도해주세요.', 6000); return; }
-        handleFingerprintMatch(fpId, o ? claimed.action : undefined);
+        handleFingerprintMatch(fpId, o ? claimed.action : undefined, o ? (parseInt(claimed.floor) || undefined) : undefined);
       });
     }
     ref.once('value').then(snap => { snap.forEach(ch => { const v = ch.val(); const fresh = v && typeof v === 'object' && Number(v.timestamp) > 1e9 && isFreshTs(v.timestamp, MAX_AGE); if(!fresh) ch.ref.remove(); }); ref.on('child_added', ch => consume(ch, 0)); }).catch(e => {});
@@ -1431,7 +1541,7 @@
   });
 
   safeAddListener('#clearLogBtn', 'click', async () => {
-    if(await showConfirm()){
+    if(await showConfirm('선택한 날짜의 변경 이력을 모두 삭제할까요?\n삭제한 이력은 되돌릴 수 없습니다.')){
         let dateStr = $('#logDateFilter').value || todayStr();
         const logsToDelete = cache.changelog.filter(l => { const d = new Date(l.timestamp); const pad = n => n<10?'0'+n:n; const datePart = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; return datePart === dateStr; });
         for(const l of logsToDelete) { await dbDelete('changelog', l.id); }
@@ -1494,7 +1604,7 @@
     if(isFixedFloor){
       html += `<div style="background:rgba(255,255,255,0.45); border-radius:12px; padding:10px 12px; margin-bottom:12px;">
         <div style="font-weight:700; font-size:13px; margin-bottom:6px; display:flex; justify-content:space-between;">
-          <span>📌 고정 좌석 배정 현황 (요일별)</span>
+          <span>${ico('pin')} 고정 좌석 배정 현황 (요일별)</span>
           <span class="muted" style="font-size:11px;">총 ${allFixed.length}명</span>
         </div>`;
       
@@ -1626,7 +1736,7 @@
 
   function resetAdminIdleTimer(){
     clearTimeout(adminIdleTimer);
-    if(adminMode){ adminIdleTimer = setTimeout(() => { adminMode = false; layoutEditMode = false; if($('#editToolbar')) $('#editToolbar').style.display='none'; if($('#adminFab')) $('#adminFab').style.display='none'; if($('#fabMenu')) $('#fabMenu').classList.remove('show'); ['ovAdmin','ovStudentEdit','ovFingerprintEnroll','ovAttendanceHistory','ovSeatDetail','ovWeekly','ovFingerprintStatus'].forEach(closeOverlay); if($('#btnAdmin')) $('#btnAdmin').textContent = '관리자 모드'; renderFloor(); }, 5*60*1000); }
+    if(adminMode){ adminIdleTimer = setTimeout(() => { adminMode = false; layoutEditMode = false; if($('#editToolbar')) $('#editToolbar').style.display='none'; if($('#adminFab')) $('#adminFab').style.display='none'; if($('#fabMenu')) $('#fabMenu').classList.remove('show'); ['ovAdmin','ovStudentEdit','ovFingerprintEnroll','ovAttendanceHistory','ovSeatDetail','ovWeekly','ovFingerprintStatus','ovResetTime'].forEach(closeOverlay); if($('#btnAdmin')) $('#btnAdmin').textContent = '관리자 모드'; renderFloor(); }, 5*60*1000); }
   }
   document.addEventListener('click', resetAdminIdleTimer); document.addEventListener('keydown', resetAdminIdleTimer);
   document.addEventListener('click', e => { if(!e.target.closest('#searchResults') && e.target.id !== 'studentSearch'){ if($('#searchResults')) $('#searchResults').style.display = 'none'; } });
@@ -1750,8 +1860,9 @@
 
     if(tab==='students'){ renderAdminStudentList(); renderDeskOptions(); }
     if(tab==='rules'){ if($('#rulesTextarea')) $('#rulesTextarea').value = settings.rulesText || ''; }
-    if(tab==='settings'){ if($('#validStartWrapper')) $('#validStartWrapper').innerHTML = timeSelectHTML('setValid_start', settings.validStartTime); if($('#validEndWrapper')) $('#validEndWrapper').innerHTML = timeSelectHTML('setValid_end', settings.validEndTime); }
+    if(tab==='settings'){ renderOpHoursForm(); }
     if(tab==='floormode'){ renderFloorModeTab(); }
+    if(tab==='device'){ if($('#enrollFloor')) $('#enrollFloor').value = String(currentFloor); renderDeviceStatus(); }
     if(tab==='supervision'){ if(ym) supAdminYM = ym; renderSupervisionAdmin(); }
     if(tab==='ranking'){ renderRanking(); }
     if(tab==='stats'){ renderStatsChart(); renderWeekdayTrendChart(); renderStudentProgress(); renderLateAbsenceStats(); }
@@ -1778,7 +1889,48 @@
     renderFloorModeTab(); renderDeskOptions(); renderFloor(); showToast('층별 출석 모드가 저장되었습니다.');
   });
 
-  safeAddListener('#saveTimeSettingsBtn', 'click', async () => { settings.validStartTime = getTimeSelectValue('setValid_start'); settings.validEndTime = getTimeSelectValue('setValid_end'); await saveSettings(); showToast('운영 설정이 저장되었습니다.'); });
+  function renderOpHoursForm(){
+    const box = $('#opHoursBox'); if(!box) return;
+    const wh = normWeeklyHours(settings.weeklyHours);
+    box.innerHTML = OP_DAYS.map(([k, l]) => {
+      const d = wh[k];
+      return `<div class="day-sched-row"><div class="day-sched-head"><label class="day-toggle"><input type="checkbox" class="opDay" data-day="${k}" ${d.enabled ? 'checked' : ''}><span>${l}요일 운영</span></label></div><div class="day-sched-time" data-opday="${k}" style="display:${d.enabled ? 'flex' : 'none'};">${timeSelectHTML('op_' + k + '_s', d.start)}<span class="tilde">~</span>${timeSelectHTML('op_' + k + '_e', d.end)}</div></div>`;
+    }).join('');
+    $$('#opHoursBox .opDay').forEach(cb => cb.addEventListener('change', () => {
+      const row = document.querySelector(`#opHoursBox .day-sched-time[data-opday="${cb.dataset.day}"]`);
+      if(row) row.style.display = cb.checked ? 'flex' : 'none';
+    }));
+  }
+  safeAddListener('#opCopyMonBtn', 'click', () => {
+    const monCb = document.querySelector('#opHoursBox .opDay[data-day="mon"]'); if(!monCb) return;
+    const en = monCb.checked, s = getTimeSelectValue('op_mon_s'), e = getTimeSelectValue('op_mon_e');
+    OP_DAYS.forEach(([k]) => {
+      if(k === 'mon') return;
+      const cb = document.querySelector(`#opHoursBox .opDay[data-day="${k}"]`), row = document.querySelector(`#opHoursBox .day-sched-time[data-opday="${k}"]`);
+      if(cb) cb.checked = en; if(row) row.style.display = en ? 'flex' : 'none';
+      setTimeSelectValue('op_' + k + '_s', s); setTimeSelectValue('op_' + k + '_e', e);
+    });
+    showToast('월요일 설정을 모든 요일에 적용했습니다. 저장을 눌러야 반영됩니다.');
+  });
+  safeAddListener('#saveTimeSettingsBtn', 'click', async () => {
+    const w = {}; let bad = null;
+    OP_DAYS.forEach(([k, l]) => {
+      const cb = document.querySelector(`#opHoursBox .opDay[data-day="${k}"]`);
+      const en = cb ? cb.checked : true, s = getTimeSelectValue('op_' + k + '_s'), e = getTimeSelectValue('op_' + k + '_e');
+      if(en && s === e && !bad) bad = l;
+      w[k] = { enabled: en, start: s, end: e };
+    });
+    if(bad){ await showMessage(`${bad}요일의 시작 시간과 종료 시간이 같습니다. 다르게 설정해주세요.`); return; }
+    if(!OP_DAYS.some(([k]) => w[k].enabled)){
+      if(!await showConfirm('운영하는 요일이 하나도 없습니다.\n이 경우 모든 학습 시간이 0분으로 계산됩니다. 그래도 저장할까요?')) return;
+    }
+    settings.weeklyHours = w;
+    const first = OP_DAYS.map(([k]) => w[k]).find(d => d.enabled);
+    if(first){ settings.validStartTime = first.start; settings.validEndTime = first.end; }
+    await saveSettings();
+    await window.logChange('운영시간 변경', OP_DAYS.map(([k, l]) => `${l} ${w[k].enabled ? w[k].start + '~' + w[k].end : '휴무'}`).join(', '));
+    showToast('요일별 운영 시간이 저장되었습니다.'); triggerRender();
+  });
 
   safeAddListener('#pwSubmit', 'click', async () => {
     if(!loaded.settings){ await showMessage('서버에서 설정을 불러오는 중입니다. 잠시 후 다시 시도해주세요.'); return; }
@@ -1915,7 +2067,7 @@
 
       const fpBadge = s.fpRegistered
         ? `<span class="tag-badge fp-ok" title="지문 센서에 등록됨">지문등록됨</span>`
-        : `<span class="tag-badge fp-wait" title="지문 번호만 지정됨 (센서 미등록)">⚠️지문미등록</span>`;
+        : `<span class="tag-badge fp-wait" title="지문 번호만 지정됨 (센서 미등록)">${ico('alert')}&nbsp;지문미등록</span>`;
 
       const seatBadge = s.seatMode === 'fixed'
         ? `<span class="tag-badge seat-fixed">고정</span>`
@@ -1932,14 +2084,15 @@
               <span class="muted" style="font-size:11px; margin-left:2px;">지문#${esc(s.fingerprintId)} · ${esc(seatLabel)}</span>
             </div>
             <button class="btn btn-secondary btn-more-student" data-toggle="${esc(s.id)}" style="padding:4px 10px; font-size:11px; height:26px; border-radius:999px; flex-shrink:0;">
-              더보기 ▾
+              더보기 ${ico('chevD')}
             </button>
           </div>
           <div class="student-more-actions" id="actions-${esc(s.id)}">
             <button class="btn btn-secondary" data-edit="${esc(s.id)}" style="padding:6px 10px; font-size:12px; height:32px;">수정</button>
             <button class="btn btn-secondary" data-hist="${esc(s.id)}" style="padding:6px 10px; font-size:12px; height:32px;">출결 이력</button>
             <button class="btn btn-secondary" data-enroll="${esc(s.id)}" style="padding:6px 10px; font-size:12px; height:32px;">지문 재등록</button>
-            <button class="btn btn-danger" data-del="${esc(s.id)}" style="padding:6px 10px; font-size:12px; height:32px;">삭제</button>
+            <button class="btn btn-secondary full" data-resettime="${esc(s.id)}" style="padding:6px 10px; font-size:12px; height:32px;">학습시간 초기화</button>
+            <button class="btn btn-danger full" data-del="${esc(s.id)}" style="padding:6px 10px; font-size:12px; height:32px;">삭제</button>
           </div>
         </div>
       `;
@@ -1953,19 +2106,19 @@
         if(panel){
           const isShown = panel.classList.contains('show');
           panel.classList.toggle('show', !isShown);
-          b.textContent = isShown ? '더보기 ▾' : '접기 ▴';
+          b.innerHTML = isShown ? '더보기 ' + ico('chevD') : '접기 ' + ico('chevU');
         }
       };
     });
 
     $$('#studentList [data-del]').forEach(b => { 
-      b.onclick = async () => { 
-        if(await showConfirm()){ 
-          const sid = b.dataset.del; 
-          const st = cache.students.find(s=>String(s.id)===String(sid)); 
+      b.onclick = async () => {
+        const sid = b.dataset.del;
+        const st = cache.students.find(s=>String(s.id)===String(sid));
+        if(await showConfirm(`${st ? st.name : '이 학생'} 학생과 출결 기록을 삭제할까요?\n삭제한 데이터는 되돌릴 수 없습니다.`)){
           const oldRecords = cache.attendance.filter(a => String(a.studentId) === String(sid)); 
           for(const r of oldRecords) await dbDelete('attendance', r.id); 
-          await dbDelete('students', sid); 
+          await dbDelete('students', sid); try{ fbDB.ref('fpTemplates/' + sid).remove(); }catch(e){} 
           await window.logChange('학생 삭제', (st?st.name:('ID '+sid)) + (oldRecords.length ? ` (출결 기록 ${oldRecords.length}건 함께 삭제)` : '')); 
           showToast('삭제되었습니다.'); 
         } 
@@ -1975,6 +2128,7 @@
     $$('#studentList [data-edit]').forEach(b => { b.onclick = () => openStudentEdit(b.dataset.edit); });
     $$('#studentList [data-hist]').forEach(b => { b.onclick = () => openAttendanceHistory(b.dataset.hist); });
     $$('#studentList [data-enroll]').forEach(b => { b.onclick = () => openFingerprintEnroll(b.dataset.enroll); });
+    $$('#studentList [data-resettime]').forEach(b => { b.onclick = () => openResetTime(b.dataset.resettime); });
   }
   
   if($('#studentSort')) $('#studentSort').addEventListener('change', renderAdminStudentList);
@@ -1987,7 +2141,7 @@
       return;
     }
     const count = cache.students.length;
-    const ok = await showConfirm(`⚠️ 경고: 등록된 전체 학생(${count}명)과 모든 출결 데이터를 일괄 삭제하시겠습니까?
+    const ok = await showConfirm(`경고: 등록된 전체 학생(${count}명)과 모든 출결 데이터를 일괄 삭제하시겠습니까?
 
 이 작업은 되돌릴 수 없습니다. 필요하신 경우 먼저 [운영 설정] 탭에서 전체 엑셀 백업을 다운로드받아 두세요.`);
     if(!ok) return;
@@ -2005,6 +2159,7 @@
       for(const a of cache.attendance.slice()){
         await dbDelete('attendance', a.id);
       }
+      try{ fbDB.ref('fpTemplates').remove(); }catch(e){}
       await window.logChange('학생 전체 삭제', `전체 학생 ${count}명 및 출결 기록 일괄 삭제`);
       showToast(`전체 학생 ${count}명이 삭제되었습니다.`);
       renderAdminStudentList();
@@ -2014,21 +2169,22 @@
     }
   });
 
-  function getUnusedFingerprintIds(){
+  function getUnusedFingerprintIds(max){
+    max = Math.min(300, max || 300);
     const used = new Set(cache.students.map(s => parseInt(s.fingerprintId)).filter(Boolean));
     const unused = [];
-    for(let i=1; i<=300; i++){
+    for(let i=1; i<=max; i++){
       if(!used.has(i)) unused.push(i);
     }
     return unused;
   }
   safeAddListener('#btnAutoPickFp', 'click', () => {
-    const unused = getUnusedFingerprintIds();
+    const unused = getUnusedFingerprintIds(maxUsableFpId());
     if(unused.length > 0){
       $('#newFp').value = unused[0];
       showToast(`가장 빠른 빈 지문 ID: ${unused[0]}번으로 설정되었습니다.`);
     } else {
-      showToast('1~300번 지문 ID가 모두 사용 중입니다.');
+      showToast(`1~${maxUsableFpId()}번 지문 ID가 모두 사용 중입니다.`);
     }
   });
 
@@ -2059,7 +2215,7 @@
     await window.dbPut('students', { 
       name, studentNum: sNum, deskId, fingerprintId: fp, 
       weeklySchedule, monthlyGoalMinutes: goal, monthlyElapsedSeconds:0, 
-      monthlyHistory:{}, seatMode, fpRegistered: false 
+      monthlyHistory:{}, seatMode, fpRegistered: lastEnrolledFpIds.has(fp) 
     }); 
     
     await window.logChange('학생 등록', `${name} (지문ID ${fp}${deskId!=null&&findDesk(deskId)?', '+deskLabel(findDesk(deskId)):''}, ${seatMode==='fixed'?'고정':'자율'})`); 
@@ -2068,7 +2224,7 @@
     document.querySelector('input[name="newSeatMode"][value="fixed"]').checked = true; 
     toggleNewSeatField(); 
     renderDeskOptions();
-    showToast('학생이 등록되었습니다. (지문 등록 필요)');
+    showToast(lastEnrolledFpIds.has(fp) ? '학생이 등록되었습니다.' : '학생이 등록되었습니다. (지문 등록 필요)');
   });
 
   let editingStudentId = null;
@@ -2217,72 +2373,375 @@ ${skipped.join('\n')}` : ''));
     const moved = cache.attendance.filter(a => String(a.studentId) === String(oldId)); 
     const updated = Object.assign({}, student, { fingerprintId: newFp, fpRegistered: true }); 
     await window.dbPut('students', updated); 
-    await dbDelete('students', oldId);
+    await dbDelete('students', oldId); try{ fbDB.ref('fpTemplates/' + oldId).remove(); }catch(e){}
     for(const r of moved){ r.studentId = newFp; r.studentDate = newFp + '_' + r.date; await window.dbPut('attendance', r); } 
     return updated;
   }
 
-  let pendingNewEnrollFpId = null, enrollTimer = null;
-  function enrollFailMsg(res){
+  // =================================================================
+  // 지문 등록 / 층별 기기 연동
+  //  - 요청은 층별 경로(/scanRequest/f1, /enrollRequest/f2 ...)로만 보냅니다.
+  //  - 등록된 지문은 서버(/fpTemplates/{id})에 백업되고, 다른 층 센서로 자동 복사됩니다.
+  // =================================================================
+  let pendingNewEnrollFpId = null, pendingEnrollFloor = null, enrollTimer = null;
+  const lastEnrolledFpIds = new Set();
+  let deviceInfo = {};
+  let pendingSelfEnroll = null;
+  const CLIENT_ID = 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+  function enrollFailMsg(res, retryHint){
     const e = String((res && res.error) || ''); let why = '';
-    if(/^id_over_capacity/.test(e)) why = '지문 ID가 센서 저장 용량(' + (e.split(':')[1] || '?') + ')을 넘었습니다. 더 작은 ID를 사용하세요.'; else if(/^no_finger/.test(e)) why = '기기의 지문 센서가 손가락을 감지하지 못했습니다. 센서 LED가 켜지는지, 센서 전원(VCC)이 충분한지 확인하세요.'; else if(/^mismatch/.test(e)) why = '두 번 올린 지문이 서로 달랐습니다. 같은 손가락을 같은 자세로 올려주세요.'; else if(/^image[12]/.test(e)) why = '지문 이미지가 흐리거나 특징이 부족합니다. 손가락과 센서를 닦고 센서 중앙에 살짝 힘주어 올려주세요.'; else if(/^remove_timeout/.test(e)) why = '손가락을 센서에서 떼지 않았습니다.'; else if(/^storeModel/.test(e)) why = '센서에 저장하지 못했습니다.'; else if(/^createModel/.test(e)) why = '지문 모델 생성에 실패했습니다.';
-    return '등록 실패' + (why ? ': ' + why : '') + (e ? ' [' + e + ']' : '') + ' 다시 하려면 "원격 등록 시작"을 눌러주세요.';
+    if(/^id_over_capacity/.test(e)) why = '지문 ID가 센서 저장 용량(' + (e.split(':')[1] || '?') + ')을 넘었습니다. 더 작은 ID를 사용하세요.';
+    else if(/^id_range/.test(e)) why = '지문 ID는 1~300 사이여야 합니다.';
+    else if(/^duplicate/.test(e)){
+      const n = parseInt(e.split(':')[1]); const dup = n ? findStudentByFp(n) : null;
+      why = '이미 등록된 지문입니다' + (n ? ' (지문 번호 ' + n + '번' + (dup ? ', ' + maskName(dup.name) : '') + ')' : '') + '. 같은 손가락은 한 번만 등록할 수 있습니다.';
+    }
+    else if(/^no_finger/.test(e)) why = '기기의 지문 센서가 손가락을 감지하지 못했습니다. 센서 LED가 켜지는지, 센서 전원(VCC)이 충분한지 확인하세요.';
+    else if(/^mismatch/.test(e)) why = '두 번 올린 지문이 서로 달랐습니다. 같은 손가락을 같은 자세로 올려주세요.';
+    else if(/^image[12]/.test(e)) why = '지문 이미지가 흐리거나 특징이 부족합니다. 손가락과 센서를 닦고 센서 중앙에 살짝 힘주어 올려주세요.';
+    else if(/^remove_timeout/.test(e)) why = '손가락을 센서에서 떼지 않았습니다.';
+    else if(/^storeModel/.test(e)) why = '센서에 저장하지 못했습니다.';
+    else if(/^createModel/.test(e)) why = '지문 모델 생성에 실패했습니다.';
+    const hint = retryHint === undefined ? '다시 하려면 "원격 등록 시작"을 눌러주세요.' : retryHint;
+    return '등록 실패' + (why ? ': ' + why : '') + (e ? ' [' + e + ']' : '') + (hint ? ' ' + hint : '');
   }
-  function enrollTimeout(fn){ clearTimeout(enrollTimer); enrollTimer = setTimeout(fn, 30000); }
+  // 등록은 손가락을 두 번 올리므로 여유 있게 45초를 기다립니다.
+  function enrollTimeout(fn){ clearTimeout(enrollTimer); enrollTimer = setTimeout(fn, 45000); }
 
+  // ---------- 서버 큐 (기기가 꺼져 있어도 요청이 유실되지 않도록 ID를 합쳐서 저장) ----------
+  function queueIds(path, ids){
+    const add = (ids || []).map(v => parseInt(v)).filter(v => v >= 1 && v <= 300);
+    if(!add.length) return Promise.resolve(false);
+    return new Promise(resolve => {
+      fbDB.ref(path).transaction(cur => {
+        const set = new Set(cur && cur.ids ? String(cur.ids).split(',').filter(Boolean) : []);
+        add.forEach(v => set.add(String(v)));
+        return { ids: Array.from(set).join(','), timestamp: serverNow() };
+      }, (err, committed) => resolve(!err && !!committed), false);
+    });
+  }
+  // 한 층에서 등록한 지문을 다른 층 센서로 복사하도록 요청
+  function mirrorFp(fromFloor, fpId){
+    FLOORS.filter(f => f !== fromFloor).forEach(f => { queueIds('syncRequest/f' + f, [fpId]); });
+  }
+
+  // ---------- 기기 상태 / 센서 용량 ----------
+  function deviceOnline(f){ const d = deviceInfo['f' + f]; const ls = d ? Number(d.lastSeen) : 0; return !!(ls && (serverNow() - ls) < 120000); }
+  // 두 층 센서 중 가장 작은 저장 용량 (최대 300)
+  function maxUsableFpId(){
+    let m = 300;
+    FLOORS.forEach(f => { const d = deviceInfo['f' + f]; const c = d ? parseInt(d.capacity) : 0; if(c > 0 && c < m) m = c; });
+    return m;
+  }
+  function renderDeviceStatus(){
+    const box = $('#deviceStatusBox'); if(!box) return;
+    box.innerHTML = FLOORS.map(f => {
+      const d = deviceInfo['f' + f]; const on = deviceOnline(f);
+      let detail = '아직 응답 기록이 없습니다. (기기 펌웨어를 새 버전으로 올려주세요)';
+      if(d){
+        const cap = parseInt(d.capacity) || 0;
+        detail = on ? `센서 저장 ${esc(d.count != null ? d.count : '?')}개 / 용량 ${cap || '?'}개`
+                    : `마지막 응답: ${Number(d.lastSeen) ? new Date(Number(d.lastSeen)).toLocaleString('ko-KR') : '-'}`;
+        if(cap && cap < 300) detail += `<br><span style="color:#d70015;">센서 용량이 ${cap}개라서 ${cap}번까지만 사용할 수 있습니다.</span>`;
+      }
+      return `<div class="list-item" style="align-items:flex-start;"><div><b>${f}층 기기</b> <span class="dot ${on ? 'on' : 'off'}" style="margin-left:6px;"></span>${on ? '연결됨' : '오프라인'}<div class="muted" style="margin-top:2px;">${detail}</div></div></div>`;
+    }).join('');
+  }
+
+  async function syncFloorSensor(floor){
+    const ids = cache.students.filter(s => s.fpRegistered).map(s => s.fingerprintId);
+    if(!ids.length){ showToast('복원할 지문이 없습니다.'); return; }
+    if(!isOnline){ await showMessage('서버에 연결되지 않았습니다. 연결 상태를 확인해주세요.'); return; }
+    if(!await showConfirm(`${floor}층 센서에 서버 백업 지문 ${ids.length}개를 복원합니다.\n복원하는 동안 해당 층 기기는 스캔에 응답하지 않을 수 있습니다. 진행할까요?`)) return;
+    await queueIds('syncRequest/f' + floor, ids);
+    await window.logChange('센서 동기화 요청', `${floor}층 센서 ← 서버 백업 ${ids.length}개`);
+    showToast(`${floor}층 기기에 복원을 요청했습니다.`);
+  }
+  safeAddListener('#syncF1Btn', 'click', () => syncFloorSensor(1));
+  safeAddListener('#syncF2Btn', 'click', () => syncFloorSensor(2));
+
+  // ---------- 자율석 지문 자가 등록 (메인 화면) ----------
+  function reserveFpId(id){
+    return new Promise(resolve => {
+      fbDB.ref('fpReserve/' + id).transaction(cur => {
+        if(cur && cur.ts && (serverNow() - cur.ts) < 120000 && cur.by !== CLIENT_ID) return;   // 다른 화면이 사용 중 -> 포기
+        return { ts: serverNow(), by: CLIENT_ID };
+      }, (err, committed) => resolve(!err && !!committed), false);
+    });
+  }
+  function releaseFpId(id){
+    try{ fbDB.ref('fpReserve/' + id).transaction(cur => (cur && cur.by === CLIENT_ID) ? null : undefined, function(){}, false); }catch(e){}
+  }
+  // 아직 배정되지 않은 가장 작은 번호를 선점
+  async function allocateFpId(){
+    const cands = getUnusedFingerprintIds(maxUsableFpId());
+    for(const id of cands.slice(0, 40)){
+      const ok = await Promise.race([reserveFpId(id), new Promise(r => setTimeout(() => r(false), 6000))]);
+      if(ok) return id;
+    }
+    return null;
+  }
+
+  function seSetState(state, main, sub){
+    const form = $('#seFormBox'), prog = $('#seProgress'); if(!form || !prog) return;
+    form.style.display = state === 'form' ? 'block' : 'none';
+    prog.style.display = state === 'form' ? 'none' : 'block';
+    if(state === 'form') return;
+    const icon = $('#seIcon');
+    icon.className = state === 'wait' ? 'se-pulse' : '';
+    icon.style.color = state === 'done' ? '#248a3d' : (state === 'error' ? '#d70015' : 'var(--accent)');
+    icon.innerHTML = state === 'done' ? ico('checkCircle') : (state === 'error' ? ico('alert') : ico('fingerprint'));
+    const svg = icon.querySelector('svg'); if(svg){ svg.style.width = '64px'; svg.style.height = '64px'; }
+    $('#seStatus').textContent = main || ''; $('#seSub').textContent = sub || '';
+    $('#seRetryBtn').style.display = state === 'error' ? '' : 'none';
+    $('#seCancelBtn').textContent = state === 'wait' ? '취소' : '닫기';
+  }
+  function openSelfEnroll(){
+    if(!pendingSelfEnroll){
+      seSetState('form');
+      if($('#seStudentNum')) $('#seStudentNum').value = ''; if($('#seName')) $('#seName').value = '';
+    }
+    openOverlay('ovSelfEnroll');
+    setTimeout(() => { if(!pendingSelfEnroll && $('#seStudentNum')) $('#seStudentNum').focus(); }, 150);
+  }
+  function cancelSelfEnroll(){
+    if(pendingSelfEnroll){ clearTimeout(enrollTimer); releaseFpId(pendingSelfEnroll.fpId); pendingSelfEnroll = null; }
+  }
+  async function startSelfEnroll(){
+    if(pendingSelfEnroll) return;
+    const sNum = $('#seStudentNum').value.trim(), name = $('#seName').value.trim();
+    if(!sNum || !name){ await showMessage('학번과 이름을 모두 입력해주세요.'); return; }
+    if(!/^[0-9A-Za-z-]{1,15}$/.test(sNum)){ await showMessage('학번은 숫자로 입력해주세요. (예: 20101)'); return; }
+    if(name.length > 20){ await showMessage('이름은 20자 이내로 입력해주세요.'); return; }
+    if(!isReady()){ await showMessage('데이터를 불러오는 중입니다. 잠시 후 다시 시도해주세요.'); return; }
+    if(!isOnline){ await showMessage('서버에 연결되지 않았습니다. 연결 상태를 확인해주세요.'); return; }
+    if(pendingEnrollFpId != null || pendingNewEnrollFpId != null){ await showMessage('관리자 화면에서 다른 지문 등록이 진행 중입니다. 잠시 후 다시 시도해주세요.'); return; }
+    const dup = cache.students.find(s => String(s.studentNum).trim() === sNum);
+    if(dup){ await showMessage(`이미 등록된 학번입니다 (${maskName(dup.name)}).\n지문을 다시 등록해야 한다면 관리자에게 문의해주세요.`); return; }
+
+    const floor = currentFloor, btn = $('#seStartBtn'); btn.disabled = true;
+    try{
+      const fpId = await allocateFpId();
+      if(fpId == null){ seSetState('error', '사용 가능한 지문 번호가 없습니다', `지문 번호 1~${maxUsableFpId()}번이 모두 사용 중입니다.\n관리자에게 문의해주세요.`); return; }
+      pendingSelfEnroll = { fpId, floor, name, studentNum: sNum };
+      seSetState('wait', `${floor}층 지문 기기의 센서에 손가락을 올려주세요`, `배정 번호 ${fpId}번\n같은 손가락을 두 번 올려야 합니다. 기기 화면의 안내를 따라주세요.`);
+      fbWrite('enrollRequest/f' + floor, { fpId: fpId, floor: floor, timestamp: serverNow() });
+      enrollTimeout(() => {
+        if(pendingSelfEnroll && pendingSelfEnroll.fpId === fpId){
+          releaseFpId(fpId); pendingSelfEnroll = null;
+          seSetState('error', '기기 응답이 없습니다', `${floor}층 기기가 켜져 있고 와이파이에 연결되어 있는지 확인해주세요.`);
+        }
+      });
+    } finally { btn.disabled = false; }
+  }
+  async function finishSelfEnroll(res){
+    const p = pendingSelfEnroll; if(!p) return; clearTimeout(enrollTimer);
+    if(!res.success){
+      releaseFpId(p.fpId); pendingSelfEnroll = null;
+      seSetState('error', '등록에 실패했습니다', enrollFailMsg(res, '아래 [다시 시도]를 눌러주세요.')); return;
+    }
+    if(findStudentByFp(p.fpId)){
+      pendingSelfEnroll = null;
+      seSetState('error', '지문 번호가 다른 등록과 겹쳤습니다', '잠시 후 [다시 시도]를 눌러주세요. 문제가 계속되면 관리자에게 문의해주세요.'); return;
+    }
+    const student = { name: p.name, studentNum: p.studentNum, deskId: null, fingerprintId: p.fpId, weeklySchedule: defaultWeekly(), monthlyGoalMinutes: 1200, monthlyElapsedSeconds: 0, monthlyHistory: {}, seatMode: 'flexible', fpRegistered: true, selfRegistered: true, registeredAt: Date.now() };
+    try{
+      await window.dbPut('students', student);
+      await window.dbPut('changelog', { timestamp: Date.now(), admin: '학생(메인 화면)', action: '지문 자가 등록', detail: `${p.studentNum} ${p.name} · 지문ID ${p.fpId} · ${p.floor}층 기기` });
+      mirrorFp(p.floor, p.fpId);
+    }catch(e){
+      pendingSelfEnroll = null; seSetState('error', '저장 중 오류가 발생했습니다', String(e && e.message || e)); return;
+    }
+    pendingSelfEnroll = null;   // 예약(fpReserve)은 2분 뒤 자동 만료되도록 남겨 둡니다
+    seSetState('done', '등록이 완료되었습니다', `${p.studentNum} ${p.name}\n이제 입실 스캔으로 출석할 수 있어요. (지문 번호 ${p.fpId}번)` + (res.backup === false ? '\n※ 클라우드 백업에 실패했습니다. 관리자에게 알려주세요.' : ''));
+    setTimeout(() => { if(!pendingSelfEnroll) closeOverlay('ovSelfEnroll'); }, 4000);
+  }
+  safeAddListener('#btnSelfEnroll', 'click', openSelfEnroll);
+  safeAddListener('#seStartBtn', 'click', startSelfEnroll);
+  safeAddListener('#seName', 'keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); startSelfEnroll(); } });
+  safeAddListener('#seStudentNum', 'keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); if($('#seName')) $('#seName').focus(); } });
+  safeAddListener('#seRetryBtn', 'click', () => seSetState('form'));
+  safeAddListener('#seCancelBtn', 'click', () => { cancelSelfEnroll(); closeOverlay('ovSelfEnroll'); });
+  (function(){ const x = document.querySelector('#ovSelfEnroll .close-x'); if(x) x.addEventListener('click', cancelSelfEnroll); })();
+
+  // ---------- 기기의 등록 결과 수신 ----------
   fbDB.ref('enrollResult').on('value', snap => {
-       const res = snap.val(); if(!res) return; if(!isFreshTs(res.timestamp, 60000)){ snap.ref.remove(); return; }
-       const newFp = res.fpId != null ? parseInt(res.fpId) : (pendingEnrollFpId != null ? pendingEnrollFpId : pendingNewEnrollFpId);
-       if(pendingEnrollFpId != null) {
-           clearTimeout(enrollTimer); const statusEl = $('#feStatus2');
-           if(res.success) {
-               const s = cache.students.find(x => String(x.id) === String(pendingEnrollStudentId)); const dupe = findStudentByFp(newFp);
-               if(s && dupe && String(dupe.id) !== String(s.id)) { if(statusEl) statusEl.textContent = `지문 ID ${newFp}는 이미 ${dupe.name}님이 사용 중입니다.`; }
-               else if(s) { 
-                 changeStudentFingerprint(s, newFp).then(ns => { 
-                   pendingEnrollStudentId = ns.id; 
-                   if($('#feFpId2')) $('#feFpId2').value = newFp; 
-                   window.logChange('지문 재등록', `${ns.name} → 지문ID ${newFp} (등록 완료)`); 
-                 }).catch(e => { if(statusEl) statusEl.textContent = '저장 중 오류: ' + e.message; }); 
-                 if(statusEl) statusEl.textContent = `등록 성공! 지문 ID ${newFp}로 등록이 완료되었습니다. 창을 닫아주세요.`; 
-               }
-           } else { if(statusEl) statusEl.textContent = enrollFailMsg(res); }
-           pendingEnrollFpId = null;
-       } else if(pendingNewEnrollFpId != null) {
-           clearTimeout(enrollTimer); const statusEl = $('#feStatus');
-           if(res.success) { 
-             if(statusEl) statusEl.textContent = `등록 성공! 지문 ID ${newFp}가 기기에 저장되었습니다.
-[학생 관리] 탭의 "새 학생 등록"에서 이 지문 ID로 학생을 추가하세요.`; 
-             if($('#newFp')) $('#newFp').value = newFp; 
-             window.logChange('지문 신규 등록', `지문ID ${newFp} 기기 등록 완료`); 
-           } else { if(statusEl) statusEl.textContent = enrollFailMsg(res); }
-           pendingNewEnrollFpId = null;
-       } else { return; }
-       snap.ref.remove();
+    const res = snap.val(); if(!res) return;
+    if(!isFreshTs(res.timestamp, 90000)){ snap.ref.remove(); return; }
+    const resFpId = res.fpId != null ? parseInt(res.fpId) : null;
+    const resFloor = res.floor != null ? parseInt(res.floor) : null;
+
+    if(pendingSelfEnroll){
+      if(resFpId !== pendingSelfEnroll.fpId) return;
+      if(resFloor != null && resFloor !== pendingSelfEnroll.floor) return;
+      snap.ref.remove(); finishSelfEnroll(res); return;
+    }
+
+    const newFp = resFpId != null ? resFpId : (pendingEnrollFpId != null ? pendingEnrollFpId : pendingNewEnrollFpId);
+    const doneFloor = resFloor != null ? resFloor : pendingEnrollFloor;
+    const backupNote = res.success && res.backup === false ? '\n(주의: 클라우드 백업에 실패해 센서에만 저장되었습니다. 다시 등록하는 것을 권장합니다.)' : '';
+    if(pendingEnrollFpId != null) {
+      clearTimeout(enrollTimer); const statusEl = $('#feStatus2');
+      if(res.success) {
+        const s = cache.students.find(x => String(x.id) === String(pendingEnrollStudentId)); const dupe = findStudentByFp(newFp);
+        if(s && dupe && String(dupe.id) !== String(s.id)) { if(statusEl) statusEl.textContent = `지문 ID ${newFp}는 이미 ${dupe.name}님이 사용 중입니다.`; }
+        else if(s) {
+          changeStudentFingerprint(s, newFp).then(ns => {
+            pendingEnrollStudentId = ns.id;
+            if($('#feFpId2')) $('#feFpId2').value = newFp;
+            mirrorFp(doneFloor, newFp);
+            window.logChange('지문 재등록', `${ns.name} → 지문ID ${newFp} (${doneFloor ? doneFloor + '층 기기, ' : ''}등록 완료)`);
+          }).catch(e => { if(statusEl) statusEl.textContent = '저장 중 오류: ' + e.message; });
+          if(statusEl) statusEl.textContent = `등록 성공! 지문 ID ${newFp}로 등록이 완료되었습니다. 다른 층 센서에도 자동 복사됩니다. 창을 닫아주세요.` + backupNote;
+        }
+      } else { if(statusEl) statusEl.textContent = enrollFailMsg(res); }
+      pendingEnrollFpId = null;
+    } else if(pendingNewEnrollFpId != null) {
+      clearTimeout(enrollTimer); const statusEl = $('#feStatus');
+      if(res.success) {
+        lastEnrolledFpIds.add(newFp); mirrorFp(doneFloor, newFp);
+        if(statusEl) statusEl.textContent = `등록 성공! 지문 ID ${newFp}가 기기에 저장되었습니다. (다른 층 센서에도 자동 복사됩니다)\n[학생 관리] 탭의 "새 학생 등록"에서 이 지문 ID로 학생을 추가하세요.` + backupNote;
+        if($('#newFp')) $('#newFp').value = newFp;
+        window.logChange('지문 신규 등록', `지문ID ${newFp} ${doneFloor ? doneFloor + '층 ' : ''}기기 등록 완료`);
+      } else { if(statusEl) statusEl.textContent = enrollFailMsg(res); }
+      pendingNewEnrollFpId = null;
+    } else { return; }
+    snap.ref.remove();
   });
 
+  // ---------- 관리자: 신규 지문 등록 (기기 선택) ----------
   safeAddListener('#enrollBtn', 'click', async () => {
-    const id = parseInt($('#enrollFpId').value); const statusEl = $('#feStatus');
-    if(!id || id < 1 || id > 300){ await showMessage('지문 ID는 1~300 사이 숫자로 입력해주세요.'); return; } const dupe = findStudentByFp(id); if(dupe){ await showMessage(`지문 ID ${id}는 이미 ${dupe.name}님이 사용 중입니다.`); return; } if(!isOnline){ await showMessage('서버에 연결되지 않았습니다. 연결 상태를 확인해주세요.'); return; }
-    pendingEnrollFpId = null; pendingNewEnrollFpId = id; if(statusEl) statusEl.textContent = '원격 지문 등록 대기 중... 기기에 손가락을 올려주세요 (30초 대기)'; fbWrite('enrollRequest', { fpId: id, timestamp: serverNow() });
-    enrollTimeout(() => { if(pendingNewEnrollFpId != null){ pendingNewEnrollFpId = null; if(statusEl) statusEl.textContent = '기기 응답이 없습니다. 기기가 켜져 있고 와이파이에 연결되어 있는지 확인해주세요.'; } });
+    const id = parseInt($('#enrollFpId').value); const statusEl = $('#feStatus'); const floor = parseInt($('#enrollFloor').value) || currentFloor;
+    if(!id || id < 1 || id > 300){ await showMessage('지문 ID는 1~300 사이 숫자로 입력해주세요.'); return; }
+    if(id > maxUsableFpId()){ await showMessage(`센서 저장 용량이 ${maxUsableFpId()}개라서 ${id}번은 사용할 수 없습니다.`); return; }
+    const dupe = findStudentByFp(id); if(dupe){ await showMessage(`지문 ID ${id}는 이미 ${dupe.name}님이 사용 중입니다.`); return; }
+    if(!isOnline){ await showMessage('서버에 연결되지 않았습니다. 연결 상태를 확인해주세요.'); return; }
+    if(pendingSelfEnroll){ await showMessage('메인 화면에서 지문 등록이 진행 중입니다. 잠시 후 다시 시도해주세요.'); return; }
+    pendingEnrollFpId = null; pendingNewEnrollFpId = id; pendingEnrollFloor = floor;
+    if(statusEl) statusEl.textContent = `${floor}층 기기에서 원격 지문 등록 대기 중... 기기에 손가락을 올려주세요 (45초 대기)`;
+    fbWrite('enrollRequest/f' + floor, { fpId: id, floor: floor, timestamp: serverNow() });
+    enrollTimeout(() => { if(pendingNewEnrollFpId != null){ pendingNewEnrollFpId = null; if(statusEl) statusEl.textContent = `${floor}층 기기 응답이 없습니다. 기기가 켜져 있고 와이파이에 연결되어 있는지 확인해주세요.`; } });
   });
 
+  // ---------- 관리자: 학생 지문 재등록 ----------
   function openFingerprintEnroll(studentId){
     const s = cache.students.find(x => String(x.id) === String(studentId)); if(!s) return;
     pendingEnrollStudentId = studentId; pendingEnrollFpId = null;
     if($('#feName')) $('#feName').textContent = s.name; if($('#feFpId2')) $('#feFpId2').value = s.fingerprintId; if($('#feStatus2')) $('#feStatus2').textContent = '기기가 와이파이에 켜져있어야 합니다.';
+    if($('#feFloor')) $('#feFloor').value = String(currentFloor);
     openOverlay('ovFingerprintEnroll');
   }
-  
+
   safeAddListener('#feStartBtn', 'click', async () => {
     const s = cache.students.find(x => String(x.id) === String(pendingEnrollStudentId)); if(!s) return;
-    const newId = parseInt($('#feFpId2').value); if(!newId || newId < 1 || newId > 300){ await showMessage('지문 ID는 1~300 사이 숫자로 입력해주세요.'); return; }
+    const newId = parseInt($('#feFpId2').value); const floor = parseInt($('#feFloor') ? $('#feFloor').value : currentFloor) || currentFloor;
+    if(!newId || newId < 1 || newId > 300){ await showMessage('지문 ID는 1~300 사이 숫자로 입력해주세요.'); return; }
+    if(newId > maxUsableFpId()){ await showMessage(`센서 저장 용량이 ${maxUsableFpId()}개라서 ${newId}번은 사용할 수 없습니다.`); return; }
     const dupe = findStudentByFp(newId); if(dupe && String(dupe.id) !== String(s.id)){ await showMessage(`지문 ID ${newId}는 이미 ${dupe.name}님이 사용 중입니다.`); return; }
     if(!isOnline){ await showMessage('서버에 연결되지 않았습니다. 연결 상태를 확인해주세요.'); return; }
-    pendingNewEnrollFpId = null; pendingEnrollFpId = newId; if($('#feStatus2')) $('#feStatus2').textContent = '원격 지문 등록 대기 중... 기기에 손가락을 올려주세요 (30초 대기)';
-    fbWrite('enrollRequest', { fpId: newId, timestamp: serverNow() });
-    enrollTimeout(() => { if(pendingEnrollFpId != null){ pendingEnrollFpId = null; if($('#feStatus2')) $('#feStatus2').textContent = '기기 응답이 없습니다. 기기가 켜져 있고 와이파이에 연결되어 있는지 확인해주세요.'; } });
+    if(pendingSelfEnroll){ await showMessage('메인 화면에서 지문 등록이 진행 중입니다. 잠시 후 다시 시도해주세요.'); return; }
+    pendingNewEnrollFpId = null; pendingEnrollFpId = newId; pendingEnrollFloor = floor;
+    if($('#feStatus2')) $('#feStatus2').textContent = `${floor}층 기기에서 원격 지문 등록 대기 중... 기기에 손가락을 올려주세요 (45초 대기)`;
+    fbWrite('enrollRequest/f' + floor, { fpId: newId, floor: floor, timestamp: serverNow() });
+    enrollTimeout(() => { if(pendingEnrollFpId != null){ pendingEnrollFpId = null; if($('#feStatus2')) $('#feStatus2').textContent = `${floor}층 기기 응답이 없습니다. 기기가 켜져 있고 와이파이에 연결되어 있는지 확인해주세요.`; } });
+  });
+
+  // =================================================================
+  // 학습 시간 초기화 (전체 / 학생 1명)
+  // =================================================================
+  let resetTimeTarget = null;   // null = 전체 학생, 그 외 = 학생 id
+  const isActiveRecord = r => r && (r.status === 'present' || r.status === 'away');
+  async function fbMultiUpdate(updates){
+    const keys = Object.keys(updates); const CH = 400;
+    for(let i = 0; i < keys.length; i += CH){
+      const part = {}; keys.slice(i, i + CH).forEach(k => { part[k] = updates[k]; });
+      await fbDB.ref().update(part);
+    }
+  }
+  function openResetTime(studentId){
+    resetTimeTarget = (studentId == null || studentId === '') ? null : String(studentId);
+    let label;
+    if(resetTimeTarget == null){ label = `대상: 전체 학생 (${cache.students.length}명)`; }
+    else { const s = cache.students.find(x => String(x.id) === resetTimeTarget); if(!s){ showToast('학생 정보를 찾을 수 없습니다.'); return; } label = `대상: ${s.name} ${s.studentNum ? '(' + s.studentNum + ')' : ''}`; }
+    if($('#rtTarget')) $('#rtTarget').textContent = label;
+    const r = document.querySelector('input[name="rtMode"][value="time"]'); if(r) r.checked = true;
+    openOverlay('ovResetTime');
+  }
+  async function runResetTime(){
+    const modeEl = document.querySelector('input[name="rtMode"]:checked'); const mode = modeEl ? modeEl.value : 'time';
+    const targetStudents = resetTimeTarget == null ? cache.students.slice() : cache.students.filter(s => String(s.id) === resetTimeTarget);
+    if(!targetStudents.length){ await showMessage('초기화할 학생이 없습니다.'); return; }
+    if(!isOnline){ await showMessage('서버에 연결되지 않았습니다. 연결 상태를 확인한 뒤 다시 시도해주세요.'); return; }
+    const idSet = new Set(targetStudents.map(s => String(s.id)));
+    const records = cache.attendance.filter(a => a && a.id != null && idSet.has(String(a.studentId)));
+    const activeRecs = records.filter(isActiveRecord), doneRecs = records.filter(r => !isActiveRecord(r));
+    const scopeText = resetTimeTarget == null ? `전체 학생 ${targetStudents.length}명` : `${targetStudents[0].name} 학생`;
+    const msg = `${scopeText}의 ` + (mode === 'all' ? '학습시간과 출결 기록을 모두 삭제합니다.' : '누적 학습시간을 0으로 초기화합니다.')
+      + `\n\n· 월 누적 학습시간: ${targetStudents.length}명 → 0분`
+      + `\n· 출결 기록 ${doneRecs.length}건: ` + (mode === 'all' ? '삭제' : '학습시간만 0분으로 변경')
+      + (activeRecs.length ? `\n\n현재 입실·자리비움 중인 ${activeRecs.length}건은 제외되며, 퇴실할 때 정상 반영됩니다.` : '')
+      + '\n\n되돌릴 수 없습니다. 진행할까요?';
+    if(!await showConfirm(msg)) return;
+    if(resetTimeTarget == null){
+      const input = await showPrompt('전체 학생을 초기화하려면 아래에 "학습시간초기화"라고 입력해주세요.', '학습시간초기화');
+      if(input !== '학습시간초기화'){ await showMessage('확인 문구가 일치하지 않아 취소되었습니다.'); return; }
+    }
+    try{
+      const updates = {};
+      targetStudents.forEach(s => { updates['students/' + s.id + '/monthlyElapsedSeconds'] = 0; });
+      if(mode === 'all'){ doneRecs.forEach(r => { updates['attendance/' + r.id] = null; }); }
+      else { doneRecs.forEach(r => { if(r.elapsedSeconds) updates['attendance/' + r.id + '/elapsedSeconds'] = 0; }); }
+      await fbMultiUpdate(updates);
+      targetStudents.forEach(s => { s.monthlyElapsedSeconds = 0; });
+      if(mode === 'all'){ const del = new Set(doneRecs.map(r => String(r.id))); cache.attendance = cache.attendance.filter(a => !del.has(String(a.id))); }
+      else { doneRecs.forEach(r => { r.elapsedSeconds = 0; }); }
+      await window.logChange('학습시간 초기화', `${scopeText} · ${mode === 'all' ? '출결 기록 ' + doneRecs.length + '건 삭제' : '누적 시간만 초기화'}`);
+      closeOverlay('ovResetTime'); showToast('학습 시간이 초기화되었습니다.'); triggerRender();
+      if(adminMode && $('#tab-ranking') && $('#tab-ranking').classList.contains('active')) renderRanking();
+    }catch(e){ await showMessage('초기화 중 오류가 발생했습니다: ' + (e && e.message ? e.message : e)); }
+  }
+  safeAddListener('#btnResetTimeAll', 'click', () => openResetTime(null));
+  safeAddListener('#btnResetTimeAll2', 'click', () => openResetTime(null));
+  safeAddListener('#rtCancel', 'click', () => closeOverlay('ovResetTime'));
+  safeAddListener('#rtRun', 'click', runResetTime);
+
+  // =================================================================
+  // 전체 데이터 엑셀 백업 / 관리자 비밀번호 변경 (기존에 버튼만 있고 동작이 없던 기능)
+  // =================================================================
+  safeAddListener('#exportExcelBtn', 'click', async () => {
+    try{
+      const wb = XLSX.utils.book_new();
+      const byId = new Map(cache.students.map(s => [String(s.id), s]));
+      const stuRows = cache.students.slice().sort((a, b) => String(a.studentNum).localeCompare(String(b.studentNum), undefined, { numeric: true })).map(s => {
+        const desk = s.deskId != null ? findDesk(s.deskId) : null;
+        const row = { '학번': s.studentNum, '이름': s.name, '지문ID': s.fingerprintId, '지문등록': s.fpRegistered ? 'O' : 'X', '좌석유형': s.seatMode === 'fixed' ? '고정' : '자율', '좌석': desk ? deskLabel(desk) : '', '월목표(분)': s.monthlyGoalMinutes || 0, '월누적(분)': Math.round((s.monthlyElapsedSeconds || 0) / 60) };
+        DAYS.forEach(([k, l]) => { const d = s.weeklySchedule && s.weeklySchedule[k]; row[l] = d && d.enabled ? `${d.start}-${d.end}` : ''; });
+        return row;
+      });
+      const attRows = cache.attendance.slice().sort((a, b) => String(a.date).localeCompare(String(b.date)) || (a.checkIn || 0) - (b.checkIn || 0)).map(a => {
+        const s = byId.get(String(a.studentId)); const desk = a.deskId != null ? findDesk(a.deskId) : null;
+        return { '날짜': a.date, '학번': s ? s.studentNum : '', '이름': s ? s.name : '(삭제된 학생)', '상태': statusLabel(a.status), '입실': a.checkIn ? fmtTime(a.checkIn) : '', '퇴실': a.checkOut ? fmtTime(a.checkOut) : '', '학습(분)': Math.round((a.elapsedSeconds || 0) / 60), '좌석': desk ? deskLabel(desk) : '' };
+      });
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(stuRows), '학생');
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(attRows), '출결기록');
+      XLSX.writeFile(wb, `야자_전체백업_${todayStr()}.xlsx`);
+      await window.logChange('엑셀 백업', `학생 ${stuRows.length}명, 출결 ${attRows.length}건`);
+      showToast('백업 파일을 내려받았습니다.');
+    }catch(e){ await showMessage('백업 중 오류가 발생했습니다: ' + (e && e.message ? e.message : e)); }
+  });
+
+  safeAddListener('#changePwBtn', 'click', async () => {
+    const cur = $('#curPw').value, nw = $('#newPw').value, cf = $('#confirmPw').value;
+    if(!loaded.settings){ await showMessage('서버에서 설정을 불러오는 중입니다. 잠시 후 다시 시도해주세요.'); return; }
+    if(cur !== settings.adminPassword){ await showMessage('현재 비밀번호가 올바르지 않습니다.'); return; }
+    if(nw.length < 4){ await showMessage('새 비밀번호는 4자 이상으로 입력해주세요.'); return; }
+    if(nw === cur){ await showMessage('현재 비밀번호와 다른 비밀번호를 입력해주세요.'); return; }
+    if(nw !== cf){ await showMessage('새 비밀번호 확인이 일치하지 않습니다.'); return; }
+    settings.adminPassword = nw; await saveSettings();
+    await window.logChange('관리자 비밀번호 변경', '');
+    $('#curPw').value = ''; $('#newPw').value = ''; $('#confirmPw').value = '';
+    showToast('비밀번호가 변경되었습니다.');
   });
 
   function renderFingerprintStatusModal(){
@@ -2306,7 +2765,7 @@ ${skipped.join('\n')}` : ''));
           <div style="font-size:20px; font-weight:800; color:#248a3d; margin-top:2px;">${enrolledStudents.length}명</div>
         </div>
         <div style="background:rgba(255,149,0,0.15); border-radius:10px; padding:10px; text-align:center;">
-          <div style="font-size:11px; color:#c97500; font-weight:600;">⚠️ 센서 미등록</div>
+          <div style="font-size:11px; color:#c97500; font-weight:600;">${ico('alert')} 센서 미등록</div>
           <div style="font-size:20px; font-weight:800; color:#c97500; margin-top:2px;">${unregStudents.length}명</div>
         </div>
         <div style="background:rgba(120,120,128,0.14); border-radius:10px; padding:10px; text-align:center;">
@@ -2320,7 +2779,7 @@ ${skipped.join('\n')}` : ''));
     const unregList = $('#fpUnregisteredList');
     if(unregList){
       if(unregStudents.length === 0){
-        unregList.innerHTML = '<p class="muted" style="padding:10px; text-align:center;">모든 학생의 지문 정보가 등록되어 있습니다! 👍</p>';
+        unregList.innerHTML = `<p class="muted" style="padding:10px; text-align:center;">${ico('checkCircle')} 모든 학생의 지문 정보가 등록되어 있습니다.</p>`;
       } else {
         unregList.innerHTML = unregStudents.map(st => `
           <div class="list-item" style="padding:7px 10px; margin-bottom:5px; justify-content:space-between; align-items:center;">
@@ -2378,7 +2837,7 @@ ${skipped.join('\n')}` : ''));
         } else if(st.fpRegistered){
           gridHtml += `<div class="fp-tile enrolled" title="${i}번: ${st.name} (지문 등록완료)" data-fpid="${i}">${i}</div>`;
         } else {
-          gridHtml += `<div class="fp-tile assigned-only" title="${i}번: ${st.name} (⚠️지문 미등록)" data-fpid="${i}">${i}</div>`;
+          gridHtml += `<div class="fp-tile assigned-only" title="${i}번: ${st.name} (지문 미등록)" data-fpid="${i}">${i}</div>`;
         }
       }
       grid.innerHTML = gridHtml;
@@ -2437,13 +2896,15 @@ ${skipped.join('\n')}` : ''));
     updateClock();
     
     fbDB.ref('settings/app').on('value', snap => { loaded.settings = true; if(snap.exists()) { settings = { ...settings, ...snap.val() }; applyDarkMode(); if(startedUp){ triggerRender(); renderDeskOptions(); } } else { saveSettings(); } onDataLoaded(); });
-    fbDB.ref('students').on('value', snap => { cache.students = snapToList(snap).map(normStudent); loaded.students = true; triggerRender(); renderDeskOptions(); onDataLoaded(); });
+    fbDB.ref('students').on('value', snap => { cache.students = snapToList(snap).filter(s => s.fingerprintId != null).map(normStudent); loaded.students = true; triggerRender(); renderDeskOptions(); onDataLoaded(); });
     fbDB.ref('desks').on('value', snap => { cache.desks = snapToList(snap); loaded.desks = true; triggerRender(); renderDeskOptions(); onDataLoaded(); });
     fbDB.ref('attendance').on('value', snap => { cache.attendance = snapToList(snap); loaded.attendance = true; triggerRender(); onDataLoaded(); });
     fbDB.ref('changelog').on('value', snap => { cache.changelog = snapToList(snap); });
     fbDB.ref('dailylogs').on('value', snap => { cache.dailylogs = snapToList(snap); });
     fbDB.ref('supervision').on('value', snap => { cache.supervision = snapToList(snap); renderSupervisionBar(); refreshSupervisionModal(); });
 
+    fbDB.ref('devices').on('value', snap => { deviceInfo = snap.val() || {}; renderDeviceStatus(); });
+    setInterval(renderDeviceStatus, 30000);
     fbDB.ref('.info/serverTimeOffset').on('value', snap => { serverOffset = Number(snap.val()) || 0; }); initFingerprintListener();
     fbDB.ref('.info/connected').on('value', snap => {
       const warning = $('#serialWarning'); if(!warning) return;
