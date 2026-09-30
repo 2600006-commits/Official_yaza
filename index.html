@@ -318,7 +318,27 @@
   .fab-main .ico{ width:26px; height:26px; }
   .legend i.sq{ width:11px; height:11px; border-radius:3px; background:transparent; border:2px solid rgba(80,80,86,0.6); }
   .legend i.ci{ width:11px; height:11px; border-radius:50%; background:transparent; border:2px solid rgba(120,120,128,0.75); }
-  .student-more-actions .full{ grid-column:1 / -1; }
+
+  /* ---------------- 헤더 안 정보 줄 ---------------- */
+  .header-info{ flex:1 1 100%; display:flex; align-items:center; flex-wrap:wrap; gap:4px 18px; margin-top:2px; padding-top:8px; border-top:1px solid rgba(120,120,128,0.18); font-size:12px; }
+  .header-info #publicRanking{ margin:0; padding:0; border-radius:0; font-size:12px; gap:8px; flex-wrap:wrap; }
+  .header-info #publicRanking .medal-icon{ margin-right:2px; }
+  .header-info #todaySummary{ margin:0; font-size:12px; }
+  .header-info #supervisionBar{ margin:0; padding:0; border-radius:0; font-size:12px; gap:10px; }
+  .header-info .legend{ margin:0 0 0 auto; padding:0; gap:10px; font-size:11px; border-radius:0; }
+  .header-info .legend i{ width:9px; height:9px; }
+  .header-info .legend i.sq, .header-info .legend i.ci{ width:10px; height:10px; }
+  body.kiosk-mode header > .header-info{ flex:1 1 100%; justify-content:center; text-align:left; }
+  @media (max-width:520px){
+    #floor1Actions{ flex-wrap:wrap; }
+    #floor1Actions .btn{ flex:1 1 45% !important; }
+    .header-info .legend{ margin-left:0; }
+  }
+
+  /* ---------------- 학생 더보기 버튼: 크기 통일 ---------------- */
+  .student-more-actions{ grid-template-columns:repeat(4,1fr); }
+  .student-more-actions .btn{ width:100%; height:36px; padding:0 4px; font-size:12px; white-space:nowrap; }
+  @media (max-width:460px){ .student-more-actions{ grid-template-columns:repeat(2,1fr); } }
   .se-pulse{ animation:pulseText 1.6s infinite; }
   .rt-opt{ display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border-radius:12px; background:rgba(255,255,255,0.5); margin-bottom:8px; cursor:pointer; font-size:13px; }
   .rt-opt input{ margin-top:3px; width:auto; }
@@ -389,33 +409,31 @@
     <button class="btn btn-secondary" id="btnRules">야자 규정</button>
     <button class="btn btn-primary" id="btnAdmin">관리자 모드</button>
   </div>
-</header>
 
-<div class="kiosk-instruction"><span id="icon-fingerprint"></span>아래 버튼을 눌러 스캐너를 켠 후 지문을 스캔하세요</div>
-
-<!-- 1층 스캔 전용 버튼 -->
-<div id="floor1Actions" style="display:flex; flex-wrap:wrap; gap:10px; margin: 0 12px 16px; justify-content:center;">
-    <button class="btn btn-primary" style="flex:1; height:48px; font-size:15px; border-radius:14px;" onclick="requestScan('present')">입실 스캔</button>
-    <button class="btn btn-secondary" style="flex:1; height:48px; font-size:15px; border-radius:14px;" onclick="requestScan('away')">외출 스캔</button>
-    <button class="btn btn-danger" style="flex:1; height:48px; font-size:15px; border-radius:14px;" onclick="requestScan('left')">퇴실 스캔</button>
-    <button class="btn btn-secondary" id="btnSelfEnroll" style="flex:1 1 100%; height:48px; font-size:15px; border-radius:14px; background:rgba(10,132,255,0.12); color:var(--accent); font-weight:700;"><span data-ico="fingerprint"></span> 지문 등록 (처음 이용하는 학생)</button>
-</div>
-
-<!-- 명예의 전당 -->
-<div id="publicRanking" class="glass"><span id="icon-trophy"></span> 명예의 전당: 데이터 집계 중...</div>
-
-<div id="todaySummary" class="muted" style="margin:0 12px 10px;font-size:12px;"></div>
-
-<!-- 오늘의 야자 감독 바 -->
-<div id="supervisionBar" class="glass" style="display:none;" role="button" tabindex="0"></div>
-
-<div class="legend glass">
+  <!-- 명예의 전당 / 오늘 신청 / 오늘의 감독 / 범례 : 헤더 안에 한 줄로 배치 -->
+  <div class="header-info">
+    <div id="publicRanking"><span id="icon-trophy"></span> 명예의 전당: 데이터 집계 중...</div>
+    <span id="todaySummary" class="muted"></span>
+    <div id="supervisionBar" style="display:none;" role="button" tabindex="0"></div>
+    <div class="legend">
   <span><i style="background:#8e8e93"></i>미입실</span>
   <span><i style="background:#34c759"></i>재실</span>
   <span><i style="background:#ff9500"></i>지각</span>
   <span><i style="background:#ffcc00"></i>자리비움</span>
   <span><i style="background:#ff3b30"></i>퇴실</span>
   <span><i class="sq"></i>칸막이</span><span><i class="ci"></i>오픈형</span>
+</div>
+  </div>
+</header>
+
+<div class="kiosk-instruction"><span id="icon-fingerprint"></span>아래 버튼을 눌러 스캐너를 켠 후 지문을 스캔하세요</div>
+
+<!-- 1층 스캔 전용 버튼 -->
+<div id="floor1Actions" style="display:flex; gap:10px; margin: 0 12px 10px; justify-content:center;">
+    <button class="btn btn-primary" style="flex:1; height:44px; font-size:15px; border-radius:14px;" onclick="requestScan('present')">입실 스캔</button>
+    <button class="btn btn-secondary" style="flex:1; height:44px; font-size:15px; border-radius:14px;" onclick="requestScan('away')">외출 스캔</button>
+    <button class="btn btn-danger" style="flex:1; height:44px; font-size:15px; border-radius:14px;" onclick="requestScan('left')">퇴실 스캔</button>
+    <button class="btn btn-secondary" id="btnSelfEnroll" title="처음 이용하는 학생은 여기서 지문을 등록하세요" style="flex:1; height:44px; font-size:15px; border-radius:14px; background:rgba(10,132,255,0.12); color:var(--accent); font-weight:700;"><span data-ico="fingerprint"></span> 지문 등록</button>
 </div>
 
 <div id="editHint">빈 공간을 탭해 책상 추가 · 책상을 드래그해서 이동(자동 정렬) · <span data-ico="close"></span> 버튼으로 삭제 · 좌우/아래로 스크롤하면 더 많은 자리를 배치할 수 있어요</div>
@@ -442,6 +460,7 @@
 <div class="fab-wrap" id="adminFab">
   <div class="fab-menu" id="fabMenu">
     <button class="fab-item" data-action="students">학생 관리</button>
+    <button class="fab-item" data-action="time">학습시간 관리</button>
     <button class="fab-item" data-action="layout">좌석 배치 모드</button>
     <button class="fab-item" data-action="rules">규정 관리</button>
     <button class="fab-item" data-action="settings">운영 설정 (마감)</button>
@@ -470,6 +489,7 @@
     <div class="tabbar-container">
       <div class="tabbar">
         <button class="tabbtn active" data-tab="students">학생 관리</button>
+        <button class="tabbtn" data-tab="time">학습시간 관리</button>
         <button class="tabbtn" data-tab="layout">좌석 배치</button>
         <button class="tabbtn" data-tab="supervision">감독표</button>
         <button class="tabbtn" data-tab="stats">통계</button>
@@ -492,10 +512,7 @@
     <div class="tabpane active" id="tab-students">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
         <h3 style="margin:0;">학생 목록</h3>
-        <div style="display:flex; gap:6px;">
-          <button class="btn btn-secondary" id="btnResetTimeAll" style="padding:5px 12px; font-size:12px; height:30px;">학습시간 초기화</button>
-          <button class="btn btn-danger" id="deleteAllStudentsBtn" style="padding:5px 12px; font-size:12px; height:30px;">전체 학생 삭제</button>
-        </div>
+        <button class="btn btn-danger" id="deleteAllStudentsBtn" style="padding:5px 12px; font-size:12px; height:30px;">전체 학생 삭제</button>
       </div>
 
       <!-- 요구사항 3: 지문 등록 현황 조회 바로가기 버튼 -->
@@ -602,10 +619,6 @@
       <div id="opHoursBox"></div>
       <button class="btn btn-secondary" id="opCopyMonBtn" style="width:100%; margin-top:4px;">월요일 설정을 모든 요일에 적용</button>
       <button class="btn btn-primary" id="saveTimeSettingsBtn" style="width:100%; margin-top:10px;">운영 시간 저장</button>
-
-      <h3 style="margin-top:24px;">학습 시간 초기화</h3>
-      <p class="muted">전체 학생의 누적 학습시간을 초기화합니다. 진행 전에 아래 엑셀 백업을 먼저 받아두는 것을 권장합니다.</p>
-      <button class="btn btn-danger" id="btnResetTimeAll2" style="width:100%">전체 학생 학습시간 초기화</button>
       <h3 style="margin-top:24px;">전체 데이터 엑셀 백업</h3>
       <button class="btn btn-secondary" id="exportExcelBtn" style="width:100%">모든 학생 및 출결 기록 다운로드</button>
       <h3 style="margin-top:24px;">관리자 비밀번호 변경</h3>
@@ -613,6 +626,21 @@
       <div class="field"><label>새 비밀번호</label><input type="password" id="newPw"></div>
       <div class="field"><label>새 비밀번호 확인</label><input type="password" id="confirmPw"></div>
       <button class="btn btn-primary" id="changePwBtn" style="width:100%">비밀번호 변경하기</button>
+    </div>
+
+    <!-- 탭: 학습시간 관리 -->
+    <div class="tabpane" id="tab-time">
+      <h3>학습시간 관리</h3>
+      <p class="muted">학생들의 누적 학습시간을 확인하고 초기화합니다. 초기화 전에 엑셀 백업을 받아두는 것을 권장합니다.</p>
+      <div class="row" style="margin-bottom:6px;">
+        <button class="btn btn-secondary" id="btnTimeBackup">엑셀 백업 받기</button>
+        <button class="btn btn-danger" id="btnResetTimeAll">전체 학생 초기화</button>
+      </div>
+
+      <h3 style="margin-top:20px;">학생별 초기화</h3>
+      <div class="field" style="margin-bottom:8px;"><input id="timeSearch" type="text" placeholder="학생 이름 또는 학번으로 검색" style="width:100%; padding:9px 14px; border-radius:999px;"></div>
+      <div id="timeSummary" class="muted" style="margin-bottom:6px; font-size:11px;"></div>
+      <div id="timeStudentList" style="max-height:50vh; overflow-y:auto; padding-right:2px;"></div>
     </div>
 
     <!-- 탭 6: 층별 출석 모드 -->
@@ -1016,7 +1044,7 @@
   function getSelectedDaysFromGrid(prefix){ return DAYS.map(([k]) => k).filter(k => { const cb = document.querySelector(`.schedDay[data-day="${k}"][data-prefix="${prefix}"]`); return cb && cb.checked; }); }
 
   let renderTimer = null;
-  function triggerRender() { clearTimeout(renderTimer); renderTimer = setTimeout(() => { if(!layoutEditMode) renderFloor(); if(adminMode && $('#ovAdmin') && $('#ovAdmin').classList.contains('show')){ const activeTab = document.querySelector('.tabbtn.active'); if(activeTab && activeTab.dataset.tab === 'students') renderAdminStudentList(); } }, 50); }
+  function triggerRender() { clearTimeout(renderTimer); renderTimer = setTimeout(() => { if(!layoutEditMode) renderFloor(); if(adminMode && $('#ovAdmin') && $('#ovAdmin').classList.contains('show')){ const activeTab = document.querySelector('.tabbtn.active'); if(activeTab && activeTab.dataset.tab === 'students') renderAdminStudentList(); if(activeTab && activeTab.dataset.tab === 'time') renderTimeManage(); } }, 50); }
 
   function findDesk(id){ return cache.desks.find(d => String(d.id) === String(id)); }
 
@@ -1862,6 +1890,7 @@
     if(tab==='rules'){ if($('#rulesTextarea')) $('#rulesTextarea').value = settings.rulesText || ''; }
     if(tab==='settings'){ renderOpHoursForm(); }
     if(tab==='floormode'){ renderFloorModeTab(); }
+    if(tab==='time'){ renderTimeManage(); }
     if(tab==='device'){ if($('#enrollFloor')) $('#enrollFloor').value = String(currentFloor); renderDeviceStatus(); }
     if(tab==='supervision'){ if(ym) supAdminYM = ym; renderSupervisionAdmin(); }
     if(tab==='ranking'){ renderRanking(); }
@@ -2088,11 +2117,10 @@
             </button>
           </div>
           <div class="student-more-actions" id="actions-${esc(s.id)}">
-            <button class="btn btn-secondary" data-edit="${esc(s.id)}" style="padding:6px 10px; font-size:12px; height:32px;">수정</button>
-            <button class="btn btn-secondary" data-hist="${esc(s.id)}" style="padding:6px 10px; font-size:12px; height:32px;">출결 이력</button>
-            <button class="btn btn-secondary" data-enroll="${esc(s.id)}" style="padding:6px 10px; font-size:12px; height:32px;">지문 재등록</button>
-            <button class="btn btn-secondary full" data-resettime="${esc(s.id)}" style="padding:6px 10px; font-size:12px; height:32px;">학습시간 초기화</button>
-            <button class="btn btn-danger full" data-del="${esc(s.id)}" style="padding:6px 10px; font-size:12px; height:32px;">삭제</button>
+            <button class="btn btn-secondary" data-edit="${esc(s.id)}">수정</button>
+            <button class="btn btn-secondary" data-hist="${esc(s.id)}">출결 이력</button>
+            <button class="btn btn-secondary" data-enroll="${esc(s.id)}">지문 재등록</button>
+            <button class="btn btn-danger" data-del="${esc(s.id)}">삭제</button>
           </div>
         </div>
       `;
@@ -2128,7 +2156,6 @@
     $$('#studentList [data-edit]').forEach(b => { b.onclick = () => openStudentEdit(b.dataset.edit); });
     $$('#studentList [data-hist]').forEach(b => { b.onclick = () => openAttendanceHistory(b.dataset.hist); });
     $$('#studentList [data-enroll]').forEach(b => { b.onclick = () => openFingerprintEnroll(b.dataset.enroll); });
-    $$('#studentList [data-resettime]').forEach(b => { b.onclick = () => openResetTime(b.dataset.resettime); });
   }
   
   if($('#studentSort')) $('#studentSort').addEventListener('change', renderAdminStudentList);
@@ -2697,12 +2724,29 @@ ${skipped.join('\n')}` : ''));
       if(mode === 'all'){ const del = new Set(doneRecs.map(r => String(r.id))); cache.attendance = cache.attendance.filter(a => !del.has(String(a.id))); }
       else { doneRecs.forEach(r => { r.elapsedSeconds = 0; }); }
       await window.logChange('학습시간 초기화', `${scopeText} · ${mode === 'all' ? '출결 기록 ' + doneRecs.length + '건 삭제' : '누적 시간만 초기화'}`);
-      closeOverlay('ovResetTime'); showToast('학습 시간이 초기화되었습니다.'); triggerRender();
+      closeOverlay('ovResetTime'); showToast('학습 시간이 초기화되었습니다.'); triggerRender(); renderTimeManage();
       if(adminMode && $('#tab-ranking') && $('#tab-ranking').classList.contains('active')) renderRanking();
     }catch(e){ await showMessage('초기화 중 오류가 발생했습니다: ' + (e && e.message ? e.message : e)); }
   }
+  const fmtMin = m => (m >= 60 ? Math.floor(m / 60) + '시간 ' : '') + (m % 60) + '분';
+  function renderTimeManage(){
+    const list = $('#timeStudentList'); if(!list) return;
+    const q = ($('#timeSearch') ? $('#timeSearch').value : '').trim().toLowerCase();
+    const arr = cache.students
+      .filter(s => !q || String(s.name || '').toLowerCase().includes(q) || String(s.studentNum || '').toLowerCase().includes(q))
+      .sort((a, b) => String(a.studentNum || '').localeCompare(String(b.studentNum || ''), undefined, { numeric: true }));
+    const totalMin = Math.round(cache.students.reduce((sum, s) => sum + (s.monthlyElapsedSeconds || 0), 0) / 60);
+    if($('#timeSummary')) $('#timeSummary').textContent = `조회 ${arr.length}명 / 전체 ${cache.students.length}명 · 전체 누적 ${fmtMin(totalMin)}`;
+    if(arr.length === 0){ list.innerHTML = '<p class="muted" style="padding:12px; text-align:center;">해당하는 학생이 없습니다.</p>'; return; }
+    list.innerHTML = arr.map(s => {
+      const m = Math.round((s.monthlyElapsedSeconds || 0) / 60);
+      return `<div class="list-item"><span><b>${esc(s.name)}</b> <span class="muted">${esc(s.studentNum || '')} · 누적 ${fmtMin(m)}</span></span><button class="btn btn-secondary" data-resettime="${esc(s.id)}" style="padding:0 14px; font-size:12px; height:32px; flex-shrink:0;">초기화</button></div>`;
+    }).join('');
+    $$('#timeStudentList [data-resettime]').forEach(b => { b.onclick = () => openResetTime(b.dataset.resettime); });
+  }
+  safeAddListener('#timeSearch', 'input', renderTimeManage);
+  safeAddListener('#btnTimeBackup', 'click', () => { const b = $('#exportExcelBtn'); if(b) b.click(); });
   safeAddListener('#btnResetTimeAll', 'click', () => openResetTime(null));
-  safeAddListener('#btnResetTimeAll2', 'click', () => openResetTime(null));
   safeAddListener('#rtCancel', 'click', () => closeOverlay('ovResetTime'));
   safeAddListener('#rtRun', 'click', runResetTime);
 
