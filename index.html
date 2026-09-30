@@ -336,9 +336,61 @@
   }
 
   /* ---------------- 학생 더보기 버튼: 크기 통일 ---------------- */
-  .student-more-actions{ grid-template-columns:repeat(4,1fr); }
+  .student-more-actions{ grid-template-columns:repeat(5,1fr); }
   .student-more-actions .btn{ width:100%; height:36px; padding:0 4px; font-size:12px; white-space:nowrap; }
-  @media (max-width:460px){ .student-more-actions{ grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:460px){ .student-more-actions{ grid-template-columns:repeat(3,1fr); } }
+  /* ---------------- 상단 배너(서버 경고 + 기기 오프라인) ---------------- */
+  #topBanners{ position:sticky; top:0; z-index:9999; }
+  #topBanners #serialWarning{ position:static; }
+  #deviceBanner{ display:none; background:#ff9500; color:#fff; padding:9px 14px; font-size:13px; font-weight:700; text-align:center; line-height:1.5; }
+  #deviceBanner .ico{ margin-right:6px; }
+
+  /* ---------------- 일괄 등록 미리보기 ---------------- */
+  .bulk-sum{ display:flex; gap:8px; flex-wrap:wrap; margin:10px 0; }
+  .bulk-chip{ padding:5px 12px; border-radius:999px; font-size:12px; font-weight:700; background:rgba(120,120,128,0.14); }
+  .bulk-chip.ok{ background:rgba(52,199,89,0.18); color:#248a3d; }
+  .bulk-chip.skip{ background:rgba(255,149,0,0.18); color:#b25000; }
+  .bulk-chip.bad{ background:rgba(255,59,48,0.14); color:#d70015; }
+  .bulk-table-wrap{ max-height:38vh; overflow:auto; border-radius:12px; border:1px solid rgba(120,120,128,0.2); }
+  .bulk-table{ width:100%; border-collapse:collapse; font-size:12px; }
+  .bulk-table th, .bulk-table td{ padding:6px 8px; text-align:left; border-bottom:1px solid rgba(120,120,128,0.15); white-space:nowrap; }
+  .bulk-table th{ position:sticky; top:0; background:rgba(245,245,250,0.97); }
+  body.dark .bulk-table th{ background:rgba(40,40,52,0.97); }
+  .bulk-table tr.bad td{ color:#d70015; }
+  .bulk-table tr.skip td{ color:#b25000; }
+
+  /* ---------------- 학기 전환 마법사 ---------------- */
+  .sw-steps{ display:flex; gap:6px; margin:4px 0 14px; }
+  .sw-steps span{ flex:1; height:5px; border-radius:3px; background:rgba(120,120,128,0.25); }
+  .sw-steps span.on{ background:var(--accent); }
+  .sw-list{ max-height:34vh; overflow-y:auto; border-radius:12px; border:1px solid rgba(120,120,128,0.2); padding:4px 10px; }
+  .sw-row{ display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid rgba(120,120,128,0.12); font-size:13px; cursor:pointer; }
+  .sw-row input{ width:auto; }
+  .sw-log{ font-size:12px; line-height:1.7; white-space:pre-wrap; background:rgba(120,120,128,0.1); border-radius:12px; padding:10px 12px; max-height:34vh; overflow-y:auto; }
+
+  /* ---------------- 감독 교사 화면 (휴대폰 우선) ---------------- */
+  #ovTeacher{ z-index:150; align-items:stretch; justify-content:stretch; }
+  #ovTeacher .modal{ width:100%; max-width:none; height:100%; max-height:none; border-radius:0; padding:14px 14px 28px; overflow-y:auto; background:#f4f5fa; backdrop-filter:none; -webkit-backdrop-filter:none; transform:none; }
+  body.dark #ovTeacher .modal{ background:#14141c; }
+  .tv-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
+  .tv-title{ font-size:20px; font-weight:800; }
+  .tv-sub{ font-size:12px; opacity:.7; margin:2px 0 8px; }
+  .tv-stats{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:10px 0; }
+  .tv-stat{ border-radius:16px; padding:10px 4px; text-align:center; background:rgba(255,255,255,0.8); }
+  body.dark .tv-stat{ background:rgba(255,255,255,0.08); }
+  .tv-stat b{ display:block; font-size:30px; line-height:1.1; }
+  .tv-stat span{ font-size:11px; opacity:.75; }
+  .tv-stat.miss b{ color:#d70015; }
+  .tv-tabs{ display:flex; gap:8px; margin:6px 0 10px; }
+  .tv-tabs button{ flex:1; height:46px; border-radius:14px; border:none; font-size:15px; font-weight:700; background:rgba(120,120,128,0.16); color:inherit; cursor:pointer; }
+  .tv-tabs button.on{ background:var(--accent); color:#fff; }
+  .tv-row{ display:flex; align-items:center; gap:12px; padding:13px 14px; margin-bottom:8px; border-radius:16px; background:rgba(255,255,255,0.85); }
+  body.dark .tv-row{ background:rgba(255,255,255,0.08); }
+  .tv-dot{ width:14px; height:14px; border-radius:50%; flex:none; }
+  .tv-name{ font-size:20px; font-weight:800; }
+  .tv-meta{ font-size:12px; opacity:.7; margin-top:2px; }
+  .tv-badge{ padding:5px 11px; border-radius:999px; font-size:13px; font-weight:800; white-space:nowrap; }
+
   .se-pulse{ animation:pulseText 1.6s infinite; }
   .rt-opt{ display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border-radius:12px; background:rgba(255,255,255,0.5); margin-bottom:8px; cursor:pointer; font-size:13px; }
   .rt-opt input{ margin-top:3px; width:auto; }
@@ -372,7 +424,10 @@
 <div id="app-toast"></div>
 
 <!-- 클라우드 및 와이파이 경고 배너 -->
-<div id="serialWarning"><span id="icon-alert"></span> 클라우드 서버 통신 대기 중...</div>
+<div id="topBanners">
+  <div id="serialWarning"><span id="icon-alert"></span> 클라우드 서버 통신 대기 중...</div>
+  <div id="deviceBanner" role="alert"></div>
+</div>
 
 <header class="glass">
   <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap; flex:1;">
@@ -405,6 +460,7 @@
     <span class="muted"><span class="dot wait" id="serialDot"></span><span id="serialLabel">서버 연결 중...</span></span>
     <button class="btn btn-secondary" id="btnFullscreen" style="display:none">전체화면</button>
     <button class="btn btn-secondary" id="btnDarkToggle"></button>
+    <button class="btn btn-secondary" id="btnTeacher">교사 화면</button>
     <button class="btn btn-secondary" id="btnSupervision">감독표</button>
     <button class="btn btn-secondary" id="btnRules">야자 규정</button>
     <button class="btn btn-primary" id="btnAdmin">관리자 모드</button>
@@ -460,7 +516,7 @@
 <div class="fab-wrap" id="adminFab">
   <div class="fab-menu" id="fabMenu">
     <button class="fab-item" data-action="students">학생 관리</button>
-    <button class="fab-item" data-action="time">학습시간 관리</button>
+    <button class="fab-item" data-action="time">학습·출결 관리</button>
     <button class="fab-item" data-action="layout">좌석 배치 모드</button>
     <button class="fab-item" data-action="rules">규정 관리</button>
     <button class="fab-item" data-action="settings">운영 설정 (마감)</button>
@@ -489,7 +545,7 @@
     <div class="tabbar-container">
       <div class="tabbar">
         <button class="tabbtn active" data-tab="students">학생 관리</button>
-        <button class="tabbtn" data-tab="time">학습시간 관리</button>
+        <button class="tabbtn" data-tab="time">학습·출결 관리</button>
         <button class="tabbtn" data-tab="layout">좌석 배치</button>
         <button class="tabbtn" data-tab="supervision">감독표</button>
         <button class="tabbtn" data-tab="stats">통계</button>
@@ -576,9 +632,9 @@
       <button class="btn btn-primary" id="addStudentBtn" style="width:100%">학생 추가</button>
       
       <h3 style="margin-top:24px;">학생 일괄 등록 (엑셀)</h3>
-      <p class="muted">양식을 내려받아 작성한 뒤 업로드하세요.</p>
+      <p class="muted">학번과 이름만 있어도 됩니다. 지문 번호는 비어 있는 번호로 자동 배정되고, 업로드하면 미리보기에서 확인한 뒤 등록합니다.</p>
       <button class="btn btn-secondary" id="downloadTemplateBtn" style="width:100%;">등록 양식 다운로드</button>
-      <input type="file" id="importStudentsFile" accept=".xlsx,.xls" style="margin-top:8px;width:100%;">
+      <input type="file" id="importStudentsFile" accept=".xlsx,.xls,.csv" style="margin-top:8px;width:100%;">
     </div>
 
     <!-- 탭 2: 규정 관리 -->
@@ -628,16 +684,30 @@
       <button class="btn btn-primary" id="changePwBtn" style="width:100%">비밀번호 변경하기</button>
     </div>
 
-    <!-- 탭: 학습시간 관리 -->
+    <!-- 탭: 학습·출결 관리 -->
     <div class="tabpane" id="tab-time">
-      <h3>학습시간 관리</h3>
-      <p class="muted">학생들의 누적 학습시간을 확인하고 초기화합니다. 초기화 전에 엑셀 백업을 받아두는 것을 권장합니다.</p>
+      <h3>학습·출결 관리</h3>
+      <p class="muted">누적 학습시간과 출결 기록을 확인하고 초기화합니다. 초기화 전에 엑셀 백업을 받아두는 것을 권장합니다.</p>
       <div class="row" style="margin-bottom:6px;">
         <button class="btn btn-secondary" id="btnTimeBackup">엑셀 백업 받기</button>
-        <button class="btn btn-danger" id="btnResetTimeAll">전체 학생 초기화</button>
+        <button class="btn btn-danger" id="btnResetTimeAll">전체 학습시간 초기화</button>
       </div>
 
-      <h3 style="margin-top:20px;">학생별 초기화</h3>
+      <h3 style="margin-top:20px;">학기 전환 마법사</h3>
+      <p class="muted">백업 → 학습시간·출결 초기화 → 졸업생 정리 → 좌석 재배정을 순서대로 안내합니다.</p>
+      <button class="btn btn-primary" id="btnSemesterWizard" style="width:100%">학기 전환 마법사 시작</button>
+
+      <h3 style="margin-top:20px;">출결 기록 초기화</h3>
+      <p class="muted">기간을 비우면 전체 기간의 출결 기록이 삭제됩니다. 학생 정보는 유지됩니다.</p>
+      <div class="row">
+        <div class="field"><label>시작일 (선택)</label><input id="arStart" type="date"></div>
+        <div class="field"><label>종료일 (선택)</label><input id="arEnd" type="date"></div>
+      </div>
+      <label class="rt-opt"><input type="checkbox" id="arResetTotal"><span>월 누적 학습시간도 함께 0분으로 초기화</span></label>
+      <div id="arInfo" class="muted" style="margin:4px 0 8px; font-size:12px;"></div>
+      <button class="btn btn-danger" id="btnAttendanceReset" style="width:100%">출결 기록 삭제</button>
+
+      <h3 style="margin-top:20px;">학생별 학습시간 초기화</h3>
       <div class="field" style="margin-bottom:8px;"><input id="timeSearch" type="text" placeholder="학생 이름 또는 학번으로 검색" style="width:100%; padding:9px 14px; border-radius:999px;"></div>
       <div id="timeSummary" class="muted" style="margin-bottom:6px; font-size:11px;"></div>
       <div id="timeStudentList" style="max-height:50vh; overflow-y:auto; padding-right:2px;"></div>
@@ -721,6 +791,10 @@
         <button class="btn btn-secondary" id="syncF1Btn">1층 센서 복원</button>
         <button class="btn btn-secondary" id="syncF2Btn">2층 센서 복원</button>
       </div>
+
+      <h3 style="margin-top:22px;">센서 미사용 지문 정리</h3>
+      <p class="muted">학생이 삭제되었는데 센서에 남아 있는 지문을 두 층 센서에서 지웁니다. 학생에게 배정된 번호는 건드리지 않습니다.</p>
+      <button class="btn btn-secondary" id="btnCleanSensors" style="width:100%">미사용 지문 번호 정리</button>
     </div>
   </div>
 </div>
@@ -810,6 +884,42 @@
 </div>
 
 <div class="overlay" id="ovFingerprintEnroll"><div class="modal glass"><button class="close-x" data-close="ovFingerprintEnroll"></button><h2><span id="feName"></span>님 지문 재등록</h2><div class="field"><label>등록할 기기</label><select id="feFloor"><option value="1">1층 기기</option><option value="2">2층 기기</option></select></div><div class="field"><label>지문 ID (1~300)</label><input id="feFpId2" type="number" min="1" max="300"></div><button class="btn btn-primary" id="feStartBtn" style="width:100%">원격 등록 시작</button><p id="feStatus2" class="muted" style="margin-top:12px;white-space:pre-wrap;"></p></div></div>
+<!-- 학생 일괄 등록 미리보기 -->
+<div class="overlay" id="ovBulkImport">
+  <div class="modal glass" style="max-width:600px;">
+    <button class="close-x" data-close="ovBulkImport"></button>
+    <h2>학생 일괄 등록</h2>
+    <p id="biFile" class="muted" style="margin:0 0 6px; font-size:12px;"></p>
+    <div class="field"><label>기본 좌석 유형 (파일에 좌석유형 열이 없을 때)</label>
+      <select id="biSeatMode"><option value="flexible">자율석</option><option value="fixed">고정석 (좌석은 나중에 배정)</option></select></div>
+    <div class="bulk-sum" id="biSummary"></div>
+    <div class="bulk-table-wrap"><table class="bulk-table"><thead><tr><th>행</th><th>학번</th><th>이름</th><th>지문번호</th><th>결과</th></tr></thead><tbody id="biBody"></tbody></table></div>
+    <p class="muted" style="margin:8px 0 0; font-size:12px;">등록 후 학생이 메인 화면의 [지문 등록]에서 학번·이름을 입력하면 배정된 번호로 지문을 등록할 수 있습니다.</p>
+    <div class="modal-actions"><button class="btn btn-secondary" id="biCancel">취소</button><button class="btn btn-primary" id="biRun">등록</button></div>
+  </div>
+</div>
+
+<!-- 학기 전환 마법사 -->
+<div class="overlay" id="ovSemester">
+  <div class="modal glass" style="max-width:560px;">
+    <button class="close-x" data-close="ovSemester"></button>
+    <h2 id="swTitle">학기 전환 마법사</h2>
+    <div class="sw-steps" id="swSteps"></div>
+    <div id="swBody"></div>
+    <div class="modal-actions"><button class="btn btn-secondary" id="swPrev">이전</button><button class="btn btn-primary" id="swNext">다음</button></div>
+  </div>
+</div>
+
+<!-- 감독 교사 전용 화면 -->
+<div class="overlay" id="ovTeacher">
+  <div class="modal">
+    <div class="tv-top"><div><div class="tv-title">감독 교사 화면</div><div class="tv-sub" id="tvSub"></div></div><button class="btn btn-secondary" id="tvClose" style="height:40px; flex-shrink:0;">닫기</button></div>
+    <div class="tv-stats" id="tvStats"></div>
+    <div class="tv-tabs"><button id="tvTabMiss" class="on">미입실</button><button id="tvTabAll">전체 명단</button></div>
+    <div id="tvList"></div>
+  </div>
+</div>
+
 <!-- 자율석 지문 자가 등록 -->
 <div class="overlay" id="ovSelfEnroll">
   <div class="modal glass">
@@ -1044,7 +1154,7 @@
   function getSelectedDaysFromGrid(prefix){ return DAYS.map(([k]) => k).filter(k => { const cb = document.querySelector(`.schedDay[data-day="${k}"][data-prefix="${prefix}"]`); return cb && cb.checked; }); }
 
   let renderTimer = null;
-  function triggerRender() { clearTimeout(renderTimer); renderTimer = setTimeout(() => { if(!layoutEditMode) renderFloor(); if(adminMode && $('#ovAdmin') && $('#ovAdmin').classList.contains('show')){ const activeTab = document.querySelector('.tabbtn.active'); if(activeTab && activeTab.dataset.tab === 'students') renderAdminStudentList(); if(activeTab && activeTab.dataset.tab === 'time') renderTimeManage(); } }, 50); }
+  function triggerRender() { clearTimeout(renderTimer); renderTimer = setTimeout(() => { if(!layoutEditMode) renderFloor(); if(adminMode && $('#ovAdmin') && $('#ovAdmin').classList.contains('show')){ const activeTab = document.querySelector('.tabbtn.active'); if(activeTab && activeTab.dataset.tab === 'students') renderAdminStudentList(); if(activeTab && activeTab.dataset.tab === 'time') renderTimeManage(); } if(isTeacherOpen()) renderTeacherView(); }, 50); }
 
   function findDesk(id){ return cache.desks.find(d => String(d.id) === String(id)); }
 
@@ -1764,7 +1874,7 @@
 
   function resetAdminIdleTimer(){
     clearTimeout(adminIdleTimer);
-    if(adminMode){ adminIdleTimer = setTimeout(() => { adminMode = false; layoutEditMode = false; if($('#editToolbar')) $('#editToolbar').style.display='none'; if($('#adminFab')) $('#adminFab').style.display='none'; if($('#fabMenu')) $('#fabMenu').classList.remove('show'); ['ovAdmin','ovStudentEdit','ovFingerprintEnroll','ovAttendanceHistory','ovSeatDetail','ovWeekly','ovFingerprintStatus','ovResetTime'].forEach(closeOverlay); if($('#btnAdmin')) $('#btnAdmin').textContent = '관리자 모드'; renderFloor(); }, 5*60*1000); }
+    if(adminMode){ adminIdleTimer = setTimeout(() => { adminMode = false; layoutEditMode = false; if($('#editToolbar')) $('#editToolbar').style.display='none'; if($('#adminFab')) $('#adminFab').style.display='none'; if($('#fabMenu')) $('#fabMenu').classList.remove('show'); ['ovAdmin','ovStudentEdit','ovFingerprintEnroll','ovAttendanceHistory','ovSeatDetail','ovWeekly','ovFingerprintStatus','ovResetTime','ovBulkImport','ovSemester'].forEach(closeOverlay); if($('#btnAdmin')) $('#btnAdmin').textContent = '관리자 모드'; renderFloor(); }, 5*60*1000); }
   }
   document.addEventListener('click', resetAdminIdleTimer); document.addEventListener('keydown', resetAdminIdleTimer);
   document.addEventListener('click', e => { if(!e.target.closest('#searchResults') && e.target.id !== 'studentSearch'){ if($('#searchResults')) $('#searchResults').style.display = 'none'; } });
@@ -1890,7 +2000,7 @@
     if(tab==='rules'){ if($('#rulesTextarea')) $('#rulesTextarea').value = settings.rulesText || ''; }
     if(tab==='settings'){ renderOpHoursForm(); }
     if(tab==='floormode'){ renderFloorModeTab(); }
-    if(tab==='time'){ renderTimeManage(); }
+    if(tab==='time'){ renderTimeManage(); renderAttendanceResetInfo(); }
     if(tab==='device'){ if($('#enrollFloor')) $('#enrollFloor').value = String(currentFloor); renderDeviceStatus(); }
     if(tab==='supervision'){ if(ym) supAdminYM = ym; renderSupervisionAdmin(); }
     if(tab==='ranking'){ renderRanking(); }
@@ -2120,6 +2230,7 @@
             <button class="btn btn-secondary" data-edit="${esc(s.id)}">수정</button>
             <button class="btn btn-secondary" data-hist="${esc(s.id)}">출결 이력</button>
             <button class="btn btn-secondary" data-enroll="${esc(s.id)}">지문 재등록</button>
+            <button class="btn btn-secondary" data-delfp="${esc(s.id)}">지문 삭제</button>
             <button class="btn btn-danger" data-del="${esc(s.id)}">삭제</button>
           </div>
         </div>
@@ -2143,12 +2254,12 @@
       b.onclick = async () => {
         const sid = b.dataset.del;
         const st = cache.students.find(s=>String(s.id)===String(sid));
-        if(await showConfirm(`${st ? st.name : '이 학생'} 학생과 출결 기록을 삭제할까요?\n삭제한 데이터는 되돌릴 수 없습니다.`)){
-          const oldRecords = cache.attendance.filter(a => String(a.studentId) === String(sid)); 
-          for(const r of oldRecords) await dbDelete('attendance', r.id); 
-          await dbDelete('students', sid); try{ fbDB.ref('fpTemplates/' + sid).remove(); }catch(e){} 
-          await window.logChange('학생 삭제', (st?st.name:('ID '+sid)) + (oldRecords.length ? ` (출결 기록 ${oldRecords.length}건 함께 삭제)` : '')); 
-          showToast('삭제되었습니다.'); 
+        if(await showConfirm(`${st ? st.name : '이 학생'} 학생과 출결 기록을 삭제할까요? (두 층 센서의 지문도 함께 삭제됩니다.)\n삭제한 데이터는 되돌릴 수 없습니다.`)){
+          if(!st){ showToast('학생 정보를 찾을 수 없습니다.'); return; }
+          if(!isOnline){ await showMessage('서버에 연결되지 않았습니다. 연결 상태를 확인한 뒤 다시 시도해주세요.'); return; }
+          const dres = await deleteStudentsBatch([st], { deleteAttendance: true });
+          await window.logChange('학생 삭제', st.name + (dres.records ? ` (출결 기록 ${dres.records}건 함께 삭제)` : '') + ' · 센서 지문 삭제 요청' + (dres.sensorRequested ? '' : ' (전달 미확인)'));
+          showToast('삭제되었습니다. 두 층 센서의 지문도 삭제를 요청했습니다.'); 
         } 
       }; 
     });
@@ -2156,6 +2267,7 @@
     $$('#studentList [data-edit]').forEach(b => { b.onclick = () => openStudentEdit(b.dataset.edit); });
     $$('#studentList [data-hist]').forEach(b => { b.onclick = () => openAttendanceHistory(b.dataset.hist); });
     $$('#studentList [data-enroll]').forEach(b => { b.onclick = () => openFingerprintEnroll(b.dataset.enroll); });
+    $$('#studentList [data-delfp]').forEach(b => { b.onclick = () => deleteFingerprintOnly(b.dataset.delfp); });
   }
   
   if($('#studentSort')) $('#studentSort').addEventListener('change', renderAdminStudentList);
@@ -2170,6 +2282,8 @@
     const count = cache.students.length;
     const ok = await showConfirm(`경고: 등록된 전체 학생(${count}명)과 모든 출결 데이터를 일괄 삭제하시겠습니까?
 
+두 층 지문 센서에 저장된 지문도 모두 삭제됩니다.
+
 이 작업은 되돌릴 수 없습니다. 필요하신 경우 먼저 [운영 설정] 탭에서 전체 엑셀 백업을 다운로드받아 두세요.`);
     if(!ok) return;
 
@@ -2180,14 +2294,10 @@
     }
 
     try{
-      for(const s of cache.students.slice()){
-        await dbDelete('students', s.id);
-      }
-      for(const a of cache.attendance.slice()){
-        await dbDelete('attendance', a.id);
-      }
+      if(!isOnline){ await showMessage('서버에 연결되지 않았습니다. 연결 상태를 확인한 뒤 다시 시도해주세요.'); return; }
+      const dres = await deleteStudentsBatch(cache.students.slice(), { deleteAttendance: true, allAttendance: true, allSlots: true });
       try{ fbDB.ref('fpTemplates').remove(); }catch(e){}
-      await window.logChange('학생 전체 삭제', `전체 학생 ${count}명 및 출결 기록 일괄 삭제`);
+      await window.logChange('학생 전체 삭제', `전체 학생 ${count}명 및 출결 기록 ${dres.records}건 일괄 삭제 · 센서 지문 전체 삭제 요청` + (dres.sensorRequested ? '' : ' (전달 미확인)'));
       showToast(`전체 학생 ${count}명이 삭제되었습니다.`);
       renderAdminStudentList();
       renderFloor();
@@ -2362,24 +2472,6 @@
     const list = $('#histList'); if(!list) return; if(records.length === 0){ list.innerHTML = '<p class="muted">출결 기록이 없습니다.</p>'; } else { list.innerHTML = records.map(r => { const elapsedMin = Math.round((r.elapsedSeconds||0)/60); const deskInfo = r.deskId != null ? findDesk(r.deskId) : null; return `<div class="list-item" style="flex-direction:column;align-items:flex-start;gap:2px;"><div style="display:flex;justify-content:space-between;width:100%;"><b>${esc(r.date)}</b><span class="muted">${esc(statusLabel(r.status))}</span></div><div class="muted">입실 ${fmtTime(r.checkIn)} · 퇴실 ${r.checkOut?fmtTime(r.checkOut):'-'} · ${elapsedMin}분${deskInfo?' · '+esc(deskLabel(deskInfo)):''}</div></div>`; }).join(''); } openOverlay('ovAttendanceHistory');
   }
 
-  safeAddListener('#downloadTemplateBtn', 'click', () => { const sample = [{ 학번: '20101', 이름: '홍길동', 지문ID: 1, 월목표시간_분: 1200, 좌석유형: '고정', 월: '18:00-21:00', 화: '18:00-21:00', 수: '', 목: '18:00-21:00', 금: '' }]; const wb = XLSX.utils.book_new(); const ws = XLSX.utils.json_to_sheet(sample); XLSX.utils.book_append_sheet(wb, ws, '학생등록양식'); XLSX.writeFile(wb, '학생등록_양식.xlsx'); });
-  safeAddListener('#importStudentsFile', 'change', async e => {
-    const file = e.target.files[0]; if(!file) return;
-    try{
-      const buf = await file.arrayBuffer(); const wb = XLSX.read(buf, {type:'array'}); const ws = wb.Sheets[wb.SheetNames[0]]; const rows = XLSX.utils.sheet_to_json(ws);
-      if(rows.length === 0){ await showMessage('엑셀 파일에 데이터가 없습니다.'); e.target.value=''; return; }
-      const dayColMap = { 월:'mon', 화:'tue', 수:'wed', 목:'thu', 금:'fri' }; let added = 0; const skipped = [];
-      for(const row of rows){
-        const name = String(row['이름']||'').trim(), sNum = String(row['학번']||'').trim(), fp = parseInt(row['지문ID']), goal = parseInt(row['월목표시간_분']) || 1200; const seatModeRaw = String(row['좌석유형']||'').trim(); const seatMode = (seatModeRaw === '자율' || seatModeRaw.toLowerCase() === 'flexible') ? 'flexible' : 'fixed';
-        if(!name || !fp || isNaN(fp)){ skipped.push(`${name||'(이름없음)'}: 이름/지문ID 누락`); continue; } if(fp < 1 || fp > 300){ skipped.push(`${name}: 지문ID ${fp} 범위 오류(1~300)`); continue; } if(findStudentByFp(fp)){ skipped.push(`${name}: 지문ID ${fp} 중복`); continue; }
-        const weeklySchedule = defaultWeekly(); Object.entries(dayColMap).forEach(([col,key]) => { const val = String(row[col]||'').trim(); const m = val.match(/^(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})$/); if(m){ weeklySchedule[key] = { enabled:true, start:normTime(m[1],'18:00'), end:normTime(m[2],'21:00') }; } });
-        await window.dbPut('students', { name, studentNum: sNum, deskId:null, fingerprintId: fp, weeklySchedule, monthlyGoalMinutes: goal, monthlyElapsedSeconds:0, monthlyHistory:{}, seatMode, fpRegistered: false }); added++;
-      } await window.logChange('학생 일괄 등록', `${added}명 등록${skipped.length ? ', 실패 '+skipped.length+'건' : ''}`); e.target.value = ''; await showMessage(`${added}명 등록 완료. (지문 등록 필요)` + (skipped.length ? `
-
-건너뜀:
-${skipped.join('\n')}` : ''));
-    }catch(err){ await showMessage('엑셀 처리 중 오류: '+err.message); e.target.value=''; }
-  });
 
   async function computeLateAbsenceStats(){
     const attendance = await dbGetAll('attendance'); const mPrefix = monthStr();
@@ -2400,7 +2492,7 @@ ${skipped.join('\n')}` : ''));
     const moved = cache.attendance.filter(a => String(a.studentId) === String(oldId)); 
     const updated = Object.assign({}, student, { fingerprintId: newFp, fpRegistered: true }); 
     await window.dbPut('students', updated); 
-    await dbDelete('students', oldId); try{ fbDB.ref('fpTemplates/' + oldId).remove(); }catch(e){}
+    await dbDelete('students', oldId); try{ fbDB.ref('fpTemplates/' + oldId).remove(); }catch(e){} queueSensorDelete([oldId]).catch(function(){});
     for(const r of moved){ r.studentId = newFp; r.studentDate = newFp + '_' + r.date; await window.dbPut('attendance', r); } 
     return updated;
   }
@@ -2462,6 +2554,7 @@ ${skipped.join('\n')}` : ''));
     return m;
   }
   function renderDeviceStatus(){
+    updateDeviceBanner();
     const box = $('#deviceStatusBox'); if(!box) return;
     box.innerHTML = FLOORS.map(f => {
       const d = deviceInfo['f' + f]; const on = deviceOnline(f);
@@ -2545,13 +2638,24 @@ ${skipped.join('\n')}` : ''));
     if(!isOnline){ await showMessage('서버에 연결되지 않았습니다. 연결 상태를 확인해주세요.'); return; }
     if(pendingEnrollFpId != null || pendingNewEnrollFpId != null){ await showMessage('관리자 화면에서 다른 지문 등록이 진행 중입니다. 잠시 후 다시 시도해주세요.'); return; }
     const dup = cache.students.find(s => String(s.studentNum).trim() === sNum);
-    if(dup){ await showMessage(`이미 등록된 학번입니다 (${maskName(dup.name)}).\n지문을 다시 등록해야 한다면 관리자에게 문의해주세요.`); return; }
+    let claim = null;
+    if(dup){
+      if(!dup.fpRegistered && String(dup.name).trim() === name){ claim = dup; }
+      else if(!dup.fpRegistered){ await showMessage('학번과 이름이 일치하지 않습니다. 학번과 이름을 다시 확인해주세요.'); return; }
+      else { await showMessage(`이미 등록된 학번입니다 (${maskName(dup.name)}).\n지문을 다시 등록해야 한다면 관리자에게 문의해주세요.`); return; }
+    }
 
     const floor = currentFloor, btn = $('#seStartBtn'); btn.disabled = true;
     try{
-      const fpId = await allocateFpId();
-      if(fpId == null){ seSetState('error', '사용 가능한 지문 번호가 없습니다', `지문 번호 1~${maxUsableFpId()}번이 모두 사용 중입니다.\n관리자에게 문의해주세요.`); return; }
-      pendingSelfEnroll = { fpId, floor, name, studentNum: sNum };
+      let fpId;
+      if(claim){ fpId = parseInt(claim.fingerprintId); const okR = await withTimeout(reserveFpId(fpId), 6000, false); if(!okR) fpId = null; }
+      else { fpId = await allocateFpId(); }
+      if(fpId == null){
+        if(claim) seSetState('error', '다른 화면에서 등록 중입니다', '잠시 후 [다시 시도]를 눌러주세요.');
+        else seSetState('error', '사용 가능한 지문 번호가 없습니다', `지문 번호 1~${maxUsableFpId()}번이 모두 사용 중입니다.\n관리자에게 문의해주세요.`);
+        return;
+      }
+      pendingSelfEnroll = { fpId, floor, name, studentNum: sNum, claim: !!claim };
       seSetState('wait', `${floor}층 지문 기기의 센서에 손가락을 올려주세요`, `배정 번호 ${fpId}번\n같은 손가락을 두 번 올려야 합니다. 기기 화면의 안내를 따라주세요.`);
       fbWrite('enrollRequest/f' + floor, { fpId: fpId, floor: floor, timestamp: serverNow() });
       enrollTimeout(() => {
@@ -2568,11 +2672,13 @@ ${skipped.join('\n')}` : ''));
       releaseFpId(p.fpId); pendingSelfEnroll = null;
       seSetState('error', '등록에 실패했습니다', enrollFailMsg(res, '아래 [다시 시도]를 눌러주세요.')); return;
     }
-    if(findStudentByFp(p.fpId)){
+    const exStu = findStudentByFp(p.fpId);
+    if(exStu && !(p.claim && String(exStu.studentNum).trim() === String(p.studentNum).trim())){
       pendingSelfEnroll = null;
       seSetState('error', '지문 번호가 다른 등록과 겹쳤습니다', '잠시 후 [다시 시도]를 눌러주세요. 문제가 계속되면 관리자에게 문의해주세요.'); return;
     }
-    const student = { name: p.name, studentNum: p.studentNum, deskId: null, fingerprintId: p.fpId, weeklySchedule: defaultWeekly(), monthlyGoalMinutes: 1200, monthlyElapsedSeconds: 0, monthlyHistory: {}, seatMode: 'flexible', fpRegistered: true, selfRegistered: true, registeredAt: Date.now() };
+    let student = { name: p.name, studentNum: p.studentNum, deskId: null, fingerprintId: p.fpId, weeklySchedule: defaultWeekly(), monthlyGoalMinutes: 1200, monthlyElapsedSeconds: 0, monthlyHistory: {}, seatMode: 'flexible', fpRegistered: true, selfRegistered: true, registeredAt: Date.now() };
+    if(p.claim && exStu){ student = Object.assign({}, exStu, { fpRegistered: true, selfRegistered: true, registeredAt: Date.now() }); }
     try{
       await window.dbPut('students', student);
       await window.dbPut('changelog', { timestamp: Date.now(), admin: '학생(메인 화면)', action: '지문 자가 등록', detail: `${p.studentNum} ${p.name} · 지문ID ${p.fpId} · ${p.floor}층 기기` });
@@ -2751,9 +2857,493 @@ ${skipped.join('\n')}` : ''));
   safeAddListener('#rtRun', 'click', runResetTime);
 
   // =================================================================
+  // [1] 센서 지문 삭제 (학생 삭제 / 지문만 삭제 / 미사용 번호 정리)
+  //  - 삭제 요청은 /deleteRequest/f1, /deleteRequest/f2 에 번호 목록으로 쌓이고,
+  //    각 층 기기가 자기 센서에서 해당 번호를 지웁니다. (기기가 꺼져 있어도 켜지면 처리)
+  //  - 기기는 삭제 요청을 스캔/등록보다 먼저 처리하므로, 지워진 번호를 다른 학생이 재사용해도 안전합니다.
+  // =================================================================
+  function withTimeout(p, ms, fallback){ return Promise.race([p, new Promise(r => setTimeout(() => r(fallback), ms))]); }
+
+  // 대기 중인 요청 목록에서 번호를 제거 (예: 삭제된 학생에 대한 복원 요청 취소)
+  function unqueueIds(path, ids){
+    const rm = new Set((ids || []).map(v => String(parseInt(v))));
+    return new Promise(resolve => {
+      fbDB.ref(path).transaction(cur => {
+        if(!cur || !cur.ids) return null;
+        const all = String(cur.ids).split(',').filter(Boolean);
+        const left = all.filter(x => !rm.has(x));
+        if(left.length === all.length) return cur;
+        return left.length ? { ids: left.join(','), timestamp: cur.timestamp || serverNow() } : null;
+      }, (err) => resolve(!err), false);
+    });
+  }
+
+  // 두 층 센서에서 지문 삭제를 요청. 전달이 확인되면 true
+  async function queueSensorDelete(ids){
+    const list = Array.from(new Set((ids || []).map(v => parseInt(v)).filter(v => v >= 1 && v <= 300)));
+    if(!list.length) return true;
+    const jobs = [];
+    FLOORS.forEach(f => { jobs.push(queueIds('deleteRequest/f' + f, list)); jobs.push(unqueueIds('syncRequest/f' + f, list)); });
+    const res = await withTimeout(Promise.all(jobs), 10000, null);
+    return !!res && res.every(Boolean);
+  }
+
+  // 학생 여러 명을 한 번에 삭제 (학생 정보 + 서버 백업 지문 + 출결 기록 + 센서 지문)
+  async function deleteStudentsBatch(list, opts){
+    opts = opts || {};
+    const ids = list.map(s => String(s.id));
+    const idSet = new Set(ids);
+    const updates = {};
+    ids.forEach(id => { updates['students/' + id] = null; updates['fpTemplates/' + id] = null; });
+    const matchRec = a => a && a.id != null && (opts.allAttendance || idSet.has(String(a.studentId)));
+    let recCount = 0;
+    if(opts.deleteAttendance){ cache.attendance.forEach(a => { if(matchRec(a)){ updates['attendance/' + a.id] = null; recCount++; } }); }
+    await fbMultiUpdate(updates);
+    cache.students = cache.students.filter(s => !idSet.has(String(s.id)));
+    if(opts.deleteAttendance){ cache.attendance = cache.attendance.filter(a => !matchRec(a)); }
+    const sensorIds = opts.allSlots ? Array.from({ length: 300 }, (_, i) => i + 1) : ids;
+    const sent = await queueSensorDelete(sensorIds);
+    return { students: ids.length, records: recCount, sensorRequested: sent };
+  }
+
+  // 지문만 삭제 (학생 정보와 출결 기록은 유지)
+  async function deleteFingerprintOnly(studentId){
+    const s = cache.students.find(x => String(x.id) === String(studentId)); if(!s) return;
+    if(!isOnline){ await showMessage('서버에 연결되지 않았습니다. 연결 상태를 확인해주세요.'); return; }
+    const msg = `${s.name} 학생의 지문(번호 ${s.fingerprintId})을 삭제합니다.\n\n· 두 층 지문 센서와 서버 백업에서 지문이 지워집니다.\n· 학생 정보와 출결 기록은 그대로 남습니다.\n· 이후 [지문 재등록]으로 다시 등록해야 출석할 수 있습니다.`
+      + (s.fpRegistered ? '' : '\n\n※ 지문 미등록 상태로 표시되어 있지만, 센서에 남은 지문이 있을 수 있어 삭제 요청은 그대로 보냅니다.')
+      + '\n\n진행할까요?';
+    if(!await showConfirm(msg)) return;
+    const updated = Object.assign({}, s, { fpRegistered: false }); delete updated.fpTemplate;
+    await window.dbPut('students', updated);
+    try{ await fbDB.ref('fpTemplates/' + s.id).remove(); }catch(e){}
+    const sent = await queueSensorDelete([s.id]);
+    await window.logChange('지문 삭제', `${s.name} (지문ID ${s.id}) 센서·백업 지문 삭제` + (sent ? '' : ' (삭제 요청 전달 미확인)'));
+    showToast(sent ? '지문 삭제를 요청했습니다. 센서에서 곧 삭제됩니다.' : '삭제 요청이 서버에 전달되지 않았을 수 있습니다. 연결을 확인해주세요.', 5000);
+    renderAdminStudentList();
+  }
+
+  // 학생에게 배정되지 않은 번호의 지문을 센서에서 정리 (과거에 삭제된 학생의 잔여 지문 제거)
+  async function cleanUnusedFingerprints(){
+    if(!isOnline){ await showMessage('서버에 연결되지 않았습니다. 연결 상태를 확인해주세요.'); return; }
+    const used = new Set(cache.students.map(s => parseInt(s.fingerprintId)).filter(Boolean));
+    const reserved = new Set();
+    try{
+      const snap = await withTimeout(fbDB.ref('fpReserve').once('value'), 6000, null); const v = snap && snap.val();
+      if(v) Object.keys(v).forEach(k => { if(v[k] && v[k].ts && (serverNow() - v[k].ts) < 180000) reserved.add(parseInt(k)); });
+    }catch(e){}
+    [pendingEnrollFpId, pendingNewEnrollFpId].forEach(v => { if(v != null) reserved.add(parseInt(v)); });
+    if(pendingSelfEnroll) reserved.add(pendingSelfEnroll.fpId);
+    lastEnrolledFpIds.forEach(v => reserved.add(parseInt(v)));
+    const ids = []; for(let i = 1; i <= 300; i++){ if(!used.has(i) && !reserved.has(i)) ids.push(i); }
+    if(!ids.length){ await showMessage('정리할 번호가 없습니다.'); return; }
+    if(!await showConfirm(`학생에게 배정되지 않은 지문 번호 ${ids.length}개(1~300번 중)를 두 층 센서와 서버 백업에서 삭제합니다.\n\n· 학생이 등록된 번호는 건드리지 않습니다.\n· 지문만 먼저 등록해 두고 아직 학생을 추가하지 않은 번호가 있다면 그 지문도 삭제됩니다.\n\n진행할까요?`)) return;
+    const upd = {}; ids.forEach(i => { upd['fpTemplates/' + i] = null; });
+    try{ await withTimeout(fbMultiUpdate(upd), 10000, null); }catch(e){}
+    const sent = await queueSensorDelete(ids);
+    await window.logChange('센서 미사용 지문 정리', `${ids.length}개 번호 삭제 요청` + (sent ? '' : ' (전달 미확인)'));
+    showToast(sent ? `미사용 번호 ${ids.length}개의 삭제를 요청했습니다.` : '삭제 요청이 전달되지 않았을 수 있습니다. 연결을 확인해주세요.', 5000);
+  }
+  safeAddListener('#btnCleanSensors', 'click', cleanUnusedFingerprints);
+
+  // =================================================================
+  // [2] 기기 오프라인 배너 (메인 화면 상단)
+  // =================================================================
+  function fmtAgo(ms){ const m = Math.max(0, Math.floor(ms / 60000)); if(m < 60) return m + '분'; const h = Math.floor(m / 60); if(h < 48) return h + '시간'; return Math.floor(h / 24) + '일'; }
+  function updateDeviceBanner(){
+    const b = $('#deviceBanner'); if(!b) return;
+    const bad = [];
+    // 내 인터넷이 끊긴 경우는 별도 경고가 있으므로 기기 경고는 띄우지 않음
+    if(isOnline){
+      FLOORS.forEach(f => {
+        const d = deviceInfo['f' + f]; const ls = d ? Number(d.lastSeen) : 0;
+        if(ls && !deviceOnline(f)) bad.push(`${f}층 지문 기기 응답 없음 (마지막 응답 ${fmtAgo(serverNow() - ls)} 전)`);
+      });
+    }
+    if(bad.length){ b.style.display = 'block'; b.innerHTML = ico('alert') + esc(bad.join(' · ')) + ' — 전원과 와이파이를 확인해주세요.'; }
+    else { b.style.display = 'none'; b.innerHTML = ''; }
+    setWarnHeight();
+  }
+
+  // =================================================================
+  // [3] 학생 일괄 등록 (엑셀/CSV: 학번 + 이름만 있어도 됨)
+  // =================================================================
+  const BULK_ALIASES = {
+    num: ['학번', '학생번호', 'studentnum', 'studentno', 'studentid'],
+    name: ['이름', '성명', 'name'],
+    fp: ['지문id', '지문번호', 'fpid', 'fingerprintid'],
+    goal: ['월목표시간_분', '월목표시간', '월목표', '목표시간', 'goal'],
+    seat: ['좌석유형', '좌석', 'seatmode']
+  };
+  const normHead = h => String(h == null ? '' : h).replace(/\([^)]*\)|（[^）]*）/g, '').replace(/\s+/g, '').toLowerCase();
+  let bulkPlan = null;
+
+  async function bulkBuildPlan(rows){
+    let hIdx = -1, cols = null;
+    for(let i = 0; i < Math.min(rows.length, 10); i++){
+      const heads = (rows[i] || []).map(normHead);
+      const iNum = heads.findIndex(h => BULK_ALIASES.num.includes(h)), iName = heads.findIndex(h => BULK_ALIASES.name.includes(h));
+      if(iNum >= 0 && iName >= 0){
+        hIdx = i;
+        cols = { num: iNum, name: iName, fp: heads.findIndex(h => BULK_ALIASES.fp.includes(h)), goal: heads.findIndex(h => BULK_ALIASES.goal.includes(h)), seat: heads.findIndex(h => BULK_ALIASES.seat.includes(h)), days: {} };
+        [['월', 'mon'], ['화', 'tue'], ['수', 'wed'], ['목', 'thu'], ['금', 'fri']].forEach(([k, key]) => { const ix = heads.indexOf(k); if(ix >= 0) cols.days[key] = ix; });
+        break;
+      }
+    }
+    if(hIdx < 0) return null;
+    const cell = (r, i) => (i == null || i < 0 || r[i] == null) ? '' : String(r[i]).trim();
+    const maxId = maxUsableFpId();
+    const usedFp = new Set(cache.students.map(s => parseInt(s.fingerprintId)).filter(Boolean));
+    const usedNum = new Set(cache.students.map(s => String(s.studentNum).trim()).filter(Boolean));
+    const reserved = new Set();
+    try{
+      const snap = await withTimeout(fbDB.ref('fpReserve').once('value'), 6000, null); const v = snap && snap.val();
+      if(v) Object.keys(v).forEach(k => { if(v[k] && v[k].ts && (serverNow() - v[k].ts) < 180000) reserved.add(parseInt(k)); });
+    }catch(e){}
+
+    const out = []; const seenNum = new Map();
+    for(let r = hIdx + 1; r < rows.length; r++){
+      const row = rows[r] || [];
+      if(!row.some(c => String(c == null ? '' : c).trim() !== '')) continue;
+      const e = { row: r + 1, num: cell(row, cols.num), name: cell(row, cols.name), fpRaw: cell(row, cols.fp), goalRaw: cell(row, cols.goal), seatRaw: cell(row, cols.seat), fp: null, status: 'ok', note: '' };
+      const weekly = defaultWeekly();
+      Object.keys(cols.days).forEach(key => { const m = cell(row, cols.days[key]).match(/^(\d{1,2}:\d{2})\s*[-~]\s*(\d{1,2}:\d{2})$/); if(m) weekly[key] = { enabled: true, start: normTime(m[1], '18:00'), end: normTime(m[2], '21:00') }; });
+      e.weekly = weekly;
+      const g = parseInt(e.goalRaw); e.goal = (g > 0 && g <= 100000) ? g : 1200;
+      const sr = e.seatRaw.toLowerCase();
+      e.seatMode = (sr === '고정' || sr === 'fixed') ? 'fixed' : ((sr === '자율' || sr === 'flexible' || sr === 'free') ? 'flexible' : '');
+      if(!e.num || !e.name){ e.status = 'bad'; e.note = '학번 또는 이름이 비어 있음'; }
+      else if(e.name.length > 20){ e.status = 'bad'; e.note = '이름이 20자를 넘음'; }
+      else if(!/^[0-9A-Za-z-]{1,15}$/.test(e.num)){ e.status = 'bad'; e.note = '학번 형식 오류(영문·숫자·- 만, 15자 이내)'; }
+      else if(seenNum.has(e.num)){ e.status = 'bad'; e.note = `파일 안에서 학번 중복 (${seenNum.get(e.num)}행과 동일)`; }
+      else if(usedNum.has(e.num)){ e.status = 'skip'; e.note = '이미 등록된 학번 (건너뜀)'; }
+      if(e.num && !seenNum.has(e.num)) seenNum.set(e.num, e.row);
+      out.push(e);
+    }
+    // 지문 번호: 파일에 지정된 번호 먼저 확정
+    const claimed = new Set();
+    out.forEach(e => {
+      if(e.status !== 'ok' || e.fpRaw === '') return;
+      const n = Number(e.fpRaw);
+      if(!Number.isInteger(n) || n < 1 || n > maxId){ e.status = 'bad'; e.note = `지문번호 오류 (1~${maxId})`; }
+      else if(usedFp.has(n) || claimed.has(n)){ e.status = 'bad'; e.note = `지문번호 ${n}번 중복`; }
+      else { claimed.add(n); e.fp = n; }
+    });
+    // 나머지는 비어 있는 번호를 자동 배정
+    const pool = []; for(let i = 1; i <= maxId; i++){ if(!usedFp.has(i) && !claimed.has(i) && !reserved.has(i)) pool.push(i); }
+    let pi = 0;
+    out.forEach(e => {
+      if(e.status !== 'ok' || e.fp != null) return;
+      if(pi < pool.length){ e.fp = pool[pi++]; e.auto = true; } else { e.status = 'bad'; e.note = '배정 가능한 지문 번호가 부족함'; }
+    });
+    return { rows: out };
+  }
+
+  function bulkRender(plan, fileName){
+    const ok = plan.rows.filter(r => r.status === 'ok').length, skip = plan.rows.filter(r => r.status === 'skip').length, bad = plan.rows.filter(r => r.status === 'bad').length;
+    if($('#biFile')) $('#biFile').textContent = fileName ? `파일: ${fileName}` : '';
+    if($('#biSummary')) $('#biSummary').innerHTML = `<span class="bulk-chip ok">등록 가능 ${ok}명</span><span class="bulk-chip skip">건너뜀 ${skip}건</span><span class="bulk-chip bad">오류 ${bad}건</span>`;
+    const shown = plan.rows.slice(0, 500);
+    if($('#biBody')) $('#biBody').innerHTML = shown.map(r => `<tr class="${r.status === 'ok' ? '' : r.status}"><td>${r.row}</td><td>${esc(r.num)}</td><td>${esc(r.name)}</td><td>${r.fp != null ? r.fp + (r.auto ? ' (자동)' : '') : '-'}</td><td>${r.status === 'ok' ? '등록 예정' : esc(r.note)}</td></tr>`).join('') + (plan.rows.length > shown.length ? `<tr><td colspan="5" class="muted">... 외 ${plan.rows.length - shown.length}행</td></tr>` : '');
+    const run = $('#biRun'); if(run){ run.disabled = ok === 0; run.textContent = ok ? `${ok}명 등록` : '등록할 학생 없음'; }
+  }
+
+  async function bulkOpenFromRows(rows, fileName){
+    const plan = await bulkBuildPlan(rows);
+    if(!plan){ await showMessage('학번과 이름 열을 찾을 수 없습니다.\n첫 줄(제목 줄)에 "학번", "이름"이 있는지 확인하거나 [등록 양식 다운로드]를 사용하세요.'); return false; }
+    if(plan.rows.length === 0){ await showMessage('등록할 데이터가 없습니다.'); return false; }
+    bulkPlan = plan; bulkRender(plan, fileName); openOverlay('ovBulkImport'); return true;
+  }
+
+  async function bulkRun(){
+    if(!bulkPlan) return;
+    const ok = bulkPlan.rows.filter(r => r.status === 'ok'); if(!ok.length) return;
+    if(!isOnline){ await showMessage('서버에 연결되지 않았습니다. 연결 상태를 확인해주세요.'); return; }
+    // 미리보기 이후 다른 화면에서 먼저 등록된 경우를 다시 확인
+    const usedFpNow = new Set(cache.students.map(s => String(s.fingerprintId))), usedNumNow = new Set(cache.students.map(s => String(s.studentNum).trim()));
+    if(ok.some(r => usedFpNow.has(String(r.fp)) || usedNumNow.has(r.num))){
+      await showMessage('미리보기 이후 다른 곳에서 먼저 등록된 학생·번호가 있어 충돌합니다. 파일을 다시 선택해주세요.');
+      closeOverlay('ovBulkImport'); bulkPlan = null; return;
+    }
+    const btn = $('#biRun'); btn.disabled = true;
+    try{
+      const defMode = ($('#biSeatMode') && $('#biSeatMode').value === 'fixed') ? 'fixed' : 'flexible';
+      const updates = {}; const newIds = [];
+      ok.forEach(r => {
+        updates['students/' + r.fp] = { id: r.fp, name: r.name, studentNum: r.num, fingerprintId: r.fp, weeklySchedule: r.weekly, monthlyGoalMinutes: r.goal, monthlyElapsedSeconds: 0, monthlyHistory: {}, seatMode: r.seatMode || defMode, fpRegistered: lastEnrolledFpIds.has(r.fp), bulkRegistered: true };
+        newIds.push(r.fp);
+      });
+      await fbMultiUpdate(updates);
+      // 과거에 삭제된 학생의 지문이 센서에 남아 있어도 새 학생으로 인식되지 않도록 비워 둠
+      const sent = await queueSensorDelete(newIds.filter(id => !lastEnrolledFpIds.has(id)));
+      const skipN = bulkPlan.rows.filter(r => r.status !== 'ok').length;
+      await window.logChange('학생 일괄 등록', `${ok.length}명 등록` + (skipN ? `, 제외 ${skipN}건` : ''));
+      closeOverlay('ovBulkImport'); bulkPlan = null;
+      await showMessage(`${ok.length}명을 등록했습니다.\n\n각 학생은 메인 화면의 [지문 등록]에서 학번과 이름을 입력하면 배정된 번호로 지문을 등록할 수 있습니다. (관리자가 [지문 재등록]으로 등록해도 됩니다.)` + (sent ? '' : '\n\n※ 센서 초기화 요청이 서버에 전달되지 않았을 수 있습니다.'));
+    }catch(e){ await showMessage('등록 중 오류가 발생했습니다: ' + (e && e.message ? e.message : e)); }
+    finally { btn.disabled = false; }
+  }
+
+  safeAddListener('#downloadTemplateBtn', 'click', () => {
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([['학번', '이름'], ['20101', '홍길동'], ['20102', '김철수']]), '학생');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+      ['안내'], ['· 학번과 이름 두 열만 있으면 됩니다. 지문 번호는 비어 있는 번호로 자동 배정됩니다.'],
+      ['· 아래 열은 선택입니다: 지문ID, 월목표시간_분, 좌석유형(자율/고정), 월, 화, 수, 목, 금 (예: 18:00-21:00)'],
+      ['· 첫 줄에는 열 제목이 있어야 합니다.']
+    ]), '안내');
+    XLSX.writeFile(wb, '학생_일괄등록_양식.xlsx');
+  });
+  safeAddListener('#importStudentsFile', 'change', async e => {
+    const file = e.target.files && e.target.files[0]; if(!file) return;
+    try{
+      const buf = await file.arrayBuffer(); const wb = XLSX.read(buf, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]]; const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+      await bulkOpenFromRows(rows, file.name);
+    }catch(err){ await showMessage('엑셀 처리 중 오류: ' + (err && err.message ? err.message : err)); }
+    e.target.value = '';
+  });
+  safeAddListener('#biCancel', 'click', () => { bulkPlan = null; closeOverlay('ovBulkImport'); });
+  safeAddListener('#biRun', 'click', bulkRun);
+
+  // =================================================================
+  // [5] 출결 기록 초기화 (기간 지정 가능)
+  // =================================================================
+  function attendanceResetRecords(){
+    const from = ($('#arStart') && $('#arStart').value) || '', to = ($('#arEnd') && $('#arEnd').value) || '';
+    const today = todayStr();
+    return { from, to, recs: cache.attendance.filter(a => a && a.id != null && a.date && (!from || a.date >= from) && (!to || a.date <= to) && !(isActiveRecord(a) && a.date === today)) };
+  }
+  function renderAttendanceResetInfo(){
+    const el = $('#arInfo'); if(!el) return;
+    const { from, to, recs } = attendanceResetRecords();
+    const range = (from || to) ? `${from || '처음'} ~ ${to || '오늘'}` : '전체 기간';
+    el.textContent = `삭제 대상: ${range} · 출결 기록 ${recs.length}건 (전체 ${cache.attendance.length}건)`;
+  }
+  async function runAttendanceReset(){
+    const { from, to, recs } = attendanceResetRecords();
+    if(from && to && from > to){ await showMessage('시작일이 종료일보다 늦습니다.'); return; }
+    if(!recs.length){ await showMessage('해당 기간에 삭제할 출결 기록이 없습니다.'); return; }
+    if(!isOnline){ await showMessage('서버에 연결되지 않았습니다. 연결 상태를 확인해주세요.'); return; }
+    const resetTotal = !!($('#arResetTotal') && $('#arResetTotal').checked);
+    const range = (from || to) ? `${from || '처음'} ~ ${to || '오늘'}` : '전체 기간';
+    const stuCount = new Set(recs.map(r => String(r.studentId))).size;
+    if(!await showConfirm(`출결 기록 ${recs.length}건 (${range}, 학생 ${stuCount}명)을 삭제합니다.` + (resetTotal ? `\n월 누적 학습시간도 전체 학생 ${cache.students.length}명 0분으로 초기화합니다.` : '') + '\n\n지각·결석 통계와 출결 이력에서 사라지며 되돌릴 수 없습니다. 오늘 입실·자리비움 중인 기록은 제외됩니다. 진행할까요?')) return;
+    if(!from && !to){
+      const input = await showPrompt('전체 기간을 삭제하려면 아래에 "출결초기화"라고 입력해주세요.', '출결초기화');
+      if(input !== '출결초기화'){ await showMessage('확인 문구가 일치하지 않아 취소되었습니다.'); return; }
+    }
+    try{
+      const updates = {};
+      recs.forEach(r => { updates['attendance/' + r.id] = null; });
+      if(resetTotal) cache.students.forEach(s => { updates['students/' + s.id + '/monthlyElapsedSeconds'] = 0; });
+      await fbMultiUpdate(updates);
+      const del = new Set(recs.map(r => String(r.id))); cache.attendance = cache.attendance.filter(a => !del.has(String(a.id)));
+      if(resetTotal) cache.students.forEach(s => { s.monthlyElapsedSeconds = 0; });
+      await window.logChange('출결 기록 초기화', `${range} · ${recs.length}건 삭제` + (resetTotal ? ' · 월 누적 시간 초기화' : ''));
+      showToast(`출결 기록 ${recs.length}건을 삭제했습니다.`); renderAttendanceResetInfo(); renderTimeManage(); triggerRender();
+    }catch(e){ await showMessage('초기화 중 오류가 발생했습니다: ' + (e && e.message ? e.message : e)); }
+  }
+  safeAddListener('#arStart', 'change', renderAttendanceResetInfo);
+  safeAddListener('#arEnd', 'change', renderAttendanceResetInfo);
+  safeAddListener('#btnAttendanceReset', 'click', runAttendanceReset);
+
+  // =================================================================
+  // [4] 학기 전환 마법사
+  // =================================================================
+  const sw = { step: 1, backedUp: false, skipBackup: false, timeMode: 'all', picked: new Set(), clearSeats: true, resetSched: false, running: false, done: false, log: [] };
+  const SW_STEPS = 5, SW_TITLES = ['백업', '학습시간·출결', '졸업생 정리', '좌석·신청', '확인·실행'];
+  function gradeOf(s){ const n = String(s.studentNum || '').trim(); return (/^\d{4,5}$/.test(n)) ? n[0] : ''; }
+
+  async function applyResetTime(targetStudents, mode){
+    const idSet = new Set(targetStudents.map(s => String(s.id)));
+    const records = cache.attendance.filter(a => a && a.id != null && idSet.has(String(a.studentId)));
+    const doneRecs = records.filter(r => !isActiveRecord(r));
+    const updates = {};
+    targetStudents.forEach(s => { updates['students/' + s.id + '/monthlyElapsedSeconds'] = 0; });
+    if(mode === 'all'){ doneRecs.forEach(r => { updates['attendance/' + r.id] = null; }); }
+    else { doneRecs.forEach(r => { if(r.elapsedSeconds) updates['attendance/' + r.id + '/elapsedSeconds'] = 0; }); }
+    await fbMultiUpdate(updates);
+    if(mode === 'all'){ const del = new Set(doneRecs.map(r => String(r.id))); cache.attendance = cache.attendance.filter(a => !del.has(String(a.id))); }
+    return { students: targetStudents.length, records: doneRecs.length, skippedActive: records.length - doneRecs.length };
+  }
+
+  function swSorted(){ return cache.students.slice().sort((a, b) => String(a.studentNum || '').localeCompare(String(b.studentNum || ''), undefined, { numeric: true })); }
+
+  function swCollect(){
+    if(sw.step === 2){ const r = document.querySelector('input[name="swTime"]:checked'); if(r) sw.timeMode = r.value; }
+    if(sw.step === 3){ sw.picked = new Set($$('#swBody .swPick:checked').map(c => c.value)); }
+    if(sw.step === 4){ sw.clearSeats = !!($('#swClearSeats') && $('#swClearSeats').checked); sw.resetSched = !!($('#swResetSched') && $('#swResetSched').checked); }
+  }
+  function swSummaryLines(){
+    const grads = cache.students.filter(s => sw.picked.has(String(s.id)));
+    const remain = cache.students.length - grads.length;
+    const attN = cache.attendance.length;
+    const timeTxt = { none: '유지 (초기화하지 않음)', time: '누적 학습시간만 0분으로 (지각·결석 기록 유지)', all: '누적 학습시간 0분 + 출결 기록 모두 삭제' }[sw.timeMode];
+    return [
+      `졸업생·전학생 정리: ${grads.length ? grads.length + '명 삭제 (출결 기록과 센서 지문 포함)' : '없음'}`,
+      `학습시간·출결: ${timeTxt}`,
+      `고정석 배정: ${sw.clearSeats ? '모두 해제 (새 학기에 다시 배정)' : '유지'}`,
+      `요일별 신청: ${sw.resetSched ? '모두 초기화' : '유지'}`,
+      `남는 학생: ${remain}명 / 현재 출결 기록 ${attN}건`
+    ];
+  }
+  function swRender(){
+    const body = $('#swBody'), steps = $('#swSteps'), prev = $('#swPrev'), next = $('#swNext'); if(!body) return;
+    steps.innerHTML = Array.from({ length: SW_STEPS }, (_, i) => `<span class="${i < sw.step ? 'on' : ''}"></span>`).join('');
+    $('#swTitle').textContent = `학기 전환 마법사 · ${sw.step}/${SW_STEPS} ${SW_TITLES[sw.step - 1]}`;
+    prev.style.display = (sw.step > 1 && !sw.running && !sw.done) ? '' : 'none';
+    next.disabled = sw.running; next.textContent = sw.done ? '닫기' : (sw.step === SW_STEPS ? '실행' : '다음');
+    next.className = 'btn ' + (sw.step === SW_STEPS && !sw.done ? 'btn-danger' : 'btn-primary');
+    if(sw.running || sw.done){
+      body.innerHTML = `<div class="sw-log" id="swLogBox">${esc(sw.log.join('\n'))}</div>`; return;
+    }
+    if(sw.step === 1){
+      body.innerHTML = `<p style="margin:0 0 10px;font-size:14px;">학기를 전환하기 전에 현재 데이터를 백업해 두세요.<br><span class="muted">현재 학생 ${cache.students.length}명, 출결 기록 ${cache.attendance.length}건이 있습니다.</span></p>
+        <button class="btn btn-secondary" id="swBackup" style="width:100%">${sw.backedUp ? '백업 완료 (다시 받기)' : '엑셀 백업 받기'}</button>
+        <label class="rt-opt" style="margin-top:10px;"><input type="checkbox" id="swSkipBackup" ${sw.skipBackup ? 'checked' : ''}><span>백업 없이 진행합니다 <span class="muted">(권장하지 않음)</span></span></label>`;
+      $('#swBackup').onclick = async () => { const ok = await exportFullBackup(); if(ok){ sw.backedUp = true; swRender(); } };
+      $('#swSkipBackup').onchange = e => { sw.skipBackup = e.target.checked; };
+    } else if(sw.step === 2){
+      const opt = (v, t, d) => `<label class="rt-opt"><input type="radio" name="swTime" value="${v}" ${sw.timeMode === v ? 'checked' : ''}><span><b>${t}</b><br><span class="muted">${d}</span></span></label>`;
+      body.innerHTML = `<p style="margin:0 0 10px;font-size:14px;">새 학기를 위해 학생들의 학습시간과 출결 기록을 어떻게 할까요?</p>`
+        + opt('all', '학습시간 + 출결 기록 모두 초기화', '월 누적 시간 0분, 입·퇴실 기록과 지각·결석 통계가 모두 삭제됩니다.')
+        + opt('time', '누적 학습시간만 초기화', '입·퇴실 시각과 지각·결석 기록은 남깁니다.')
+        + opt('none', '초기화하지 않음', '이 단계는 건너뜁니다.')
+        + `<p class="muted" style="margin:6px 0 0;">현재 입실·자리비움 중인 기록은 제외됩니다.</p>`;
+    } else if(sw.step === 3){
+      const list = swSorted(); const grades = {};
+      list.forEach(s => { const g = gradeOf(s); if(g) grades[g] = (grades[g] || 0) + 1; });
+      const gradeBtns = Object.keys(grades).sort().map(g => `<button class="btn btn-secondary swGrade" data-g="${g}" style="height:32px;padding:0 12px;font-size:12px;">${g}학년 선택 (${grades[g]})</button>`).join('');
+      body.innerHTML = `<p style="margin:0 0 8px;font-size:14px;">졸업하거나 전학 간 학생을 선택하세요. 선택한 학생은 <b>출결 기록과 센서 지문까지 삭제</b>됩니다.<br><span class="muted">학번 첫 자리로 학년을 구분합니다 (예: 30101 → 3학년).</span></p>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">${gradeBtns}<button class="btn btn-secondary" id="swClear" style="height:32px;padding:0 12px;font-size:12px;">선택 해제</button></div>
+        <div id="swPickCount" class="muted" style="margin-bottom:6px;font-size:12px;"></div>
+        <div class="sw-list">${list.length ? list.map(s => `<label class="sw-row"><input type="checkbox" class="swPick" value="${esc(s.id)}" ${sw.picked.has(String(s.id)) ? 'checked' : ''}><span><b>${esc(s.name)}</b> <span class="muted">${esc(s.studentNum || '')}</span></span></label>`).join('') : '<p class="muted" style="padding:10px;">등록된 학생이 없습니다.</p>'}</div>`;
+      const upd = () => { const n = $$('#swBody .swPick:checked').length; $('#swPickCount').textContent = `선택 ${n}명 / 전체 ${list.length}명`; };
+      $$('#swBody .swPick').forEach(c => c.onchange = upd);
+      $$('#swBody .swGrade').forEach(b => b.onclick = () => { const g = b.dataset.g; const ids = new Set(list.filter(s => gradeOf(s) === g).map(s => String(s.id))); $$('#swBody .swPick').forEach(c => { if(ids.has(c.value)) c.checked = true; }); upd(); });
+      $('#swClear').onclick = () => { $$('#swBody .swPick').forEach(c => { c.checked = false; }); upd(); };
+      upd();
+    } else if(sw.step === 4){
+      const fixedN = cache.students.filter(s => s.deskId != null).length;
+      body.innerHTML = `<p style="margin:0 0 10px;font-size:14px;">좌석 재배정을 준비합니다.</p>
+        <label class="rt-opt"><input type="checkbox" id="swClearSeats" ${sw.clearSeats ? 'checked' : ''}><span><b>고정석 배정 모두 해제</b><br><span class="muted">현재 고정석이 배정된 학생 ${fixedN}명의 좌석을 비웁니다. 마친 뒤 [학생 관리]의 "좌석 미배정" 필터에서 다시 배정하세요.</span></span></label>
+        <label class="rt-opt"><input type="checkbox" id="swResetSched" ${sw.resetSched ? 'checked' : ''}><span><b>요일별 신청 초기화</b><br><span class="muted">모든 학생의 요일별 자율학습 신청을 해제합니다. 새 학기 신청을 다시 받을 때 사용하세요.</span></span></label>`;
+    } else {
+      body.innerHTML = `<p style="margin:0 0 8px;font-size:14px;">아래 내용으로 학기를 전환합니다.</p>
+        <div class="sw-log">${esc(swSummaryLines().map(l => '· ' + l).join('\n'))}</div>
+        <p class="muted" style="margin:10px 0 6px;">되돌릴 수 없습니다. 진행하려면 <b>학기전환</b> 이라고 입력하세요.</p>
+        <div class="field"><input id="swConfirmText" type="text" placeholder="학기전환" autocomplete="off"></div>`;
+    }
+  }
+  function swLog(line){ sw.log.push(line); const el = $('#swLogBox'); if(el){ el.textContent = sw.log.join('\n'); el.scrollTop = el.scrollHeight; } }
+
+  async function swExecute(){
+    if(!isOnline){ await showMessage('서버에 연결되지 않았습니다. 연결 상태를 확인해주세요.'); return; }
+    const txt = ($('#swConfirmText') || {}).value;
+    if(String(txt || '').trim() !== '학기전환'){ await showMessage('확인 문구 "학기전환"을 정확히 입력해주세요.'); return; }
+    sw.running = true; sw.log = []; swRender();
+    try{
+      const grads = cache.students.filter(s => sw.picked.has(String(s.id)));
+      if(grads.length){
+        swLog(`졸업생·전학생 ${grads.length}명 삭제 중...`);
+        const r = await deleteStudentsBatch(grads, { deleteAttendance: true });
+        swLog(`  → 학생 ${r.students}명, 출결 기록 ${r.records}건 삭제 · ` + (r.sensorRequested ? '센서 지문 삭제 요청 전송' : '센서 삭제 요청 전달 미확인'));
+      } else swLog('졸업생 정리: 건너뜀');
+      const remain = cache.students.slice();
+      if(sw.timeMode !== 'none' && remain.length){
+        swLog(sw.timeMode === 'all' ? '학습시간과 출결 기록 초기화 중...' : '누적 학습시간 초기화 중...');
+        const r = await applyResetTime(remain, sw.timeMode);
+        swLog(`  → 학생 ${r.students}명 누적시간 0분` + (sw.timeMode === 'all' ? `, 출결 기록 ${r.records}건 삭제` : `, 출결 기록 ${r.records}건 학습시간 0분`) + (r.skippedActive ? ` (입실 중 ${r.skippedActive}건 제외)` : ''));
+      } else swLog('학습시간·출결 초기화: 건너뜀');
+      const upd = {}; let seatN = 0, schedN = 0;
+      cache.students.slice().forEach(s => {
+        if(sw.clearSeats && s.deskId != null){ upd['students/' + s.id + '/deskId'] = null; seatN++; }
+        if(sw.resetSched){ upd['students/' + s.id + '/weeklySchedule'] = defaultWeekly(); schedN++; }
+      });
+      if(Object.keys(upd).length){ swLog('좌석·신청 정리 중...'); await fbMultiUpdate(upd); swLog(`  → 고정석 해제 ${seatN}명, 신청 초기화 ${schedN}명`); }
+      else swLog('좌석·신청 정리: 건너뜀');
+      await window.logChange('학기 전환', swSummaryLines().join(' / '));
+      swLog('\n완료되었습니다. [학생 관리]에서 좌석을 다시 배정해주세요.');
+      sw.done = true; showToast('학기 전환이 완료되었습니다.'); triggerRender();
+    }catch(e){
+      swLog('\n오류가 발생했습니다: ' + (e && e.message ? e.message : e));
+      swLog('일부 작업만 적용되었을 수 있습니다. 화면을 새로고침해 현재 상태를 확인해주세요.');
+      sw.done = true;
+    }
+    sw.running = false; swRender();
+  }
+  function openSemesterWizard(){
+    Object.assign(sw, { step: 1, backedUp: false, skipBackup: false, timeMode: 'all', picked: new Set(), clearSeats: true, resetSched: false, running: false, done: false, log: [] });
+    swRender(); openOverlay('ovSemester');
+  }
+  safeAddListener('#btnSemesterWizard', 'click', openSemesterWizard);
+  safeAddListener('#swPrev', 'click', () => { if(sw.running || sw.done || sw.step <= 1) return; swCollect(); sw.step--; swRender(); });
+  safeAddListener('#swNext', 'click', async () => {
+    if(sw.done){ closeOverlay('ovSemester'); return; }
+    if(sw.running) return;
+    swCollect();
+    if(sw.step === 1 && !(sw.backedUp || sw.skipBackup)){ await showMessage('먼저 엑셀 백업을 받거나, "백업 없이 진행"을 선택해주세요.'); return; }
+    if(sw.step < SW_STEPS){ sw.step++; swRender(); return; }
+    await swExecute();
+  });
+
+  // =================================================================
+  // [6] 감독 교사 전용 화면 (휴대폰용: 오늘 명단과 미입실자를 크게 표시)
+  //     주소 뒤에 ?teacher=1 을 붙이면 비밀번호 확인 후 바로 이 화면이 열립니다.
+  // =================================================================
+  let tvTab = 'miss';
+  function isTeacherOpen(){ const el = $('#ovTeacher'); return !!(el && el.classList.contains('show')); }
+  function teacherRows(){
+    const key = todayDayKey(), today = todayStr();
+    const recBy = new Map(); cache.attendance.forEach(a => { if(a && a.date === today) recBy.set(String(a.studentId), a); });
+    const rows = [];
+    cache.students.forEach(s => {
+      const rec = recBy.get(String(s.id));
+      const sc = (s.weeklySchedule && s.weeklySchedule[key] && s.weeklySchedule[key].enabled) ? s.weeklySchedule[key] : null;
+      if(!sc && !rec) return;
+      let st = 'miss'; if(rec) st = rec.status === 'present' ? 'present' : (rec.status === 'away' ? 'away' : 'left');
+      const late = !!(rec && (st === 'present' || st === 'left') && isLateRecord(s, rec));
+      let desk = null;
+      if(effectiveFixed(s)) desk = s.deskId != null ? findDesk(s.deskId) : null; else if(rec && rec.deskId != null) desk = findDesk(rec.deskId);
+      rows.push({ s, rec, sc, st, late, desk });
+    });
+    return rows;
+  }
+  function renderTeacherView(){
+    const list = $('#tvList'); if(!list) return;
+    const rows = teacherRows();
+    const cnt = { present: 0, away: 0, left: 0, miss: 0 }; rows.forEach(r => { cnt[r.st]++; });
+    const sup = (typeof supFor === 'function') ? supFor(todayStr()) : null;
+    const supTxt = sup && (supClean(sup.f1) || supClean(sup.f2)) ? ` · 감독 1층 ${supClean(sup.f1) || '-'} / 2층 ${supClean(sup.f2) || '-'}` : '';
+    const now = new Date();
+    $('#tvSub').textContent = `${todayStr()} (${DAY_LABELS[todayDayKey()] || ''}) ${pad2(now.getHours())}:${pad2(now.getMinutes())} 기준 · 퇴실 ${cnt.left}명${supTxt}`;
+    $('#tvStats').innerHTML = `<div class="tv-stat"><b>${rows.length}</b><span>오늘 명단</span></div><div class="tv-stat"><b style="color:#248a3d">${cnt.present}</b><span>재실</span></div><div class="tv-stat"><b style="color:#b28900">${cnt.away}</b><span>자리비움</span></div><div class="tv-stat miss"><b>${cnt.miss}</b><span>미입실</span></div>`;
+    $('#tvTabMiss').textContent = `미입실 ${cnt.miss}`; $('#tvTabAll').textContent = `전체 명단 ${rows.length}`;
+    $('#tvTabMiss').classList.toggle('on', tvTab === 'miss'); $('#tvTabAll').classList.toggle('on', tvTab === 'all');
+    const byNum = (a, b) => String(a.s.studentNum || '').localeCompare(String(b.s.studentNum || ''), undefined, { numeric: true });
+    let show;
+    if(tvTab === 'miss') show = rows.filter(r => r.st === 'miss').sort((a, b) => String(a.sc ? a.sc.start : '').localeCompare(String(b.sc ? b.sc.start : '')) || byNum(a, b));
+    else show = rows.slice().sort(byNum);
+    if(!show.length){ list.innerHTML = `<div class="tv-row" style="justify-content:center;font-size:16px;font-weight:700;">${tvTab === 'miss' ? '미입실 학생이 없습니다. 모두 입실했어요.' : '오늘 자율학습 대상 학생이 없습니다.'}</div>`; return; }
+    const color = { present: '#34c759', away: '#ffcc00', left: '#ff3b30', miss: '#8e8e93' };
+    const label = { present: '재실', away: '자리비움', left: '퇴실', miss: '미입실' };
+    list.innerHTML = show.map(r => {
+      const seat = r.desk ? deskLabel(r.desk) : (r.st === 'miss' ? (effectiveFixed(r.s) ? '좌석 미배정' : '자율석') : '좌석 미정');
+      const t = r.st === 'miss' ? (r.sc ? ` · 신청 ${esc(r.sc.start)}~${esc(r.sc.end)}` : '') : (r.rec && r.rec.checkIn ? ` · 입실 ${esc(fmtTime(r.rec.checkIn))}` : '');
+      return `<div class="tv-row"><span class="tv-dot" style="background:${color[r.st]}"></span><div><div class="tv-name">${esc(r.s.name)}</div><div class="tv-meta">${esc(r.s.studentNum || '')} · ${esc(seat)}${t}</div></div><span style="margin-left:auto;display:flex;gap:6px;">${r.late ? '<span class="tv-badge" style="background:rgba(255,149,0,0.2);color:#b25000;">지각</span>' : ''}<span class="tv-badge" style="background:${color[r.st]}33;color:inherit;">${label[r.st]}</span></span></div>`;
+    }).join('');
+  }
+  function openTeacherView(){ tvTab = 'miss'; renderTeacherView(); openOverlay('ovTeacher'); }
+  safeAddListener('#btnTeacher', 'click', () => requireAdmin(openTeacherView));
+  safeAddListener('#tvTabMiss', 'click', () => { tvTab = 'miss'; renderTeacherView(); });
+  safeAddListener('#tvTabAll', 'click', () => { tvTab = 'all'; renderTeacherView(); });
+  safeAddListener('#tvClose', 'click', () => closeOverlay('ovTeacher'));
+
+  // =================================================================
   // 전체 데이터 엑셀 백업 / 관리자 비밀번호 변경 (기존에 버튼만 있고 동작이 없던 기능)
   // =================================================================
-  safeAddListener('#exportExcelBtn', 'click', async () => {
+  async function exportFullBackup(){
     try{
       const wb = XLSX.utils.book_new();
       const byId = new Map(cache.students.map(s => [String(s.id), s]));
@@ -2771,9 +3361,10 @@ ${skipped.join('\n')}` : ''));
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(attRows), '출결기록');
       XLSX.writeFile(wb, `야자_전체백업_${todayStr()}.xlsx`);
       await window.logChange('엑셀 백업', `학생 ${stuRows.length}명, 출결 ${attRows.length}건`);
-      showToast('백업 파일을 내려받았습니다.');
-    }catch(e){ await showMessage('백업 중 오류가 발생했습니다: ' + (e && e.message ? e.message : e)); }
-  });
+      showToast('백업 파일을 내려받았습니다.'); return true;
+    }catch(e){ await showMessage('백업 중 오류가 발생했습니다: ' + (e && e.message ? e.message : e)); return false; }
+  }
+  safeAddListener('#exportExcelBtn', 'click', () => { exportFullBackup(); });
 
   safeAddListener('#changePwBtn', 'click', async () => {
     const cur = $('#curPw').value, nw = $('#newPw').value, cf = $('#confirmPw').value;
@@ -2927,7 +3518,7 @@ ${skipped.join('\n')}` : ''));
   function onDataLoaded(){ if(startedUp || !isReady()) return; startedUp = true; (async () => { try{ await checkDateRollover(); await cleanupStaleRecords(); await runAutoCheckout(); }catch(e){} })(); }
 
   let offlineTimer = null;
-  function setWarnHeight(){ const w = $('#serialWarning'); document.documentElement.style.setProperty('--warn-h', (w && w.style.display === 'block') ? w.offsetHeight + 'px' : '0px'); }
+  function setWarnHeight(){ const w = $('#topBanners'); document.documentElement.style.setProperty('--warn-h', (w ? w.offsetHeight : 0) + 'px'); }
 
   function init(){
     applyDarkMode(); 
@@ -2960,6 +3551,12 @@ ${skipped.join('\n')}` : ''));
     });
 
     setInterval(updateClock, 15000); setInterval(checkDateRollover, 30000);
+    setInterval(() => { if(isTeacherOpen()) renderTeacherView(); }, 30000);
+    fbDB.ref('.info/connected').on('value', () => { setTimeout(updateDeviceBanner, 200); });
+    if(/[?&]teacher=1(&|$)/.test(location.search) || location.hash === '#teacher'){
+      const tryOpen = () => { if(isReady()) requireAdmin(openTeacherView); else setTimeout(tryOpen, 500); };
+      setTimeout(tryOpen, 600);
+    }
     setInterval(() => { if(!isReady() || layoutEditMode) return; if(document.querySelector('.overlay.show')) return; triggerRender(); }, 60000);
   }
   
