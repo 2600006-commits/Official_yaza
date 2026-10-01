@@ -369,7 +369,7 @@
   .sw-log{ font-size:12px; line-height:1.7; white-space:pre-wrap; background:rgba(120,120,128,0.1); border-radius:12px; padding:10px 12px; max-height:34vh; overflow-y:auto; }
 
   /* ---------------- 감독 교사 화면 (휴대폰 우선) ---------------- */
-  #ovTeacher{ z-index:150; align-items:stretch; justify-content:stretch; }
+  #ovTeacher{ z-index:150; align-items:stretch; justify-content:stretch; padding:0; }
   #ovTeacher .modal{ width:100%; max-width:none; height:100%; max-height:none; border-radius:0; padding:14px 14px 28px; overflow-y:auto; background:#f4f5fa; backdrop-filter:none; -webkit-backdrop-filter:none; transform:none; }
   body.dark #ovTeacher .modal{ background:#14141c; }
   .tv-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
@@ -609,7 +609,7 @@
       <div id="studentList" style="max-height:45vh; overflow-y:auto; padding-right:2px;"></div>
 
       <h3 style="margin-top:22px;">새 학생 등록</h3>
-      <div class="field"><label>이름</label><input id="newName"></div>
+      <div class="field"><label>이름</label><input id="newName" maxlength="20"></div>
       <div class="field"><label>좌석 유형</label>
         <div class="row">
           <label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="radio" name="newSeatMode" value="fixed" checked> 고정좌석</label>
@@ -676,8 +676,11 @@
       <h3>요일별 운영 시간 설정</h3>
       <p class="muted">요일마다 운영 여부와 시간을 따로 정합니다. 학습시간은 각 요일의 운영 시간 안에서만 인정되고, 운영하지 않는 요일에 입실하면 0분으로 계산됩니다. 종료 시간이 시작 시간보다 빠르면 다음 날 새벽까지로 계산합니다.</p>
       <div id="opHoursBox"></div>
-      <button class="btn btn-secondary" id="opCopyMonBtn" style="width:100%; margin-top:4px;">월요일 설정을 모든 요일에 적용</button>
-      <button class="btn btn-primary" id="saveTimeSettingsBtn" style="width:100%; margin-top:10px;">운영 시간 저장</button>
+      <button class="btn btn-secondary" id="opCopyMonBtn" style="width:100%; margin-top:2px;">월요일 설정을 모든 요일에 적용</button>
+      <h3 style="margin-top:18px;">자동 퇴실 마감</h3>
+      <label class="rt-opt"><input type="checkbox" id="autoCheckoutOn"><span><b>운영 시간이 끝나면 미퇴실자를 자동 퇴실 처리</b><br><span class="muted">재실·자리비움으로 남은 학생을 그날 종료 시간에 퇴실 처리하고 학습시간을 계산합니다. 운영하지 않는 요일의 기록은 다음 날 오전 6시에 마감됩니다.</span></span></label>
+      <div class="field"><label>종료 후 여유 시간 (분, 0~180)</label><input id="autoCheckoutGrace" type="number" min="0" max="180" step="5" inputmode="numeric"></div>
+      <button class="btn btn-primary" id="saveTimeSettingsBtn" style="width:100%; margin-top:10px;">운영 설정 저장</button>
       <h3 style="margin-top:24px;">전체 데이터 엑셀 백업</h3>
       <button class="btn btn-secondary" id="exportExcelBtn" style="width:100%">모든 학생 및 출결 기록 다운로드</button>
       <h3 style="margin-top:24px;">관리자 비밀번호 변경</h3>
@@ -692,8 +695,8 @@
       <h3>학습·출결 관리</h3>
       <p class="muted">누적 학습시간과 출결 기록을 확인하고 초기화합니다. 초기화 전에 엑셀 백업을 받아두는 것을 권장합니다.</p>
       <div class="row" style="margin-bottom:6px;">
-        <button class="btn btn-secondary" id="btnTimeBackup">엑셀 백업 받기</button>
-        <button class="btn btn-danger" id="btnResetTimeAll">전체 학습시간 초기화</button>
+        <button class="btn btn-secondary" id="btnTimeBackup" style="white-space:nowrap; padding:0 8px; font-size:13px;">엑셀 백업 받기</button>
+        <button class="btn btn-danger" id="btnResetTimeAll" style="white-space:nowrap; padding:0 8px; font-size:13px;">전체 학습시간 초기화</button>
       </div>
 
       <h3 style="margin-top:20px;">학기 전환 마법사</h3>
@@ -706,7 +709,7 @@
         <div class="field"><label>시작일 (선택)</label><input id="arStart" type="date"></div>
         <div class="field"><label>종료일 (선택)</label><input id="arEnd" type="date"></div>
       </div>
-      <label class="rt-opt"><input type="checkbox" id="arResetTotal"><span>월 누적 학습시간도 함께 0분으로 초기화</span></label>
+      <label class="rt-opt"><input type="checkbox" id="arResetTotal"><span>남아 있는 이번 달 학습시간도 함께 0분으로 초기화</span></label>
       <div id="arInfo" class="muted" style="margin:4px 0 8px; font-size:12px;"></div>
       <button class="btn btn-danger" id="btnAttendanceReset" style="width:100%">출결 기록 삭제</button>
 
@@ -795,6 +798,13 @@
         <button class="btn btn-secondary" id="syncF2Btn">2층 센서 복원</button>
       </div>
 
+      <h3 style="margin-top:22px;">기기 원격 재시작</h3>
+      <p class="muted">기기가 멈추거나 반응이 느릴 때 층에 가지 않고 재시작합니다. 기기가 서버와 통신 중일 때만 동작하며, 약 30초 뒤 다시 연결됩니다. 기기가 꺼져 있거나 오프라인이면 전원을 직접 껐다 켜야 합니다.</p>
+      <div class="row">
+        <button class="btn btn-secondary" id="rebootF1Btn">1층 기기 재시작</button>
+        <button class="btn btn-secondary" id="rebootF2Btn">2층 기기 재시작</button>
+      </div>
+
       <h3 style="margin-top:22px;">센서 미사용 지문 정리</h3>
       <p class="muted">학생이 삭제되었는데 센서에 남아 있는 지문을 두 층 센서에서 지웁니다. 학생에게 배정된 번호는 건드리지 않습니다.</p>
       <button class="btn btn-secondary" id="btnCleanSensors" style="width:100%">미사용 지문 번호 정리</button>
@@ -854,7 +864,7 @@
   <div class="modal glass">
     <button class="close-x" data-close="ovStudentEdit"></button>
     <h2>학생 정보 수정</h2>
-    <div class="field"><label>이름</label><input id="editName"></div>
+    <div class="field"><label>이름</label><input id="editName" maxlength="20"></div>
     <div class="field"><label>학번</label><input id="editStudentNum" type="text"></div>
     <div class="field"><label>좌석 유형</label>
       <div class="row">
@@ -967,7 +977,7 @@
   'use strict';
   
   window.logChange = async function(action, detail){
-    try{ await window.dbPut('changelog', { timestamp: Date.now(), admin: window.adminName || '관리자', action, detail: detail||'' }); }
+    try{ await window.dbPut('changelog', { timestamp: serverNow(), admin: window.adminName || '관리자', action, detail: detail||'' }); }
     catch(e){}
   };
 
@@ -989,13 +999,14 @@
   firebase.initializeApp(firebaseConfig);
   const fbDB = firebase.database();
 
-  let settings = { id:'app', adminPassword:'0000', currentDate: todayStr(), studyEndTime:'22:00', lastBackupReminderDate:null, rulesText:'', darkMode:false, validStartTime:'16:00', validEndTime:'21:30', weeklyHours:null, floorModes:{ f1:'free', f2:'fixed' } };
+  // 서버 시각(각 기기의 시계 오차를 보정). 다른 모든 시간 계산보다 먼저 선언되어야 합니다.
+  let serverOffset = 0; const serverNow = () => Date.now() + serverOffset;
+  let settings = { id:'app', adminPassword:'0000', currentDate: todayStr(), studyEndTime:'22:00', lastBackupReminderDate:null, rulesText:'', darkMode:false, validStartTime:'16:00', validEndTime:'21:30', weeklyHours:null, autoCheckout:true, autoCheckoutGraceMin:0, floorModes:{ f1:'free', f2:'fixed' } };
   let cache = { students: [], desks: [], attendance: [], changelog: [], dailylogs: [], supervision: [] };
   const loaded = { settings:false, students:false, desks:false, attendance:false };
   const isReady = () => loaded.settings && loaded.students && loaded.desks && loaded.attendance;
   let isOnline = false, startedUp = false;
-  let serverOffset = 0; const serverNow = () => Date.now() + serverOffset;
-  let adminMode = false, adminIdleTimer = null, currentFloor = 1, layoutEditMode = false, fitToScreen = true;
+    let adminMode = false, adminIdleTimer = null, currentFloor = 1, layoutEditMode = false, fitToScreen = true;
   let longPressTimer = null, longPressTriggered = false;
   window.adminName = '';
   let pendingEnrollStudentId = null, pendingEnrollFpId = null;
@@ -1074,7 +1085,7 @@
   $$('[data-ico]').forEach(el => { el.innerHTML = ico(el.dataset.ico); });
   $$('.close-x').forEach(b => { b.innerHTML = ICONS.close; b.addEventListener('click', () => closeOverlay(b.dataset.close)); });
   
-  function bizDate() { const d = new Date(); if (d.getHours() < 6) d.setDate(d.getDate() - 1); return d; }
+  function bizDate() { const d = new Date(serverNow()); if (d.getHours() < 6) d.setDate(d.getDate() - 1); return d; }
   function todayStr() { const d = bizDate(); return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
   const fmtTime = ts => ts ? new Date(ts).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}) : '-';
   
@@ -1282,11 +1293,24 @@
      if(!isOnline){ showToast('서버에 연결되지 않아 스캐너를 켤 수 없습니다. 연결 상태를 확인해주세요.'); return; }
      // 화면에 보이는 층의 기기에만 요청을 보냅니다 (다른 층 기기는 반응하지 않음)
      const floor = currentFloor;
-     fbWrite('scanRequest/f' + floor, { action: action, floor: floor, timestamp: serverNow() });
+     const t0 = serverNow();
+     fbWrite('dev/f' + floor + '/scan', { action: action, floor: floor, timestamp: t0 });
      const di = deviceInfo['f' + floor];
      if(di && !deviceOnline(floor)){ showToast(`${floor}층 지문 기기가 응답하지 않는 상태일 수 있습니다. 전원과 와이파이를 확인해주세요.`, 6000); return; }
-     showToast(`${floor}층 지문 인식기가 켜졌습니다. 10초 내에 손가락을 스캔해주세요.`);
+     showToast(`${floor}층 기기에 요청을 보냈습니다. 기기가 켜지면 알려드릴게요...`, 3000);
+     waitScanAck(floor, t0);
   };
+  // 기기가 스캔을 시작하면 /devices/fN/scanAck 에 서버 시각을 기록합니다. 그 신호를 보고 정확히 안내합니다.
+  function waitScanAck(floor, t0){
+    const started = Date.now();
+    const tick = () => {
+      const d = deviceInfo['f' + floor]; const ack = d ? Number(d.scanAck) : 0;
+      if(ack && ack >= t0 - 3000){ showToast(`${floor}층 지문 기기가 켜졌습니다. 지금 손가락을 올려주세요! (10초)`, 5000); return; }
+      if(Date.now() - started > 7000){ showToast(`${floor}층 기기가 응답하지 않습니다. 기기 화면과 전원·와이파이를 확인하고 잠시 뒤 다시 눌러주세요.`, 7000); return; }
+      setTimeout(tick, 250);
+    };
+    setTimeout(tick, 250);
+  }
 
   const lastScanMap = new Map();
   const showToast6 = msg => showToast(msg, 6000);
@@ -1295,7 +1319,7 @@
   async function handleFingerprintMatch(fpId, deviceAction, scanFloor){
     fpId = parseInt(fpId); if(!fpId || isNaN(fpId)) return;
     if(!isReady()){ showToast6('데이터를 불러오는 중입니다. 잠시 후 다시 스캔해주세요.'); return; }
-    const now = Date.now();
+    const now = serverNow();
     if (lastScanMap.has(fpId) && now - lastScanMap.get(fpId) < 3000) return; lastScanMap.set(fpId, now);
 
     try{
@@ -1304,13 +1328,13 @@
       
       if(!student.fpRegistered){
         student.fpRegistered = true;
-        await window.dbPut('students', student);
+        try{ fbDB.ref('students/' + student.id + '/fpRegistered').set(true); }catch(e){}
       }
 
       let record = await getTodayAttendance(student.id);
       let action = 'present';
       if(['present','away','left'].indexOf(deviceAction) >= 0){ action = deviceAction; } else {
-          const snap = await fbDB.ref('scanRequest/f' + (scanFloor || currentFloor)).once('value'); const rv = snap.val();
+          const snap = await fbDB.ref('dev/f' + (scanFloor || currentFloor) + '/scan').once('value'); const rv = snap.val();
           if(rv && rv.timestamp > serverNow() - 15000 && ['present','away','left'].indexOf(rv.action) >= 0) { action = rv.action; snap.ref.remove(); }
       }
 
@@ -1338,10 +1362,8 @@
            } else { showToast6(`입실 상태에서만 외출이 가능합니다.`); }
       } else if (action === 'left') {
            if(record && (record.status === 'present' || record.status === 'away')) {
-              if(record.status === 'away' && record.lastBreakStart) { record.totalBreakSeconds = (record.totalBreakSeconds||0) + calcValidSeconds(record.lastBreakStart, now); record.lastBreakStart = null; }
-              record.checkOut = now; record.status = 'left'; record.elapsedSeconds = Math.round(Math.max(0, calcValidSeconds(record.checkIn, now) - (record.totalBreakSeconds||0)));
-              await window.dbPut('attendance', record); student.monthlyElapsedSeconds = (student.monthlyElapsedSeconds||0) + record.elapsedSeconds; await window.dbPut('students', student);
-              showToast6(`${student.name}님 고생하셨습니다! 퇴실 처리되었습니다.`);
+              const closed = await closeRecordTx(record, now, false);   // 이미 퇴실 처리된 기록이면 false (이중 계산 방지)
+              if(closed) showToast6(`${student.name}님 고생하셨습니다! 퇴실 처리되었습니다.`); else showToast6(`${student.name}님은 이미 퇴실 처리되었습니다.`);
            } else { showToast6(`이미 퇴실하셨거나 입실 기록이 없습니다.`); }
       }
     }catch(err){ console.error(err); showToast6('오류가 발생했습니다.'); }
@@ -1367,12 +1389,12 @@
   }
 
   async function setSeatStatus(studentId, status){
-    let record = await getTodayAttendance(studentId); const now = Date.now(); const student = cache.students.find(s => String(s.id) === String(studentId));
+    let record = await getTodayAttendance(studentId); const now = serverNow(); const student = cache.students.find(s => String(s.id) === String(studentId));
     if(!record){ record = { studentId, studentDate: studentId+'_'+todayStr(), date: todayStr(), checkIn: now, checkOut:null, status, elapsedSeconds:0, totalBreakSeconds:0, lastBreakStart: status === 'away' ? now : null };
     } else {
       const prev = record.status; if(prev === 'left' && status === 'left') return;
+      if(status === 'left' && (prev === 'present' || prev === 'away')){ await closeRecordTx(record, now, false); return; }
       if(prev === 'left'){
-        if(student){ student.monthlyElapsedSeconds = Math.max(0, (student.monthlyElapsedSeconds||0) - (record.elapsedSeconds||0)); await window.dbPut('students', student); }
         if(status === 'away'){ record.lastBreakStart = record.checkOut || now; } else { record.totalBreakSeconds = (record.totalBreakSeconds||0) + calcValidSeconds(record.checkOut || now, now); record.lastBreakStart = null; }
         record.checkOut = null; record.elapsedSeconds = 0;
       } else if (prev === 'away' && status !== 'away') {
@@ -1381,7 +1403,6 @@
       record.status = status;
       if(status === 'left'){
         record.checkOut = now; const totalTime = calcValidSeconds(record.checkIn, now); record.elapsedSeconds = Math.round(Math.max(0, totalTime - (record.totalBreakSeconds||0)));
-        if(student){ student.monthlyElapsedSeconds = (student.monthlyElapsedSeconds||0) + record.elapsedSeconds; await window.dbPut('students', student); }
       }
     } await window.dbPut('attendance', record);
   }
@@ -1421,7 +1442,7 @@
     const frag = document.createDocumentFragment();
     if(layoutEditMode){ for(let c=0;c<GRID_COLS;c++){ for(let r=0;r<GRID_ROWS;r++){ const pos = cellToPos(c,r); const dot = document.createElement('div'); dot.className = 'grid-dot'; dot.style.left = pos.x+'px'; dot.style.top = pos.y+'px'; frag.appendChild(dot); } } }
     
-    const allAttendance = await dbGetAll('attendance'); const streakMap = getStreakMap(allAttendance);
+    const allAttendance = await dbGetAll('attendance'); const streakMap = getStreakMap(allAttendance); const monthMap = buildMonthSecondsMap();
     const floorDesks = cache.desks.filter(d => d.floor === currentFloor);
     let presentCount = 0; const todayKey = todayDayKey(); const todayRecords = await getTodayRecords();
     
@@ -1445,12 +1466,12 @@
         let elapsedMin = 0, validSecs = 0;
         if(record){ 
           if (record.status === 'left') { validSecs = record.elapsedSeconds || 0; } else {
-             let totalTime = calcValidSeconds(record.checkIn, Date.now()); let liveBreak = 0;
-             if (record.status === 'away' && record.lastBreakStart) { liveBreak = calcValidSeconds(record.lastBreakStart, Date.now()); }
+             let totalTime = calcValidSeconds(record.checkIn, serverNow()); let liveBreak = 0;
+             if (record.status === 'away' && record.lastBreakStart) { liveBreak = calcValidSeconds(record.lastBreakStart, serverNow()); }
              validSecs = Math.max(0, totalTime - (record.totalBreakSeconds||0) - liveBreak);
           } elapsedMin = Math.round(validSecs/60); 
         }
-        const monthlyTotalMin = Math.round(((student.monthlyElapsedSeconds||0) + validSecs)/60); const goal = student.monthlyGoalMinutes || 1; const pct = Math.min(100, Math.round(monthlyTotalMin/goal*100));
+        const monthlyTotalMin = Math.round((((monthMap.get(String(student.id)) || 0)) + validSecs)/60); const goal = student.monthlyGoalMinutes || 1; const pct = Math.min(100, Math.round(monthlyTotalMin/goal*100));
         const streakDays = streakMap.get(student.id) || 0; const streakBadge = streakDays >= 10 ? ICONS.crown : (streakDays >= 3 ? ICONS.fire : '');
 
         cell.innerHTML = `
@@ -1524,13 +1545,34 @@
   });
 
   const monthStr = () => todayStr().slice(0,7);
+  // 출결 초기화로 지운 기간은 결석으로 세지 않도록 기록해 둡니다. (지운 기록은 "출석했는데 기록이 없는 것"으로 보이기 때문)
+  function addStatsSkip(from, to){
+    const today = todayStr(); let f = from || '0000-01-01', e = to || today; if(e > today) e = today;
+    settings.statsSkip = (Array.isArray(settings.statsSkip) ? settings.statsSkip : []).concat([[f, e]]).slice(-30);
+    saveSettings();
+  }
   function scheduledDatesThisMonth(s, attendedSet){
     const b = bizDate(), y = b.getFullYear(), m = b.getMonth(), todayS = todayStr(); const out = [];
+    const skips = Array.isArray(settings.statsSkip) ? settings.statsSkip : [];
+    const born = s && s.createdAt ? (() => { const d = new Date(Number(s.createdAt)); return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; })() : '';
     for(let d=1; d<=b.getDate(); d++){
       const key = DAY_KEYS[new Date(y, m, d).getDay()]; const sc = s.weeklySchedule && s.weeklySchedule[key];
-      if(!(sc && sc.enabled)) continue; const ds = `${y}-${pad2(m+1)}-${pad2(d)}`;
+      if(!(sc && sc.enabled)) continue;
+      if(!opHoursFor(key)) continue;                                   // 운영하지 않는 요일은 결석이 아님
+      const ds = `${y}-${pad2(m+1)}-${pad2(d)}`;
+      if(born && ds < born) continue;                                  // 등록하기 전 날짜는 결석이 아님
+      if(s.statsFrom && ds <= s.statsFrom) continue;                   // 이 학생의 기록을 초기화한 날까지는 제외
+      if(skips.some(r => ds >= r[0] && ds <= r[1])) continue;          // 전체 초기화한 기간 제외
       if(ds === todayS && !(attendedSet && attendedSet.has(ds))) continue; out.push(ds);
     } return out;
+  }
+  // 이번 달 학습시간(초): 출결 기록(elapsedSeconds)의 합계로 계산합니다.
+  //  · students/*/monthlyElapsedSeconds 는 달이 바뀌어도 0으로 돌아오지 않아 "이달의" 집계로 쓸 수 없었습니다.
+  //  · 기록이 원본이므로 초기화·삭제와 항상 일치하고, 동시에 여러 화면이 써도 덮어쓰기 충돌이 없습니다.
+  function buildMonthSecondsMap(){
+    const pre = monthStr(), m = new Map();
+    cache.attendance.forEach(a => { if(a && a.date && String(a.date).startsWith(pre)){ const k = String(a.studentId); m.set(k, (m.get(k) || 0) + (Number(a.elapsedSeconds) || 0)); } });
+    return m;
   }
   function isLateRecord(s, r){
     if(!s || !r || !r.date || !r.checkIn) return false; const sc = s.weeklySchedule && s.weeklySchedule[DAY_KEYS[new Date(r.date + 'T00:00:00').getDay()]];
@@ -1540,12 +1582,12 @@
   function maskName(name) { if(name.length <= 1) return name; if(name.length === 2) return name[0] + '*'; return name[0] + '*'.repeat(name.length - 2) + name[name.length - 1]; }
 
   async function computeRanking(){
-    const attendance = await dbGetAll('attendance'); const mPrefix = monthStr();
+    const attendance = await dbGetAll('attendance'); const mPrefix = monthStr(); const monthMap = buildMonthSecondsMap();
     return cache.students.map(s => {
       const attendedDates = new Set(attendance.filter(a => String(a.studentId)===String(s.id) && a.date && a.date.startsWith(mPrefix)).map(a=>a.date));
       const scheduledDays = scheduledDatesThisMonth(s, attendedDates).length; const attendedDays = attendedDates.size;
       const rate = scheduledDays>0 ? Math.min(100, Math.round(attendedDays/scheduledDays*100)) : 0;
-      const totalMin = Math.round((s.monthlyElapsedSeconds||0)/60);
+      const totalMin = Math.round(((monthMap.get(String(s.id)) || 0))/60);
       return { name:s.name, totalMin, attendedDays, scheduledDays, rate };
     }).sort((a,b) => b.totalMin - a.totalMin);
   }
@@ -1568,7 +1610,7 @@
     attendance.filter(a => a.date && a.date.startsWith(mPrefix)).forEach(a => {
       let secs = a.elapsedSeconds || 0;
       if(a.status !== 'left' && a.checkIn) {
-        let totalTime = calcValidSeconds(a.checkIn, Date.now()); let liveBreak = (a.status === 'away' && a.lastBreakStart) ? calcValidSeconds(a.lastBreakStart, Date.now()) : 0;
+        let totalTime = calcValidSeconds(a.checkIn, serverNow()); let liveBreak = (a.status === 'away' && a.lastBreakStart) ? calcValidSeconds(a.lastBreakStart, serverNow()) : 0;
         secs = Math.max(secs, totalTime - (a.totalBreakSeconds||0) - liveBreak);
       } totals[a.date] = (totals[a.date]||0) + Math.round(secs/60);
     }); return totals;
@@ -1596,8 +1638,8 @@
       if(day >= 1 && day <= 5) {
           let secs = a.elapsedSeconds || 0;
           if(a.status !== 'left' && a.checkIn) {
-            let totalTime = calcValidSeconds(a.checkIn, Date.now()); 
-            let liveBreak = (a.status === 'away' && a.lastBreakStart) ? calcValidSeconds(a.lastBreakStart, Date.now()) : 0;
+            let totalTime = calcValidSeconds(a.checkIn, serverNow()); 
+            let liveBreak = (a.status === 'away' && a.lastBreakStart) ? calcValidSeconds(a.lastBreakStart, serverNow()) : 0;
             secs = Math.max(secs, totalTime - (a.totalBreakSeconds||0) - liveBreak);
           }
           wdTotals[day] += secs; 
@@ -1619,9 +1661,10 @@
 
   async function renderStudentProgress(){
     const list = $('#studentProgressList'); if(!list) return;
+    const monthMap = buildMonthSecondsMap();
     const progressData = cache.students.map(s => {
        const goal = s.monthlyGoalMinutes || 1200;
-       const current = Math.round((s.monthlyElapsedSeconds||0)/60);
+       const current = Math.round(((monthMap.get(String(s.id)) || 0))/60);
        const pct = Math.min(100, Math.round((current / goal) * 100));
        return { name: s.name, current, goal, pct };
     }).sort((a, b) => b.pct - a.pct); 
@@ -1655,9 +1698,9 @@
   }
   safeAddListener('#diaryDate', 'change', renderDiaryList);
   safeAddListener('#saveDiaryBtn', 'click', async () => {
-    const date = $('#diaryDate').value || todayStr(), author = $('#diaryAuthor').value.trim() || adminName || '익명', content = $('#diaryContent').value.trim();
+    const date = $('#diaryDate').value || todayStr(), author = $('#diaryAuthor').value.trim() || window.adminName || '익명', content = $('#diaryContent').value.trim();
     if(!content){ await showMessage('감독 내용을 입력해주세요.'); return; }
-    await window.dbPut('dailylogs', { date, author, content, timestamp: Date.now() }); await window.logChange('감독일지 작성', `${date} (${author})`);
+    await window.dbPut('dailylogs', { date, author, content, timestamp: serverNow() }); await window.logChange('감독일지 작성', `${date} (${author})`);
     if($('#diaryContent')) $('#diaryContent').value = ''; await renderDiaryList(); showToast('감독 일지가 저장되었습니다.');
   });
 
@@ -1818,6 +1861,9 @@
       }
     } else {
       html += `<div style="margin-top:10px;"><p class="muted" style="margin:0;">오늘 이 좌석을 이용하는 학생이 없습니다 (오늘 미입실/미신청 상태).</p></div>`;
+      if(isFixedFloor && allFixed.length > 0){
+        html += `<div style="margin-top:16px; padding-top:14px; border-top:1px solid rgba(0,0,0,0.1);"><h4 style="margin:0 0 6px; font-size:13px; color:var(--text-secondary);">학생 본인 인증 (지문 스캐너 켜기)</h4><p class="muted" style="margin:0 0 10px; font-size:12px;">이 좌석에 배정된 학생이 오늘 요일을 신청하지 않았어도, 지문을 스캔하면 입실·퇴실이 기록됩니다.</p><div class="row"><button class="btn btn-primary" onclick="requestScan('present')">입실</button><button class="btn btn-secondary" onclick="requestScan('away')">외출</button><button class="btn btn-danger" onclick="requestScan('left')">퇴실</button></div></div>`;
+      }
     }
 
     body.innerHTML = html;
@@ -2034,6 +2080,8 @@
   function renderOpHoursForm(){
     const box = $('#opHoursBox'); if(!box) return;
     const wh = normWeeklyHours(settings.weeklyHours);
+    if($('#autoCheckoutOn')) $('#autoCheckoutOn').checked = settings.autoCheckout !== false;
+    if($('#autoCheckoutGrace')) $('#autoCheckoutGrace').value = Number(settings.autoCheckoutGraceMin) || 0;
     box.innerHTML = OP_DAYS.map(([k, l]) => {
       const d = wh[k];
       return `<div class="day-sched-row"><div class="day-sched-head"><label class="day-toggle"><input type="checkbox" class="opDay" data-day="${k}" ${d.enabled ? 'checked' : ''}><span>${l}요일 운영</span></label></div><div class="day-sched-time" data-opday="${k}" style="display:${d.enabled ? 'flex' : 'none'};">${timeSelectHTML('op_' + k + '_s', d.start)}<span class="tilde">~</span>${timeSelectHTML('op_' + k + '_e', d.end)}</div></div>`;
@@ -2067,17 +2115,21 @@
       if(!await showConfirm('운영하는 요일이 하나도 없습니다.\n이 경우 모든 학습 시간이 0분으로 계산됩니다. 그래도 저장할까요?')) return;
     }
     settings.weeklyHours = w;
+    settings.autoCheckout = !$('#autoCheckoutOn') || $('#autoCheckoutOn').checked;
+    let gm = parseInt($('#autoCheckoutGrace') ? $('#autoCheckoutGrace').value : 0); if(isNaN(gm) || gm < 0) gm = 0; if(gm > 180) gm = 180;
+    settings.autoCheckoutGraceMin = gm;
     const first = OP_DAYS.map(([k]) => w[k]).find(d => d.enabled);
     if(first){ settings.validStartTime = first.start; settings.validEndTime = first.end; }
     await saveSettings();
-    await window.logChange('운영시간 변경', OP_DAYS.map(([k, l]) => `${l} ${w[k].enabled ? w[k].start + '~' + w[k].end : '휴무'}`).join(', '));
-    showToast('요일별 운영 시간이 저장되었습니다.'); triggerRender();
+    await window.logChange('운영시간 변경', OP_DAYS.map(([k, l]) => `${l} ${w[k].enabled ? w[k].start + '~' + w[k].end : '휴무'}`).join(', ') + ` / 자동 퇴실 ${settings.autoCheckout ? '켜짐(종료 후 ' + gm + '분)' : '꺼짐'}`);
+    showToast('운영 설정이 저장되었습니다.'); triggerRender(); runAutoCheckout();
   });
 
   safeAddListener('#pwSubmit', 'click', async () => {
     if(!loaded.settings){ await showMessage('서버에서 설정을 불러오는 중입니다. 잠시 후 다시 시도해주세요.'); return; }
     if($('#pwInput').value === settings.adminPassword){
       adminMode = true; window.adminName = $('#pwAdminName').value.trim() || '관리자'; settings.lastAdminName = window.adminName; await saveSettings();
+      if(settings.adminPassword === '0000'){ setTimeout(() => showToast('보안 안내: 관리자 비밀번호가 초기값(0000)입니다. [더보기 → 운영 설정]에서 꼭 변경해 주세요.', 9000), 600); }
       if($('#btnAdmin')) $('#btnAdmin').textContent = '관리자 메뉴'; if($('#adminFab')) $('#adminFab').style.display = 'flex';
       resetAdminIdleTimer(); closeOverlay('ovPassword'); renderFloor();
       
@@ -2339,6 +2391,9 @@
     if(!name || !fp){ await showMessage('이름과 지문 ID를 입력해주세요.'); return; } 
     if(fp < 1 || fp > 300){ await showMessage('지문 ID는 1~300 사이 숫자로 입력해주세요.'); return; } 
     if(findStudentByFp(fp)){ await showMessage('이미 사용 중인 지문 ID입니다.'); return; }
+    if(fp > maxUsableFpId()){ await showMessage(`센서 저장 용량이 ${maxUsableFpId()}개라서 ${fp}번은 사용할 수 없습니다.`); return; }
+    if(name.length > 20){ await showMessage('이름은 20자 이내로 입력해주세요.'); return; }
+    if(sNum && cache.students.some(x => String(x.studentNum).trim() === sNum)){ await showMessage(`이미 등록된 학번입니다 (${cache.students.find(x => String(x.studentNum).trim() === sNum).name}). 학번을 다시 확인해주세요.`); return; }
     
     const weeklySchedule = readScheduleGridValues('reg'); 
     const targetDays = getSelectedDaysFromGrid('reg');
@@ -2354,7 +2409,7 @@
 
     await window.dbPut('students', { 
       name, studentNum: sNum, deskId, fingerprintId: fp, 
-      weeklySchedule, monthlyGoalMinutes: goal, monthlyElapsedSeconds:0, 
+      weeklySchedule, monthlyGoalMinutes: goal, monthlyElapsedSeconds:0, createdAt: serverNow(), 
       monthlyHistory:{}, seatMode, fpRegistered: lastEnrolledFpIds.has(fp) 
     }); 
     
@@ -2444,7 +2499,9 @@
     const fpRegistered = $('#editFpRegistered') ? $('#editFpRegistered').checked : s.fpRegistered;
 
     if(!name || !fp){ await showMessage('이름과 지문 ID를 입력해주세요.'); return; }
-    
+    if(name.length > 20){ await showMessage('이름은 20자 이내로 입력해주세요.'); return; }
+    if(sNum && cache.students.some(x => String(x.id) !== String(s.id) && String(x.studentNum).trim() === sNum)){ await showMessage('이미 다른 학생이 사용 중인 학번입니다.'); return; }
+
     const targetDays = getSelectedDaysFromGrid('edit');
     if(seatMode === 'fixed' && deskId != null){
       const occupiedDays = getDeskOccupiedDays(deskId, s.id);
@@ -2502,7 +2559,7 @@
 
   // =================================================================
   // 지문 등록 / 층별 기기 연동
-  //  - 요청은 층별 경로(/scanRequest/f1, /enrollRequest/f2 ...)로만 보냅니다.
+  //  - 요청은 층별 경로(/dev/f1/scan, /dev/f2/enroll ...)로만 보냅니다.
   //  - 등록된 지문은 서버(/fpTemplates/{id})에 백업되고, 다른 층 센서로 자동 복사됩니다.
   // =================================================================
   let pendingNewEnrollFpId = null, pendingEnrollFloor = null, enrollTimer = null;
@@ -2545,7 +2602,7 @@
   }
   // 한 층에서 등록한 지문을 다른 층 센서로 복사하도록 요청
   function mirrorFp(fromFloor, fpId){
-    FLOORS.filter(f => f !== fromFloor).forEach(f => { queueIds('syncRequest/f' + f, [fpId]); });
+    FLOORS.filter(f => f !== fromFloor).forEach(f => { queueIds('dev/f' + f + '/sync', [fpId]); });
   }
 
   // ---------- 기기 상태 / 센서 용량 ----------
@@ -2556,6 +2613,8 @@
     FLOORS.forEach(f => { const d = deviceInfo['f' + f]; const c = d ? parseInt(d.capacity) : 0; if(c > 0 && c < m) m = c; });
     return m;
   }
+  function fmtUptime(sec){ sec = Math.max(0, Number(sec) || 0); const d = Math.floor(sec / 86400), h = Math.floor((sec % 86400) / 3600), m = Math.floor((sec % 3600) / 60); return d ? `${d}일 ${h}시간` : (h ? `${h}시간 ${m}분` : `${m}분`); }
+  function resetKo(r){ return ({ 'power-on': '전원 켜짐', 'software': '자동 재시작(복구·점검)', 'crash': '오류로 재시작', 'int-wdt': '감시 재시작', 'task-wdt': '감시 재시작', 'wdt': '감시 재시작', 'brownout': '전원 부족', 'other': '기타' })[r] || r; }
   function renderDeviceStatus(){
     updateDeviceBanner();
     const box = $('#deviceStatusBox'); if(!box) return;
@@ -2567,6 +2626,16 @@
         detail = on ? `센서 저장 ${esc(d.count != null ? d.count : '?')}개 / 용량 ${cap || '?'}개`
                     : `마지막 응답: ${Number(d.lastSeen) ? new Date(Number(d.lastSeen)).toLocaleString('ko-KR') : '-'}`;
         if(cap && cap < 300) detail += `<br><span style="color:#d70015;">센서 용량이 ${cap}개라서 ${cap}번까지만 사용할 수 있습니다.</span>`;
+        const extra = [];
+        if(d.rssi != null){ const r = Number(d.rssi); const q = r >= -60 ? '좋음' : (r >= -70 ? '보통' : (r >= -80 ? '약함' : '매우 약함')); extra.push(`와이파이 ${r}dBm (${q})`); }
+        if(d.uptime != null) extra.push(`가동 ${fmtUptime(d.uptime)}`);
+        if(d.heap != null) extra.push(`여유 메모리 ${Math.round(Number(d.heap) / 1024)}KB`);
+        extra.push(d.fw ? `펌웨어 v${esc(d.fw)}` : '구버전 펌웨어');
+        if(d.reset) extra.push(`마지막 재시작: ${esc(resetKo(d.reset))}`);
+        if(on && extra.length) detail += `<br><span style="font-size:11px;">${extra.join(' · ')}</span>`;
+        if(on && d.rssi != null && Number(d.rssi) <= -80) detail += `<br><span style="color:#d70015;">와이파이 신호가 약해 통신이 자주 끊길 수 있습니다. 공유기를 가까이 두거나 중계기를 설치해 주세요.</span>`;
+        if(on && Number(d.fails) >= 3) detail += `<br><span style="color:#d70015;">서버 응답 실패가 ${Number(d.fails)}회 연속 발생했습니다. 잠시 후에도 계속되면 기기를 재시작하세요.</span>`;
+        if(on && !d.fw) detail += `<br><span style="color:#d70015;">기기 펌웨어가 이전 버전입니다. 새 펌웨어(v2.0)를 올려주세요. 이전 버전은 이 화면과 통신하지 못합니다.</span>`;
       }
       return `<div class="list-item" style="align-items:flex-start;"><div><b>${f}층 기기</b> <span class="dot ${on ? 'on' : 'off'}" style="margin-left:6px;"></span>${on ? '연결됨' : '오프라인'}<div class="muted" style="margin-top:2px;">${detail}</div></div></div>`;
     }).join('');
@@ -2577,10 +2646,20 @@
     if(!ids.length){ showToast('복원할 지문이 없습니다.'); return; }
     if(!isOnline){ await showMessage('서버에 연결되지 않았습니다. 연결 상태를 확인해주세요.'); return; }
     if(!await showConfirm(`${floor}층 센서에 서버 백업 지문 ${ids.length}개를 복원합니다.\n복원하는 동안 해당 층 기기는 스캔에 응답하지 않을 수 있습니다. 진행할까요?`)) return;
-    await queueIds('syncRequest/f' + floor, ids);
+    await queueIds('dev/f' + floor + '/sync', ids);
     await window.logChange('센서 동기화 요청', `${floor}층 센서 ← 서버 백업 ${ids.length}개`);
     showToast(`${floor}층 기기에 복원을 요청했습니다.`);
   }
+  async function rebootDevice(floor){
+    if(!isOnline){ await showMessage('서버에 연결되지 않았습니다. 연결 상태를 확인해주세요.'); return; }
+    if(!deviceOnline(floor)){ await showMessage(`${floor}층 기기가 오프라인입니다. 원격 재시작은 기기가 서버와 통신 중일 때만 동작하므로, 기기 전원을 직접 껐다 켜 주세요.`); return; }
+    if(!await showConfirm(`${floor}층 지문 기기를 재시작합니다.\n재시작하는 동안(약 30초) 스캔과 지문 등록을 할 수 없습니다. 진행할까요?`)) return;
+    fbWrite('dev/f' + floor + '/reboot', { timestamp: serverNow() });
+    await window.logChange('기기 재시작 요청', `${floor}층 기기 원격 재시작`);
+    showToast(`${floor}층 기기에 재시작을 요청했습니다. 약 30초 뒤 "연결됨"으로 바뀝니다.`, 5000);
+  }
+  safeAddListener('#rebootF1Btn', 'click', () => rebootDevice(1));
+  safeAddListener('#rebootF2Btn', 'click', () => rebootDevice(2));
   safeAddListener('#syncF1Btn', 'click', () => syncFloorSensor(1));
   safeAddListener('#syncF2Btn', 'click', () => syncFloorSensor(2));
 
@@ -2597,8 +2676,18 @@
     try{ fbDB.ref('fpReserve/' + id).transaction(cur => (cur && cur.by === CLIENT_ID) ? null : undefined, function(){}, false); }catch(e){}
   }
   // 아직 배정되지 않은 가장 작은 번호를 선점
+  // 서버에 지문 백업이 있는 번호 (학생 없이 지문만 먼저 등록된 번호 포함)
+  async function getBackupIdSet(ms){
+    const s = new Set();
+    try{
+      const snap = await withTimeout(fbDB.ref('fpTemplates').once('value'), ms || 6000, null); const v = snap && snap.val();
+      if(v) Object.keys(v).forEach(k => { const n = parseInt(k); if(n) s.add(n); });
+    }catch(e){}
+    return s;
+  }
   async function allocateFpId(){
-    const cands = getUnusedFingerprintIds(maxUsableFpId());
+    const backups = await getBackupIdSet(4000);
+    const cands = getUnusedFingerprintIds(maxUsableFpId()).filter(id => !backups.has(id));
     for(const id of cands.slice(0, 40)){
       const ok = await Promise.race([reserveFpId(id), new Promise(r => setTimeout(() => r(false), 6000))]);
       if(ok) return id;
@@ -2660,7 +2749,7 @@
       }
       pendingSelfEnroll = { fpId, floor, name, studentNum: sNum, claim: !!claim };
       seSetState('wait', `${floor}층 지문 기기의 센서에 손가락을 올려주세요`, `배정 번호 ${fpId}번\n같은 손가락을 두 번 올려야 합니다. 기기 화면의 안내를 따라주세요.`);
-      fbWrite('enrollRequest/f' + floor, { fpId: fpId, floor: floor, timestamp: serverNow() });
+      fbWrite('dev/f' + floor + '/enroll', { fpId: fpId, floor: floor, timestamp: serverNow() });
       enrollTimeout(() => {
         if(pendingSelfEnroll && pendingSelfEnroll.fpId === fpId){
           releaseFpId(fpId); pendingSelfEnroll = null;
@@ -2680,11 +2769,11 @@
       pendingSelfEnroll = null;
       seSetState('error', '지문 번호가 다른 등록과 겹쳤습니다', '잠시 후 [다시 시도]를 눌러주세요. 문제가 계속되면 관리자에게 문의해주세요.'); return;
     }
-    let student = { name: p.name, studentNum: p.studentNum, deskId: null, fingerprintId: p.fpId, weeklySchedule: defaultWeekly(), monthlyGoalMinutes: 1200, monthlyElapsedSeconds: 0, monthlyHistory: {}, seatMode: 'flexible', fpRegistered: true, selfRegistered: true, registeredAt: Date.now() };
-    if(p.claim && exStu){ student = Object.assign({}, exStu, { fpRegistered: true, selfRegistered: true, registeredAt: Date.now() }); }
+    let student = { name: p.name, studentNum: p.studentNum, deskId: null, fingerprintId: p.fpId, weeklySchedule: defaultWeekly(), monthlyGoalMinutes: 1200, monthlyElapsedSeconds: 0, monthlyHistory: {}, seatMode: 'flexible', fpRegistered: true, selfRegistered: true, registeredAt: serverNow(), createdAt: serverNow() };
+    if(p.claim && exStu){ student = Object.assign({}, exStu, { fpRegistered: true, selfRegistered: true, registeredAt: serverNow() }); }
     try{
       await window.dbPut('students', student);
-      await window.dbPut('changelog', { timestamp: Date.now(), admin: '학생(메인 화면)', action: '지문 자가 등록', detail: `${p.studentNum} ${p.name} · 지문ID ${p.fpId} · ${p.floor}층 기기` });
+      await window.dbPut('changelog', { timestamp: serverNow(), admin: '학생(메인 화면)', action: '지문 자가 등록', detail: `${p.studentNum} ${p.name} · 지문ID ${p.fpId} · ${p.floor}층 기기` });
       mirrorFp(p.floor, p.fpId);
     }catch(e){
       pendingSelfEnroll = null; seSetState('error', '저장 중 오류가 발생했습니다', String(e && e.message || e)); return;
@@ -2756,7 +2845,7 @@
     if(pendingSelfEnroll){ await showMessage('메인 화면에서 지문 등록이 진행 중입니다. 잠시 후 다시 시도해주세요.'); return; }
     pendingEnrollFpId = null; pendingNewEnrollFpId = id; pendingEnrollFloor = floor;
     if(statusEl) statusEl.textContent = `${floor}층 기기에서 원격 지문 등록 대기 중... 기기에 손가락을 올려주세요 (45초 대기)`;
-    fbWrite('enrollRequest/f' + floor, { fpId: id, floor: floor, timestamp: serverNow() });
+    fbWrite('dev/f' + floor + '/enroll', { fpId: id, floor: floor, timestamp: serverNow() });
     enrollTimeout(() => { if(pendingNewEnrollFpId != null){ pendingNewEnrollFpId = null; if(statusEl) statusEl.textContent = `${floor}층 기기 응답이 없습니다. 기기가 켜져 있고 와이파이에 연결되어 있는지 확인해주세요.`; } });
   });
 
@@ -2779,7 +2868,7 @@
     if(pendingSelfEnroll){ await showMessage('메인 화면에서 지문 등록이 진행 중입니다. 잠시 후 다시 시도해주세요.'); return; }
     pendingNewEnrollFpId = null; pendingEnrollFpId = newId; pendingEnrollFloor = floor;
     if($('#feStatus2')) $('#feStatus2').textContent = `${floor}층 기기에서 원격 지문 등록 대기 중... 기기에 손가락을 올려주세요 (45초 대기)`;
-    fbWrite('enrollRequest/f' + floor, { fpId: newId, floor: floor, timestamp: serverNow() });
+    fbWrite('dev/f' + floor + '/enroll', { fpId: newId, floor: floor, timestamp: serverNow() });
     enrollTimeout(() => { if(pendingEnrollFpId != null){ pendingEnrollFpId = null; if($('#feStatus2')) $('#feStatus2').textContent = `${floor}층 기기 응답이 없습니다. 기기가 켜져 있고 와이파이에 연결되어 있는지 확인해주세요.`; } });
   });
 
@@ -2830,7 +2919,11 @@
       else { doneRecs.forEach(r => { if(r.elapsedSeconds) updates['attendance/' + r.id + '/elapsedSeconds'] = 0; }); }
       await fbMultiUpdate(updates);
       targetStudents.forEach(s => { s.monthlyElapsedSeconds = 0; });
-      if(mode === 'all'){ const del = new Set(doneRecs.map(r => String(r.id))); cache.attendance = cache.attendance.filter(a => !del.has(String(a.id))); }
+      if(mode === 'all'){
+        const del = new Set(doneRecs.map(r => String(r.id))); cache.attendance = cache.attendance.filter(a => !del.has(String(a.id)));
+        if(resetTimeTarget == null) addStatsSkip(null, null);
+        else { const sid = targetStudents[0].id, td = todayStr(); targetStudents[0].statsFrom = td; try{ fbDB.ref('students/' + sid + '/statsFrom').set(td); }catch(e){} }
+      }
       else { doneRecs.forEach(r => { r.elapsedSeconds = 0; }); }
       await window.logChange('학습시간 초기화', `${scopeText} · ${mode === 'all' ? '출결 기록 ' + doneRecs.length + '건 삭제' : '누적 시간만 초기화'}`);
       closeOverlay('ovResetTime'); showToast('학습 시간이 초기화되었습니다.'); triggerRender(); renderTimeManage();
@@ -2844,12 +2937,13 @@
     const arr = cache.students
       .filter(s => !q || String(s.name || '').toLowerCase().includes(q) || String(s.studentNum || '').toLowerCase().includes(q))
       .sort((a, b) => String(a.studentNum || '').localeCompare(String(b.studentNum || ''), undefined, { numeric: true }));
-    const totalMin = Math.round(cache.students.reduce((sum, s) => sum + (s.monthlyElapsedSeconds || 0), 0) / 60);
-    if($('#timeSummary')) $('#timeSummary').textContent = `조회 ${arr.length}명 / 전체 ${cache.students.length}명 · 전체 누적 ${fmtMin(totalMin)}`;
+    const monthMap = buildMonthSecondsMap();
+    const totalMin = Math.round(cache.students.reduce((sum, s) => sum + (monthMap.get(String(s.id)) || 0), 0) / 60);
+    if($('#timeSummary')) $('#timeSummary').textContent = `조회 ${arr.length}명 / 전체 ${cache.students.length}명 · 이번 달 전체 ${fmtMin(totalMin)}`;
     if(arr.length === 0){ list.innerHTML = '<p class="muted" style="padding:12px; text-align:center;">해당하는 학생이 없습니다.</p>'; return; }
     list.innerHTML = arr.map(s => {
-      const m = Math.round((s.monthlyElapsedSeconds || 0) / 60);
-      return `<div class="list-item"><span><b>${esc(s.name)}</b> <span class="muted">${esc(s.studentNum || '')} · 누적 ${fmtMin(m)}</span></span><button class="btn btn-secondary" data-resettime="${esc(s.id)}" style="padding:0 14px; font-size:12px; height:32px; flex-shrink:0;">초기화</button></div>`;
+      const m = Math.round((monthMap.get(String(s.id)) || 0) / 60);
+      return `<div class="list-item"><span><b>${esc(s.name)}</b> <span class="muted">${esc(s.studentNum || '')} · 이번 달 ${fmtMin(m)}</span></span><button class="btn btn-secondary" data-resettime="${esc(s.id)}" style="padding:0 14px; font-size:12px; height:32px; flex-shrink:0;">초기화</button></div>`;
     }).join('');
     $$('#timeStudentList [data-resettime]').forEach(b => { b.onclick = () => openResetTime(b.dataset.resettime); });
   }
@@ -2861,7 +2955,7 @@
 
   // =================================================================
   // [1] 센서 지문 삭제 (학생 삭제 / 지문만 삭제 / 미사용 번호 정리)
-  //  - 삭제 요청은 /deleteRequest/f1, /deleteRequest/f2 에 번호 목록으로 쌓이고,
+  //  - 삭제 요청은 /dev/f1/delete, /dev/f2/delete 에 번호 목록으로 쌓이고,
   //    각 층 기기가 자기 센서에서 해당 번호를 지웁니다. (기기가 꺼져 있어도 켜지면 처리)
   //  - 기기는 삭제 요청을 스캔/등록보다 먼저 처리하므로, 지워진 번호를 다른 학생이 재사용해도 안전합니다.
   // =================================================================
@@ -2886,7 +2980,7 @@
     const list = Array.from(new Set((ids || []).map(v => parseInt(v)).filter(v => v >= 1 && v <= 300)));
     if(!list.length) return true;
     const jobs = [];
-    FLOORS.forEach(f => { jobs.push(queueIds('deleteRequest/f' + f, list)); jobs.push(unqueueIds('syncRequest/f' + f, list)); });
+    FLOORS.forEach(f => { jobs.push(queueIds('dev/f' + f + '/delete', list)); jobs.push(unqueueIds('dev/f' + f + '/sync', list)); });
     const res = await withTimeout(Promise.all(jobs), 10000, null);
     return !!res && res.every(Boolean);
   }
@@ -2938,9 +3032,10 @@
     [pendingEnrollFpId, pendingNewEnrollFpId].forEach(v => { if(v != null) reserved.add(parseInt(v)); });
     if(pendingSelfEnroll) reserved.add(pendingSelfEnroll.fpId);
     lastEnrolledFpIds.forEach(v => reserved.add(parseInt(v)));
-    const ids = []; for(let i = 1; i <= 300; i++){ if(!used.has(i) && !reserved.has(i)) ids.push(i); }
+    const backups = await getBackupIdSet(8000);
+    const ids = []; for(let i = 1; i <= 300; i++){ if(!used.has(i) && !reserved.has(i) && !backups.has(i)) ids.push(i); }
     if(!ids.length){ await showMessage('정리할 번호가 없습니다.'); return; }
-    if(!await showConfirm(`학생에게 배정되지 않은 지문 번호 ${ids.length}개(1~300번 중)를 두 층 센서와 서버 백업에서 삭제합니다.\n\n· 학생이 등록된 번호는 건드리지 않습니다.\n· 지문만 먼저 등록해 두고 아직 학생을 추가하지 않은 번호가 있다면 그 지문도 삭제됩니다.\n\n진행할까요?`)) return;
+    if(!await showConfirm(`학생에게 배정되지 않은 지문 번호 ${ids.length}개(1~300번 중)를 두 층 센서와 서버 백업에서 삭제합니다.\n\n· 학생이 등록된 번호는 건드리지 않습니다.\n· 지문만 먼저 등록하고 아직 학생을 추가하지 않은 번호(서버에 백업이 남아 있는 번호)는 지우지 않습니다.\n\n진행할까요?`)) return;
     const upd = {}; ids.forEach(i => { upd['fpTemplates/' + i] = null; });
     try{ await withTimeout(fbMultiUpdate(upd), 10000, null); }catch(e){}
     const sent = await queueSensorDelete(ids);
@@ -3062,7 +3157,8 @@
       else { claimed.add(n); e.fp = n; }
     });
     // 나머지는 비어 있는 번호를 자동 배정
-    const pool = []; for(let i = 1; i <= maxId; i++){ if(!usedFp.has(i) && !claimed.has(i) && !reserved.has(i)) pool.push(i); }
+    const backups = await getBackupIdSet(8000);
+    const pool = []; for(let i = 1; i <= maxId; i++){ if(!usedFp.has(i) && !claimed.has(i) && !reserved.has(i) && !backups.has(i)) pool.push(i); }
     let pi = 0;
     out.forEach(e => {
       if(e.status !== 'ok' || e.fp != null) return;
@@ -3102,7 +3198,7 @@
       const defMode = ($('#biSeatMode') && $('#biSeatMode').value === 'fixed') ? 'fixed' : 'flexible';
       const updates = {}; const newIds = [];
       ok.forEach(r => {
-        updates['students/' + r.fp] = { id: r.fp, name: r.name, studentNum: r.num, fingerprintId: r.fp, weeklySchedule: r.weekly, monthlyGoalMinutes: r.goal, monthlyElapsedSeconds: 0, monthlyHistory: {}, seatMode: r.seatMode || defMode, fpRegistered: lastEnrolledFpIds.has(r.fp), bulkRegistered: true };
+        updates['students/' + r.fp] = { id: r.fp, name: r.name, studentNum: r.num, fingerprintId: r.fp, weeklySchedule: r.weekly, monthlyGoalMinutes: r.goal, monthlyElapsedSeconds: 0, monthlyHistory: {}, seatMode: r.seatMode || defMode, fpRegistered: lastEnrolledFpIds.has(r.fp), bulkRegistered: true, createdAt: serverNow() };
         newIds.push(r.fp);
       });
       await fbMultiUpdate(updates);
@@ -3160,7 +3256,7 @@
     const resetTotal = !!($('#arResetTotal') && $('#arResetTotal').checked);
     const range = (from || to) ? `${from || '처음'} ~ ${to || '오늘'}` : '전체 기간';
     const stuCount = new Set(recs.map(r => String(r.studentId))).size;
-    if(!await showConfirm(`출결 기록 ${recs.length}건 (${range}, 학생 ${stuCount}명)을 삭제합니다.` + (resetTotal ? `\n월 누적 학습시간도 전체 학생 ${cache.students.length}명 0분으로 초기화합니다.` : '') + '\n\n지각·결석 통계와 출결 이력에서 사라지며 되돌릴 수 없습니다. 오늘 입실·자리비움 중인 기록은 제외됩니다. 진행할까요?')) return;
+    if(!await showConfirm(`출결 기록 ${recs.length}건 (${range}, 학생 ${stuCount}명)을 삭제합니다.` + (resetTotal ? `\n남아 있는 이번 달 학습시간도 0분으로 초기화합니다.` : '') + '\n\n지각·결석 통계와 출결 이력에서 사라지며 되돌릴 수 없습니다. 오늘 입실·자리비움 중인 기록은 제외됩니다. 진행할까요?')) return;
     if(!from && !to){
       const input = await showPrompt('전체 기간을 삭제하려면 아래에 "출결초기화"라고 입력해주세요.', '출결초기화');
       if(input !== '출결초기화'){ await showMessage('확인 문구가 일치하지 않아 취소되었습니다.'); return; }
@@ -3168,11 +3264,14 @@
     try{
       const updates = {};
       recs.forEach(r => { updates['attendance/' + r.id] = null; });
-      if(resetTotal) cache.students.forEach(s => { updates['students/' + s.id + '/monthlyElapsedSeconds'] = 0; });
+      const del = new Set(recs.map(r => String(r.id)));
+      const zeroed = [];
+      if(resetTotal){ const pre = monthStr(); cache.attendance.forEach(a => { if(a && a.id != null && !del.has(String(a.id)) && a.date && String(a.date).startsWith(pre) && !isActiveRecord(a) && a.elapsedSeconds){ updates['attendance/' + a.id + '/elapsedSeconds'] = 0; zeroed.push(a); } }); }
       await fbMultiUpdate(updates);
-      const del = new Set(recs.map(r => String(r.id))); cache.attendance = cache.attendance.filter(a => !del.has(String(a.id)));
-      if(resetTotal) cache.students.forEach(s => { s.monthlyElapsedSeconds = 0; });
-      await window.logChange('출결 기록 초기화', `${range} · ${recs.length}건 삭제` + (resetTotal ? ' · 월 누적 시간 초기화' : ''));
+      cache.attendance = cache.attendance.filter(a => !del.has(String(a.id)));
+      zeroed.forEach(a => { a.elapsedSeconds = 0; });
+      addStatsSkip(from, to);
+      await window.logChange('출결 기록 초기화', `${range} · ${recs.length}건 삭제` + (resetTotal ? ' · 남은 이번 달 학습시간 초기화' : ''));
       showToast(`출결 기록 ${recs.length}건을 삭제했습니다.`); renderAttendanceResetInfo(); renderTimeManage(); triggerRender();
     }catch(e){ await showMessage('초기화 중 오류가 발생했습니다: ' + (e && e.message ? e.message : e)); }
   }
@@ -3196,7 +3295,7 @@
     if(mode === 'all'){ doneRecs.forEach(r => { updates['attendance/' + r.id] = null; }); }
     else { doneRecs.forEach(r => { if(r.elapsedSeconds) updates['attendance/' + r.id + '/elapsedSeconds'] = 0; }); }
     await fbMultiUpdate(updates);
-    if(mode === 'all'){ const del = new Set(doneRecs.map(r => String(r.id))); cache.attendance = cache.attendance.filter(a => !del.has(String(a.id))); }
+    if(mode === 'all'){ const del = new Set(doneRecs.map(r => String(r.id))); cache.attendance = cache.attendance.filter(a => !del.has(String(a.id))); addStatsSkip(null, null); }
     return { students: targetStudents.length, records: doneRecs.length, skippedActive: records.length - doneRecs.length };
   }
 
@@ -3348,8 +3447,8 @@
     const cnt = { present: 0, away: 0, left: 0, miss: 0 }; rows.forEach(r => { cnt[r.st]++; });
     const sup = (typeof supFor === 'function') ? supFor(todayStr()) : null;
     const supTxt = sup && (supClean(sup.f1) || supClean(sup.f2)) ? ` · 감독 1층 ${supClean(sup.f1) || '-'} / 2층 ${supClean(sup.f2) || '-'}` : '';
-    const now = new Date();
-    $('#tvSub').textContent = `${todayStr()} (${DAY_LABELS[todayDayKey()] || ''}) ${pad2(now.getHours())}:${pad2(now.getMinutes())} 기준 · 퇴실 ${cnt.left}명${supTxt}`;
+    const now = new Date(serverNow());
+    $('#tvSub').textContent = `${todayStr()} (${'일월화수목금토'[bizDate().getDay()]}) ${pad2(now.getHours())}:${pad2(now.getMinutes())} 기준 · 퇴실 ${cnt.left}명${supTxt}`;
     $('#tvStats').innerHTML = `<div class="tv-stat"><b>${rows.length}</b><span>오늘 명단</span></div><div class="tv-stat"><b style="color:#248a3d">${cnt.present}</b><span>재실</span></div><div class="tv-stat"><b style="color:#b28900">${cnt.away}</b><span>자리비움</span></div><div class="tv-stat miss"><b>${cnt.miss}</b><span>미입실</span></div>`;
     $('#tvTabMiss').textContent = `미입실 ${cnt.miss}`; $('#tvTabAll').textContent = `전체 명단 ${rows.length}`;
     $('#tvTabMiss').classList.toggle('on', tvTab === 'miss'); $('#tvTabAll').classList.toggle('on', tvTab === 'all');
@@ -3378,10 +3477,10 @@
   async function exportFullBackup(){
     try{
       const wb = XLSX.utils.book_new();
-      const byId = new Map(cache.students.map(s => [String(s.id), s]));
+      const byId = new Map(cache.students.map(s => [String(s.id), s])); const monthMap = buildMonthSecondsMap();
       const stuRows = cache.students.slice().sort((a, b) => String(a.studentNum).localeCompare(String(b.studentNum), undefined, { numeric: true })).map(s => {
         const desk = s.deskId != null ? findDesk(s.deskId) : null;
-        const row = { '학번': s.studentNum, '이름': s.name, '지문ID': s.fingerprintId, '지문등록': s.fpRegistered ? 'O' : 'X', '좌석유형': s.seatMode === 'fixed' ? '고정' : '자율', '좌석': desk ? deskLabel(desk) : '', '월목표(분)': s.monthlyGoalMinutes || 0, '월누적(분)': Math.round((s.monthlyElapsedSeconds || 0) / 60) };
+        const row = { '학번': s.studentNum, '이름': s.name, '지문ID': s.fingerprintId, '지문등록': s.fpRegistered ? 'O' : 'X', '좌석유형': s.seatMode === 'fixed' ? '고정' : '자율', '좌석': desk ? deskLabel(desk) : '', '월목표(분)': s.monthlyGoalMinutes || 0, '이번달학습(분)': Math.round(((monthMap.get(String(s.id)) || 0)) / 60) };
         DAYS.forEach(([k, l]) => { const d = s.weeklySchedule && s.weeklySchedule[k]; row[l] = d && d.enabled ? `${d.start}-${d.end}` : ''; });
         return row;
       });
@@ -3502,9 +3601,9 @@
         if(!st){
           gridHtml += `<div class="fp-tile empty" title="${i}번: 미지정 빈 번호" data-fpid="${i}">${i}</div>`;
         } else if(st.fpRegistered){
-          gridHtml += `<div class="fp-tile enrolled" title="${i}번: ${st.name} (지문 등록완료)" data-fpid="${i}">${i}</div>`;
+          gridHtml += `<div class="fp-tile enrolled" title="${i}번: ${esc(st.name)} (지문 등록완료)" data-fpid="${i}">${i}</div>`;
         } else {
-          gridHtml += `<div class="fp-tile assigned-only" title="${i}번: ${st.name} (지문 미등록)" data-fpid="${i}">${i}</div>`;
+          gridHtml += `<div class="fp-tile assigned-only" title="${i}번: ${esc(st.name)} (지문 미등록)" data-fpid="${i}">${i}</div>`;
         }
       }
       grid.innerHTML = gridHtml;
@@ -3533,7 +3632,7 @@
   safeAddListener('#btnViewFpStatus', 'click', renderFingerprintStatusModal);
   safeAddListener('#btnViewFpStatus2', 'click', renderFingerprintStatusModal);
 
-  function updateClock(){ if($('#clockText')) $('#clockText').textContent = new Date().toLocaleString('ko-KR',{hour:'2-digit',minute:'2-digit',month:'long',day:'numeric',weekday:'short'}); renderSupervisionBar(); }
+  function updateClock(){ if($('#clockText')) $('#clockText').textContent = new Date(serverNow()).toLocaleString('ko-KR',{hour:'2-digit',minute:'2-digit',month:'long',day:'numeric',weekday:'short'}); renderSupervisionBar(); }
   
   async function checkDateRollover(){
     const today = todayStr();
@@ -3544,8 +3643,54 @@
     }
   }
 
-  async function cleanupStaleRecords(){}
-  async function runAutoCheckout(){}
+  // ---- 자동 퇴실 마감 ----
+  //  · 요일별 운영 종료 시각(+여유 분)이 지나면 재실·자리비움 상태의 기록을 자동으로 퇴실 처리하고 학습시간을 계산합니다.
+  //  · 운영하지 않는 요일의 기록은 다음 영업일 시작(오전 6시)에 마감합니다.
+  //  · 여러 화면이 동시에 켜져 있어도 기록별 트랜잭션으로 한 번만 처리됩니다.
+  function closeTimeFor(dateStr){
+    const p = String(dateStr).split('-').map(Number); if(p.length !== 3 || p.some(isNaN)) return Infinity;
+    const y = p[0], m = p[1], d = p[2];
+    const win = opHoursFor(DAY_KEYS[new Date(y, m - 1, d).getDay()]);
+    const grace = Math.max(0, Math.min(180, Number(settings.autoCheckoutGraceMin) || 0));
+    let end;
+    if(win){
+      const s = win.start.split(':').map(Number), e = win.end.split(':').map(Number);
+      end = new Date(y, m - 1, d, e[0], e[1], 0, 0);
+      if(s[0] > e[0] || (s[0] === e[0] && s[1] > e[1])) end.setDate(end.getDate() + 1);
+    } else { end = new Date(y, m - 1, d + 1, 6, 0, 0, 0); }
+    return end.getTime() + grace * 60000;
+  }
+  function closeRecordTx(r, outTs, auto){
+    return new Promise(resolve => {
+      fbDB.ref('attendance/' + r.id).transaction(cur => {
+        if(cur === null) return null;                                   // 로컬에 없으면 SDK가 서버 값으로 다시 호출함
+        if(cur.status !== 'present' && cur.status !== 'away') return;   // 이미 퇴실 처리됨 -> 중단
+        const inAt = Number(cur.checkIn) || outTs, out = Math.max(outTs, inAt);
+        let brk = Number(cur.totalBreakSeconds) || 0;
+        if(cur.status === 'away' && cur.lastBreakStart) brk += calcValidSeconds(Number(cur.lastBreakStart), out);
+        const el = Math.round(Math.max(0, calcValidSeconds(inAt, out) - brk));
+        const nv = Object.assign({}, cur, { status: 'left', checkOut: out, lastBreakStart: null, totalBreakSeconds: brk, elapsedSeconds: el });
+        if(auto) nv.autoClosed = true;
+        return nv;
+      }, (err, committed) => resolve(!err && !!committed), false);
+    });
+  }
+  function closeRecordAuto(r){ return closeRecordTx(r, closeTimeFor(r.date), true); }
+  let autoCloseBusy = false;
+  async function autoCheckoutSweep(onlyPast){
+    if(autoCloseBusy || !isReady() || !isOnline || settings.autoCheckout === false) return 0;
+    autoCloseBusy = true; let n = 0;
+    try{
+      const now = serverNow(), today = todayStr();
+      const targets = cache.attendance.filter(r => r && r.id != null && r.date && (r.status === 'present' || r.status === 'away') && (!onlyPast || r.date < today) && closeTimeFor(r.date) <= now);
+      for(const r of targets.slice(0, 300)){ if(await closeRecordAuto(r)) n++; }
+    }catch(e){ console.error(e); }
+    finally { autoCloseBusy = false; }
+    if(n){ triggerRender(); }
+    return n;
+  }
+  async function cleanupStaleRecords(){ return autoCheckoutSweep(true); }
+  async function runAutoCheckout(){ return autoCheckoutSweep(false); }
 
   function onDataLoaded(){ if(startedUp || !isReady()) return; startedUp = true; (async () => { try{ await checkDateRollover(); await cleanupStaleRecords(); await runAutoCheckout(); }catch(e){} })(); }
 
@@ -3584,6 +3729,7 @@
 
     setInterval(updateClock, 15000); setInterval(checkDateRollover, 30000);
     setInterval(() => { if(isTeacherOpen()) renderTeacherView(); }, 30000);
+    setInterval(() => { runAutoCheckout(); }, 60000);
     fbDB.ref('.info/connected').on('value', () => { setTimeout(updateDeviceBanner, 200); });
     if(/[?&]teacher=1(&|$)/.test(location.search) || location.hash === '#teacher'){
       const tryOpen = () => { if(isReady()) requireAdmin(openTeacherView); else setTimeout(tryOpen, 500); };
