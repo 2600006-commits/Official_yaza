@@ -475,6 +475,56 @@
   .cal-cell input{ width:100%; min-width:0; padding:5px 6px; border-radius:8px; border:1px solid rgba(120,120,128,0.25); background:rgba(255,255,255,0.8); font-size:12px; font-family:inherit; box-sizing:border-box; color:inherit; }
   body.dark .cal-cell input{ background:rgba(0,0,0,0.25); color:#f2f2f5; }
   #ovSupervision .modal{ max-width:760px; }
+
+  /* ===== 관리자 메뉴 (분류별 사이드 메뉴) ===== */
+  #ovAdmin .modal.adm-modal{ max-width:1000px; height:88vh; max-height:88vh; padding:0; overflow:hidden; display:flex; background:rgba(250,250,253,0.97); }
+  body.dark #ovAdmin .modal.adm-modal{ background:rgba(24,24,32,0.97); }
+  .adm-modal > .close-x{ z-index:10; }
+  .adm-layout{ display:grid; grid-template-columns:236px minmax(0,1fr); width:100%; height:100%; min-height:0; position:relative; }
+  .adm-nav{ border-right:1px solid rgba(120,120,128,0.18); overflow-y:auto; padding:18px 10px 18px; background:rgba(255,255,255,0.28); }
+  body.dark .adm-nav{ background:rgba(255,255,255,0.03); border-right-color:rgba(255,255,255,0.08); }
+  .adm-nav h2{ margin:2px 0 12px 8px; font-size:17px; }
+  .adm-search{ position:relative; margin:0 2px 4px; }
+  .adm-search .ico{ position:absolute; left:11px; top:50%; transform:translateY(-50%); width:15px; height:15px; color:var(--text-secondary); }
+  #admSearch{ width:100%; padding:9px 12px 9px 32px; border-radius:999px; border:1px solid rgba(120,120,128,0.25); background:rgba(255,255,255,0.8); font-family:inherit; font-size:13px; box-sizing:border-box; color:inherit; }
+  body.dark #admSearch{ background:rgba(0,0,0,0.25); }
+  .adm-group-label{ font-size:11px; font-weight:700; color:var(--text-secondary); margin:14px 10px 4px; }
+  .adm-item{ display:flex; align-items:center; gap:10px; width:100%; text-align:left; border:none; background:transparent; padding:8px 10px; border-radius:12px; font-family:inherit; font-size:14px; font-weight:600; color:var(--text-primary); cursor:pointer; margin-bottom:2px; }
+  .adm-item > .ico, .adm-item > span[data-ico] .ico{ width:18px; height:18px; flex-shrink:0; color:var(--accent); }
+  .adm-item .lbl{ flex:1; min-width:0; display:flex; flex-direction:column; gap:1px; }
+  .adm-item small{ font-size:11px; font-weight:400; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .adm-item .badge2{ font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:999px; background:rgba(120,120,128,0.14); color:var(--text-secondary); white-space:nowrap; }
+  .adm-item .badge2:empty{ display:none; }
+  .adm-item .badge2.warn{ background:rgba(255,59,48,0.14); color:#d70015; }
+  .adm-item:hover{ background:rgba(120,120,128,0.10); }
+  .adm-item.active{ background:var(--accent); color:#fff; }
+  .adm-item.active small, .adm-item.active .ico{ color:rgba(255,255,255,0.88) !important; }
+  .adm-item.active .badge2{ background:rgba(255,255,255,0.25); color:#fff; }
+  .adm-empty{ display:none; font-size:12px; color:var(--text-secondary); padding:14px 10px; }
+  .adm-main{ overflow-y:auto; padding:22px 26px 30px; min-width:0; }
+  .adm-head{ display:flex; gap:12px; align-items:flex-start; padding-right:40px; }
+  .adm-crumb{ font-size:11px; font-weight:700; color:var(--accent); }
+  #admTitle{ margin:2px 0 3px; font-size:21px; }
+  #admDesc{ margin:0; font-size:12.5px; }
+  .adm-menu-btn{ display:none; align-items:center; gap:6px; border:none; background:rgba(120,120,128,0.14); color:var(--text-primary); font-family:inherit; font-size:13px; font-weight:600; padding:8px 12px; border-radius:999px; cursor:pointer; flex-shrink:0; margin-top:2px; }
+  .adm-jump{ display:flex; gap:6px; flex-wrap:wrap; margin:12px 0 4px; }
+  .adm-jump:empty{ display:none; }
+  .adm-jump button{ border:none; background:rgba(10,132,255,0.10); color:var(--accent); font-size:12px; font-weight:600; padding:6px 11px; border-radius:999px; cursor:pointer; font-family:inherit; }
+  .adm-main .tabpane > h3:first-child, .adm-main .tabpane > :first-child h3{ margin-top:14px; }
+  .adm-main .tabpane h3{ scroll-margin-top:12px; }
+  .fab-label{ font-size:11px; font-weight:700; color:var(--text-secondary); background:rgba(255,255,255,0.85); padding:3px 10px; border-radius:999px; margin-top:4px; }
+  body.dark .fab-label{ background:rgba(40,40,52,0.9); color:#a3a3ad; }
+  @media (max-width:760px){
+    #ovAdmin .modal.adm-modal{ height:92vh; max-height:92vh; }
+    .adm-layout{ grid-template-columns:minmax(0,1fr); }
+    .adm-nav{ position:absolute; inset:0; z-index:5; display:none; border-right:none; background:#f6f6fa; padding:18px 14px; }
+    body.dark .adm-nav{ background:#18181f; }
+    .adm-modal.nav-open .adm-nav{ display:block; }
+    .adm-menu-btn{ display:inline-flex; }
+    .adm-main{ padding:16px 16px 26px; }
+    #admTitle{ font-size:18px; }
+    .adm-item{ padding:11px 10px; }
+  }
 </style>
 </head>
 <body>
@@ -573,19 +623,15 @@
 
 <div class="fab-wrap" id="adminFab">
   <div class="fab-menu" id="fabMenu">
+    <div class="fab-label">자주 쓰는 메뉴</div>
     <button class="fab-item" data-action="students">학생 관리</button>
-    <button class="fab-item" data-action="time">학습·출결 관리</button>
-    <button class="fab-item" data-action="layout">좌석 배치 모드</button>
-    <button class="fab-item" data-action="rules">규정 관리</button>
-    <button class="fab-item" data-action="settings">운영 설정 (마감)</button>
-    <button class="fab-item" data-action="floormode">층별 출석 모드</button>
-    <button class="fab-item" data-action="ranking">랭킹</button>
-    <button class="fab-item" data-action="stats">통계</button>
-    <button class="fab-item" data-action="supervision">감독표 (1·2층)</button>
-    <button class="fab-item" data-action="diary">감독일지</button>
-    <button class="fab-item" data-action="log">변경 이력</button>
-    <button class="fab-item" data-action="device">기기 연결 (지문 등록)</button>
-    <button class="fab-item danger" data-action="kiosk">키오스크 모드 시작</button>
+    <button class="fab-item" data-action="time">학습·출결</button>
+    <button class="fab-item" data-action="supervision">감독표</button>
+    <button class="fab-item" data-action="stats">통계·랭킹</button>
+    <button class="fab-item" data-action="menu"><b>전체 메뉴 보기</b></button>
+    <div class="fab-label">화면 작업</div>
+    <button class="fab-item" data-action="layout">좌석 배치 편집</button>
+    <button class="fab-item" data-action="kiosk">키오스크 모드 시작</button>
     <button class="fab-item danger" data-action="exit">관리자 모드 종료</button>
   </div>
   <button class="fab-main" id="fabToggle" aria-label="메뉴"><span data-ico="menu"></span></button>
@@ -593,37 +639,45 @@
 
 <button id="exitKioskBtn" class="kiosk-exit-btn">길게 눌러 키오스크 종료</button>
 
-<!-- 관리자 패널 모달 -->
+<!-- 관리자 패널 모달 (분류별 메뉴) -->
 <div class="overlay" id="ovAdmin">
-  <div class="modal glass" style="max-width:540px;">
+  <div class="modal glass adm-modal" id="admModal">
     <button class="close-x" data-close="ovAdmin"></button>
-    <h2>관리자 패널</h2>
-    
-    <!-- 반응형 탭 메뉴 적용 -->
-    <div class="tabbar-container">
-      <div class="tabbar">
-        <button class="tabbtn active" data-tab="students">학생 관리</button>
-        <button class="tabbtn" data-tab="time">학습·출결 관리</button>
-        <button class="tabbtn" data-tab="layout">좌석 배치</button>
-        <button class="tabbtn" data-tab="supervision">감독표</button>
-        <button class="tabbtn" data-tab="stats">통계</button>
-        <div style="position:relative;">
-          <button class="btn btn-secondary" id="moreTabsBtn" style="padding:8px 14px; border-radius:999px; font-size:12px; white-space:nowrap; background:rgba(120,120,128,0.14);">더보기 <span data-ico="chevD"></span></button>
-          <div id="moreTabsMenu" class="glass" style="display:none; position:absolute; right:0; top:100%; margin-top:4px; flex-direction:column; padding:6px; border-radius:12px; z-index:100; min-width:110px;">
-            <button class="tabbtn" data-tab="rules" style="width:100%; text-align:left; background:transparent; padding:8px 12px;">규정 관리</button>
-            <button class="tabbtn" data-tab="settings" style="width:100%; text-align:left; background:transparent; padding:8px 12px;">운영 설정</button>
-            <button class="tabbtn" data-tab="floormode" style="width:100%; text-align:left; background:transparent; padding:8px 12px;">층별 모드</button>
-            <button class="tabbtn" data-tab="ranking" style="width:100%; text-align:left; background:transparent; padding:8px 12px;">랭킹</button>
-            <button class="tabbtn" data-tab="diary" style="width:100%; text-align:left; background:transparent; padding:8px 12px;">감독일지</button>
-            <button class="tabbtn" data-tab="log" style="width:100%; text-align:left; background:transparent; padding:8px 12px;">변경 이력</button>
-            <button class="tabbtn" data-tab="device" style="width:100%; text-align:left; background:transparent; padding:8px 12px;">기기 연결</button>
-          </div>
+    <div class="adm-layout">
+      <nav class="adm-nav" id="admNav" aria-label="관리자 메뉴">
+        <h2>관리자 메뉴</h2>
+        <div class="adm-search"><span data-ico="search"></span><input id="admSearch" type="search" placeholder="메뉴 검색 (예: 비밀번호)" autocomplete="off"></div>
+        <div class="adm-group"><div class="adm-group-label">학생</div>
+          <button class="tabbtn adm-item" data-tab="students" data-group="학생" data-kw="학생 관리 목록 · 등록 · 엑셀 일괄 등록 학생 등록 수정 삭제 엑셀 일괄 학번 이름 지문번호 목표시간 좌석유형 필터 검색"><span data-ico="users"></span><span class="lbl">학생 관리<small>목록 · 등록 · 엑셀 일괄 등록</small></span><span class="badge2" data-badge="students"></span></button>
+          <button class="tabbtn adm-item" data-tab="device" data-group="학생" data-kw="지문·기기 기기 상태 · 원격 등록 · 센서 지문 기기 센서 원격 등록 재등록 재시작 동기화 와이파이 정리 미사용 연결 상태"><span data-ico="fingerprint"></span><span class="lbl">지문·기기<small>기기 상태 · 원격 등록 · 센서</small></span><span class="badge2" data-badge="device"></span></button>
         </div>
-      </div>
-    </div>
+        <div class="adm-group"><div class="adm-group-label">출결 · 운영</div>
+          <button class="tabbtn adm-item" data-tab="time" data-group="출결 · 운영" data-kw="학습·출결 학습시간 · 출결 초기화 · 학기 전환 학습시간 출결 초기화 학기 전환 마법사 졸업 기록 삭제"><span data-ico="clock"></span><span class="lbl">학습·출결<small>학습시간 · 출결 초기화 · 학기 전환</small></span><span class="badge2" data-badge="time"></span></button>
+          <button class="tabbtn adm-item" data-tab="settings" data-group="출결 · 운영" data-kw="운영 시간 요일별 운영 · 자동 퇴실 운영 시간 요일 자동 퇴실 마감 여유 시작 종료"><span data-ico="calendar"></span><span class="lbl">운영 시간<small>요일별 운영 · 자동 퇴실</small></span><span class="badge2" data-badge="settings"></span></button>
+          <button class="tabbtn adm-item" data-tab="seats" data-group="출결 · 운영" data-kw="좌석·층 설정 배치도 편집 · 층별 출석 모드 좌석 배치 책상 배치도 층별 모드 자율석 고정석 랜덤 자리 선택 공유 좌석표 이미지 제한 시간"><span data-ico="grid"></span><span class="lbl">좌석·층 설정<small>배치도 편집 · 층별 출석 모드</small></span><span class="badge2" data-badge="seats"></span></button>
+          <button class="tabbtn adm-item" data-tab="rules" data-group="출결 · 운영" data-kw="야자 규정 규정 문구 편집 규정 야자 안내 문구"><span data-ico="book"></span><span class="lbl">야자 규정<small>규정 문구 편집</small></span><span class="badge2" data-badge="rules"></span></button>
+        </div>
+        <div class="adm-group"><div class="adm-group-label">감독</div>
+          <button class="tabbtn adm-item" data-tab="supervision" data-group="감독" data-kw="감독표 월별 감독 캘린더 · 엑셀 감독표 감독 교사 캘린더 달력 엑셀 양식"><span data-ico="calendar"></span><span class="lbl">감독표<small>월별 감독 캘린더 · 엑셀</small></span><span class="badge2" data-badge="supervision"></span></button>
+          <button class="tabbtn adm-item" data-tab="diary" data-group="감독" data-kw="감독일지 날짜별 감독 기록 감독일지 일지 기록 작성"><span data-ico="clipboard"></span><span class="lbl">감독일지<small>날짜별 감독 기록</small></span><span class="badge2" data-badge="diary"></span></button>
+        </div>
+        <div class="adm-group"><div class="adm-group-label">현황 · 기록</div>
+          <button class="tabbtn adm-item" data-tab="stats" data-group="현황 · 기록" data-kw="통계·랭킹 학습 추이 · 목표 달성 · 지각/결석 · 랭킹 통계 랭킹 순위 목표 달성률 지각 결석 요일별 추이 명예의 전당"><span data-ico="chart"></span><span class="lbl">통계·랭킹<small>학습 추이 · 목표 달성 · 지각/결석 · 랭킹</small></span><span class="badge2" data-badge="stats"></span></button>
+          <button class="tabbtn adm-item" data-tab="log" data-group="현황 · 기록" data-kw="변경 이력 관리자 작업 기록 변경 이력 로그 기록 작업 누가"><span data-ico="history"></span><span class="lbl">변경 이력<small>관리자 작업 기록</small></span><span class="badge2" data-badge="log"></span></button>
+        </div>
+        <div class="adm-group"><div class="adm-group-label">데이터 · 보안</div>
+          <button class="tabbtn adm-item" data-tab="backup" data-group="데이터 · 보안" data-kw="백업·보안 엑셀 백업 · 지문 파일 · 비밀번호 백업 엑셀 지문 파일 복원 내려받기 올리기 비밀번호 암호 보안"><span data-ico="shield"></span><span class="lbl">백업·보안<small>엑셀 백업 · 지문 파일 · 비밀번호</small></span><span class="badge2" data-badge="backup"></span></button>
+        </div>
+        <div class="adm-empty" id="admEmpty">찾는 메뉴가 없습니다.</div>
+      </nav>
+      <section class="adm-main" id="admMain">
+        <div class="adm-head">
+          <button type="button" class="adm-menu-btn" id="admMenuBtn"><span data-ico="menu"></span> 메뉴</button>
+          <div style="min-width:0;"><div class="adm-crumb" id="admCrumb"></div><h2 id="admTitle"></h2><p id="admDesc" class="muted"></p></div>
+        </div>
+        <div class="adm-jump" id="admJump"></div>
 
-    <!-- 탭 1: 학생 관리 -->
-    <div class="tabpane active" id="tab-students">
+      <div class="tabpane" id="tab-students">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
         <h3 style="margin:0;">학생 목록</h3>
         <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end;">
@@ -698,148 +752,7 @@
       <input type="file" id="importStudentsFile" accept=".xlsx,.xls,.csv" style="margin-top:8px;width:100%;">
     </div>
 
-    <!-- 탭 2: 규정 관리 -->
-    <div class="tabpane" id="tab-rules">
-      <h3>야간 자율학습 규정</h3>
-      <div class="field"><textarea id="rulesTextarea" rows="10" style="width:100%;padding:11px 12px;border-radius:12px;border:1px solid rgba(120,120,128,0.25);background:rgba(255,255,255,0.7);font-family:inherit;font-size:14px;resize:vertical;"></textarea></div>
-      <button class="btn btn-primary" id="saveRulesBtn" style="width:100%">규정 저장</button>
-    </div>
-
-    <!-- 탭 3: 통계 -->
-    <div class="tabpane" id="tab-stats">
-      <h3>월간 누적 학습시간 추이</h3>
-      <div id="statsChart" style="padding:8px 4px 0;"></div>
-      <div id="statsSummary" class="muted" style="margin-top:10px;"></div>
-      
-      <h3 style="margin-top:24px;">요일별 평균 학습시간</h3>
-      <div id="weekdayTrendChart" class="glass" style="height:140px; padding:12px; border-radius:12px; margin-top:10px; display:flex; align-items:flex-end; justify-content:space-around; gap:8px;"></div>
-      
-      <h3 style="margin-top:24px;">학생별 월 목표시간 달성률</h3>
-      <div id="studentProgressList" style="margin-top:10px;"></div>
-
-      <h3 style="margin-top:24px;">학생별 지각 · 결석 통계 (이번 달)</h3>
-      <div id="lateAbsenceList"></div>
-    </div>
-    
-    <!-- 탭 4: 좌석 배치 -->
-    <div class="tabpane" id="tab-layout">
-      <h3>좌석 배치 모드</h3>
-      <button class="btn btn-primary" id="startLayoutBtn" style="width:100%">좌석 배치 모드 시작</button>
-      <h3 style="margin-top:24px;">좌석표 내보내기</h3>
-      <button class="btn btn-secondary" id="exportSeatImageBtn" style="width:100%">현재 층 좌석표 이미지로 저장</button>
-    </div>
-    
-    <!-- 탭 5: 운영 설정 -->
-    <div class="tabpane" id="tab-settings">
-      <h3>요일별 운영 시간 설정</h3>
-      <p class="muted">요일마다 운영 여부와 시간을 따로 정합니다. 학습시간은 각 요일의 운영 시간 안에서만 인정되고, 운영하지 않는 요일에 입실하면 0분으로 계산됩니다. 종료 시간이 시작 시간보다 빠르면 다음 날 새벽까지로 계산합니다.</p>
-      <div id="opHoursBox"></div>
-      <button class="btn btn-secondary" id="opCopyMonBtn" style="width:100%; margin-top:2px;">월요일 설정을 모든 요일에 적용</button>
-      <h3 style="margin-top:18px;">자동 퇴실 마감</h3>
-      <label class="rt-opt"><input type="checkbox" id="autoCheckoutOn"><span><b>운영 시간이 끝나면 미퇴실자를 자동 퇴실 처리</b><br><span class="muted">재실·자리비움으로 남은 학생을 그날 종료 시간에 퇴실 처리하고 학습시간을 계산합니다. 운영하지 않는 요일의 기록은 다음 날 오전 6시에 마감됩니다.</span></span></label>
-      <div class="field"><label>종료 후 여유 시간 (분, 0~180)</label><input id="autoCheckoutGrace" type="number" min="0" max="180" step="5" inputmode="numeric"></div>
-      <button class="btn btn-primary" id="saveTimeSettingsBtn" style="width:100%; margin-top:10px;">운영 설정 저장</button>
-      <h3 style="margin-top:24px;">전체 데이터 엑셀 백업</h3>
-      <button class="btn btn-secondary" id="exportExcelBtn" style="width:100%">모든 학생 및 출결 기록 다운로드</button>
-      <h3 style="margin-top:24px;">관리자 비밀번호 변경</h3>
-      <div class="field"><label>현재 비밀번호</label><input type="password" id="curPw"></div>
-      <div class="field"><label>새 비밀번호</label><input type="password" id="newPw"></div>
-      <div class="field"><label>새 비밀번호 확인</label><input type="password" id="confirmPw"></div>
-      <button class="btn btn-primary" id="changePwBtn" style="width:100%">비밀번호 변경하기</button>
-    </div>
-
-    <!-- 탭: 학습·출결 관리 -->
-    <div class="tabpane" id="tab-time">
-      <h3>학습·출결 관리</h3>
-      <p class="muted">누적 학습시간과 출결 기록을 확인하고 초기화합니다. 초기화 전에 엑셀 백업을 받아두는 것을 권장합니다.</p>
-      <div class="row" style="margin-bottom:6px;">
-        <button class="btn btn-secondary" id="btnTimeBackup" style="white-space:nowrap; padding:0 8px; font-size:13px;">엑셀 백업 받기</button>
-        <button class="btn btn-danger" id="btnResetTimeAll" style="white-space:nowrap; padding:0 8px; font-size:13px;">전체 학습시간 초기화</button>
-      </div>
-
-      <h3 style="margin-top:20px;">학기 전환 마법사</h3>
-      <p class="muted">백업 → 학습시간·출결 초기화 → 졸업생 정리 → 좌석 재배정을 순서대로 안내합니다.</p>
-      <button class="btn btn-primary" id="btnSemesterWizard" style="width:100%">학기 전환 마법사 시작</button>
-
-      <h3 style="margin-top:20px;">출결 기록 초기화</h3>
-      <p class="muted">기간을 비우면 전체 기간의 출결 기록이 삭제됩니다. 학생 정보는 유지됩니다.</p>
-      <div class="row">
-        <div class="field"><label>시작일 (선택)</label><input id="arStart" type="date"></div>
-        <div class="field"><label>종료일 (선택)</label><input id="arEnd" type="date"></div>
-      </div>
-      <label class="rt-opt"><input type="checkbox" id="arResetTotal"><span>남아 있는 이번 달 학습시간도 함께 0분으로 초기화</span></label>
-      <div id="arInfo" class="muted" style="margin:4px 0 8px; font-size:12px;"></div>
-      <button class="btn btn-danger" id="btnAttendanceReset" style="width:100%">출결 기록 삭제</button>
-
-      <h3 style="margin-top:20px;">학생별 학습시간 초기화</h3>
-      <div class="field" style="margin-bottom:8px;"><input id="timeSearch" type="text" placeholder="학생 이름 또는 학번으로 검색" style="width:100%; padding:9px 14px; border-radius:999px;"></div>
-      <div id="timeSummary" class="muted" style="margin-bottom:6px; font-size:11px;"></div>
-      <div id="timeStudentList" style="max-height:50vh; overflow-y:auto; padding-right:2px;"></div>
-    </div>
-
-    <!-- 탭 6: 층별 출석 모드 -->
-    <div class="tabpane" id="tab-floormode">
-      <h3>층별 출석 모드</h3>
-      <p class="muted">층마다 좌석 운영 방식을 고릅니다. 서버에 저장된 학생·지문·출결 데이터는 그대로 두고, 앞으로의 입실 처리 방식만 바뀝니다.</p>
-      <div id="floorModeBox"></div>
-      <h3 style="margin-top:16px;">자리 선택 화면</h3>
-      <div class="field"><label>선택 제한 시간 (초, 10~120) — 시간이 지나면 띄어 앉기 방식으로 자동 배정됩니다</label><input id="seatPickSec" type="number" min="10" max="120" step="5" inputmode="numeric"></div>
-      <p class="muted" style="font-size:12px;">자리 선택 화면은 스캔한 층을 보고 있는 화면(키오스크)에 나타납니다. 그 층을 보고 있는 화면이 없으면 자동 배정됩니다.</p>
-      <button class="btn btn-primary" id="saveFloorModeBtn" style="width:100%; margin-top:12px;">층별 출석 모드 저장</button>
-    </div>
-    
-    <!-- 탭 7: 랭킹 -->
-    <div class="tabpane" id="tab-ranking">
-      <h3>이번 달 랭킹</h3>
-      <div id="rankingList"></div>
-    </div>
-    
-    <!-- 탭 8: 감독표 -->
-    <div class="tabpane" id="tab-supervision">
-      <h3>야자 감독표 (1층 · 2층)</h3>
-      <div class="row" style="align-items:center;">
-        <button class="btn btn-secondary" id="supPrev" style="flex:0 0 auto;"><span data-ico="chevL"></span></button>
-        <input type="month" id="supMonth" style="flex:1; min-width:0; padding:10px; border-radius:12px; border:1px solid rgba(120,120,128,0.25); font-family:inherit; font-size:14px;">
-        <button class="btn btn-secondary" id="supNext" style="flex:0 0 auto;"><span data-ico="chevR"></span></button>
-      </div>
-      <p class="muted" style="margin:8px 0 0; font-size:12px;">월~금만 표시됩니다. 칸에 이름을 적고 아래 저장 버튼을 누르세요.</p>
-      <div id="supTable" class="cal-wrap" style="margin-top:8px;"></div>
-      <button class="btn btn-primary" id="supSaveBtn" style="width:100%; margin-top:10px;">이 달 감독표 저장</button>
-      <h3 style="margin-top:22px;">엑셀로 올리기 / 내려받기</h3>
-      <div class="row">
-        <button class="btn btn-secondary" id="supTemplateBtn" style="flex:1;">엑셀 양식 (이 달)</button>
-        <button class="btn btn-secondary" id="supExportBtn" style="flex:1;">이 달 엑셀 내보내기</button>
-      </div>
-      <input type="file" id="supImportFile" accept=".xlsx,.xls" style="margin-top:8px;width:100%;">
-      <button class="btn btn-danger" id="supClearBtn" style="width:100%; margin-top:14px;">이 달 감독표 전체 삭제</button>
-    </div>
-
-    <!-- 탭 9: 감독일지 -->
-    <div class="tabpane" id="tab-diary">
-      <h3>일일 야자 감독 일지</h3>
-      <div class="row">
-        <div class="field"><label>날짜</label><input type="date" id="diaryDate"></div>
-        <div class="field"><label>작성자</label><input type="text" id="diaryAuthor" placeholder="예: 김선생"></div>
-      </div>
-      <div class="field"><label>감독 내용</label><textarea id="diaryContent" rows="4" style="width:100%;padding:11px 12px;border-radius:12px;border:1px solid rgba(120,120,128,0.25);background:rgba(255,255,255,0.7);font-family:inherit;font-size:14px;resize:vertical;"></textarea></div>
-      <button class="btn btn-primary" id="saveDiaryBtn" style="width:100%">기록 저장</button>
-      <h3 style="margin-top:24px;">선택한 날짜의 기록</h3>
-      <div id="diaryList"></div>
-    </div>
-    
-    <!-- 탭 10: 변경 이력 -->
-    <div class="tabpane" id="tab-log">
-      <h3>관리자 변경 이력</h3>
-      <div class="row" style="margin-bottom:12px;">
-        <div class="field" style="margin-bottom:0;"><input type="date" id="logDateFilter"></div>
-        <button class="btn btn-danger" id="clearLogBtn" style="white-space:nowrap; height:44px;">기록 삭제</button>
-        <button class="btn btn-secondary" id="exportLogExcelBtn" style="white-space:nowrap; height:44px;">엑셀 다운로드</button>
-      </div>
-      <div id="changeLogList"></div>
-    </div>
-    
-    <!-- 탭 11: 기기 연결 (지문 등록) -->
-    <div class="tabpane" id="tab-device">
+      <div class="tabpane" id="tab-device">
       <h3>지문 기기 상태</h3>
       <div id="deviceStatusBox" style="margin-bottom:6px;"></div>
       <h3 style="margin-top:20px;">지문 원격 신규 등록</h3>
@@ -872,10 +785,137 @@
       <p class="muted">학생이 삭제되었는데 센서에 남아 있는 지문을 두 층 센서에서 지웁니다. 학생에게 배정된 번호는 건드리지 않습니다.</p>
       <button class="btn btn-secondary" id="btnCleanSensors" style="width:100%">미사용 지문 번호 정리</button>
 
-      <h3 style="margin-top:22px;">지문 데이터 파일 백업 · 복원</h3>
+</div>
+
+      <div class="tabpane" id="tab-time">
+      <p class="muted">누적 학습시간과 출결 기록을 확인하고 초기화합니다. 초기화 전에 엑셀 백업을 받아두는 것을 권장합니다.</p>
+      <div class="row" style="margin-bottom:6px;">
+        <button class="btn btn-secondary" id="btnTimeBackup" style="white-space:nowrap; padding:0 8px; font-size:13px;">엑셀 백업 받기</button>
+        <button class="btn btn-danger" id="btnResetTimeAll" style="white-space:nowrap; padding:0 8px; font-size:13px;">전체 학습시간 초기화</button>
+      </div>
+
+      <h3 style="margin-top:20px;">학기 전환 마법사</h3>
+      <p class="muted">백업 → 학습시간·출결 초기화 → 졸업생 정리 → 좌석 재배정을 순서대로 안내합니다.</p>
+      <button class="btn btn-primary" id="btnSemesterWizard" style="width:100%">학기 전환 마법사 시작</button>
+
+      <h3 style="margin-top:20px;">출결 기록 초기화</h3>
+      <p class="muted">기간을 비우면 전체 기간의 출결 기록이 삭제됩니다. 학생 정보는 유지됩니다.</p>
+      <div class="row">
+        <div class="field"><label>시작일 (선택)</label><input id="arStart" type="date"></div>
+        <div class="field"><label>종료일 (선택)</label><input id="arEnd" type="date"></div>
+      </div>
+      <label class="rt-opt"><input type="checkbox" id="arResetTotal"><span>남아 있는 이번 달 학습시간도 함께 0분으로 초기화</span></label>
+      <div id="arInfo" class="muted" style="margin:4px 0 8px; font-size:12px;"></div>
+      <button class="btn btn-danger" id="btnAttendanceReset" style="width:100%">출결 기록 삭제</button>
+
+      <h3 style="margin-top:20px;">학생별 학습시간 초기화</h3>
+      <div class="field" style="margin-bottom:8px;"><input id="timeSearch" type="text" placeholder="학생 이름 또는 학번으로 검색" style="width:100%; padding:9px 14px; border-radius:999px;"></div>
+      <div id="timeSummary" class="muted" style="margin-bottom:6px; font-size:11px;"></div>
+      <div id="timeStudentList" style="max-height:50vh; overflow-y:auto; padding-right:2px;"></div>
+    </div>
+
+      <div class="tabpane" id="tab-settings">
+      <h3>요일별 운영 시간 설정</h3>
+      <p class="muted">요일마다 운영 여부와 시간을 따로 정합니다. 학습시간은 각 요일의 운영 시간 안에서만 인정되고, 운영하지 않는 요일에 입실하면 0분으로 계산됩니다. 종료 시간이 시작 시간보다 빠르면 다음 날 새벽까지로 계산합니다.</p>
+      <div id="opHoursBox"></div>
+      <button class="btn btn-secondary" id="opCopyMonBtn" style="width:100%; margin-top:2px;">월요일 설정을 모든 요일에 적용</button>
+      <h3 style="margin-top:18px;">자동 퇴실 마감</h3>
+      <label class="rt-opt"><input type="checkbox" id="autoCheckoutOn"><span><b>운영 시간이 끝나면 미퇴실자를 자동 퇴실 처리</b><br><span class="muted">재실·자리비움으로 남은 학생을 그날 종료 시간에 퇴실 처리하고 학습시간을 계산합니다. 운영하지 않는 요일의 기록은 다음 날 오전 6시에 마감됩니다.</span></span></label>
+      <div class="field"><label>종료 후 여유 시간 (분, 0~180)</label><input id="autoCheckoutGrace" type="number" min="0" max="180" step="5" inputmode="numeric"></div>
+      <button class="btn btn-primary" id="saveTimeSettingsBtn" style="width:100%; margin-top:10px;">운영 설정 저장</button>
+</div>
+
+      <div class="tabpane" id="tab-seats">
+      <h3>좌석 배치도</h3>
+      <p class="muted">책상을 추가·이동·삭제하는 편집 화면으로 들어갑니다. 편집 중에는 좌석표 화면이 편집 모드로 바뀝니다.</p>
+      <button class="btn btn-primary" id="startLayoutBtn" style="width:100%">좌석 배치 편집 시작</button>
+      <button class="btn btn-secondary" id="exportSeatImageBtn" style="width:100%; margin-top:8px;">현재 층 좌석표 이미지로 저장</button>
+      <h3 style="margin-top:24px;">층별 출석 모드</h3>
+      <p class="muted">층마다 좌석 운영 방식을 고릅니다. 서버에 저장된 학생·지문·출결 데이터는 그대로 두고, 앞으로의 입실 처리 방식만 바뀝니다.</p>
+      <div id="floorModeBox"></div>
+      <h3 style="margin-top:16px;">자리 선택 화면</h3>
+      <div class="field"><label>선택 제한 시간 (초, 10~120) — 시간이 지나면 띄어 앉기 방식으로 자동 배정됩니다</label><input id="seatPickSec" type="number" min="10" max="120" step="5" inputmode="numeric"></div>
+      <p class="muted" style="font-size:12px;">자리 선택 화면은 스캔한 층을 보고 있는 화면(키오스크)에 나타납니다. 그 층을 보고 있는 화면이 없으면 자동 배정됩니다.</p>
+      <button class="btn btn-primary" id="saveFloorModeBtn" style="width:100%; margin-top:12px;">층별 출석 모드 저장</button>
+    </div>
+
+      <div class="tabpane" id="tab-rules">
+      <div class="field"><textarea id="rulesTextarea" rows="10" style="width:100%;padding:11px 12px;border-radius:12px;border:1px solid rgba(120,120,128,0.25);background:rgba(255,255,255,0.7);font-family:inherit;font-size:14px;resize:vertical;"></textarea></div>
+      <button class="btn btn-primary" id="saveRulesBtn" style="width:100%">규정 저장</button>
+    </div>
+
+      <div class="tabpane" id="tab-supervision">
+      <div class="row" style="align-items:center;">
+        <button class="btn btn-secondary" id="supPrev" style="flex:0 0 auto;"><span data-ico="chevL"></span></button>
+        <input type="month" id="supMonth" style="flex:1; min-width:0; padding:10px; border-radius:12px; border:1px solid rgba(120,120,128,0.25); font-family:inherit; font-size:14px;">
+        <button class="btn btn-secondary" id="supNext" style="flex:0 0 auto;"><span data-ico="chevR"></span></button>
+      </div>
+      <p class="muted" style="margin:8px 0 0; font-size:12px;">월~금만 표시됩니다. 칸에 이름을 적고 아래 저장 버튼을 누르세요.</p>
+      <div id="supTable" class="cal-wrap" style="margin-top:8px;"></div>
+      <button class="btn btn-primary" id="supSaveBtn" style="width:100%; margin-top:10px;">이 달 감독표 저장</button>
+      <h3 style="margin-top:22px;">엑셀로 올리기 / 내려받기</h3>
+      <div class="row">
+        <button class="btn btn-secondary" id="supTemplateBtn" style="flex:1;">엑셀 양식 (이 달)</button>
+        <button class="btn btn-secondary" id="supExportBtn" style="flex:1;">이 달 엑셀 내보내기</button>
+      </div>
+      <input type="file" id="supImportFile" accept=".xlsx,.xls" style="margin-top:8px;width:100%;">
+      <button class="btn btn-danger" id="supClearBtn" style="width:100%; margin-top:14px;">이 달 감독표 전체 삭제</button>
+    </div>
+
+      <div class="tabpane" id="tab-diary">
+      <div class="row">
+        <div class="field"><label>날짜</label><input type="date" id="diaryDate"></div>
+        <div class="field"><label>작성자</label><input type="text" id="diaryAuthor" placeholder="예: 김선생"></div>
+      </div>
+      <div class="field"><label>감독 내용</label><textarea id="diaryContent" rows="4" style="width:100%;padding:11px 12px;border-radius:12px;border:1px solid rgba(120,120,128,0.25);background:rgba(255,255,255,0.7);font-family:inherit;font-size:14px;resize:vertical;"></textarea></div>
+      <button class="btn btn-primary" id="saveDiaryBtn" style="width:100%">기록 저장</button>
+      <h3 style="margin-top:24px;">선택한 날짜의 기록</h3>
+      <div id="diaryList"></div>
+    </div>
+
+      <div class="tabpane" id="tab-stats">
+      <h3>월간 누적 학습시간 추이</h3>
+      <div id="statsChart" style="padding:8px 4px 0;"></div>
+      <div id="statsSummary" class="muted" style="margin-top:10px;"></div>
+      
+      <h3 style="margin-top:24px;">요일별 평균 학습시간</h3>
+      <div id="weekdayTrendChart" class="glass" style="height:140px; padding:12px; border-radius:12px; margin-top:10px; display:flex; align-items:flex-end; justify-content:space-around; gap:8px;"></div>
+      
+      <h3 style="margin-top:24px;">학생별 월 목표시간 달성률</h3>
+      <div id="studentProgressList" style="margin-top:10px;"></div>
+
+      <h3 style="margin-top:24px;">학생별 지각 · 결석 통계 (이번 달)</h3>
+      <div id="lateAbsenceList"></div>
+    
+      <h3 style="margin-top:24px;">이번 달 랭킹</h3>
+      <div id="rankingList"></div>
+</div>
+
+      <div class="tabpane" id="tab-log">
+      <div class="row" style="margin-bottom:12px;">
+        <div class="field" style="margin-bottom:0;"><input type="date" id="logDateFilter"></div>
+        <button class="btn btn-danger" id="clearLogBtn" style="white-space:nowrap; height:44px;">기록 삭제</button>
+        <button class="btn btn-secondary" id="exportLogExcelBtn" style="white-space:nowrap; height:44px;">엑셀 다운로드</button>
+      </div>
+      <div id="changeLogList"></div>
+    </div>
+
+      <div class="tabpane" id="tab-backup">
+      <h3>전체 데이터 엑셀 백업</h3>
+      <p class="muted">모든 학생 정보와 출결 기록을 엑셀 파일로 내려받습니다. 초기화·학기 전환 전에 받아 두세요.</p>
+      <button class="btn btn-secondary" id="exportExcelBtn" style="width:100%">모든 학생 및 출결 기록 다운로드</button>
+      <h3 style="margin-top:24px;">지문 데이터 파일 백업 · 복원</h3>
       <p class="muted">학생 정보와 서버에 저장된 지문 데이터(센서 템플릿)를 파일 하나로 내려받습니다. 이 파일을 다시 올리면 서버에 저장되고, 두 층 센서에도 다시 써 넣을 수 있습니다. 지문은 민감한 생체정보이므로 파일 암호를 걸어 안전한 곳에 보관하세요.</p>
       <button class="btn btn-secondary" id="btnFpBackup" style="width:100%; font-weight:600;">지문 백업 파일 내려받기</button>
       <div class="field" style="margin-top:8px;"><label>백업 파일 올리기 (.json) — 올리면 먼저 미리보기를 보여줍니다</label><input type="file" id="fpRestoreFile" accept=".json,application/json"></div>
+          <h3 style="margin-top:24px;">관리자 비밀번호 변경</h3>
+      <div class="field"><label>현재 비밀번호</label><input type="password" id="curPw"></div>
+      <div class="field"><label>새 비밀번호</label><input type="password" id="newPw"></div>
+      <div class="field"><label>새 비밀번호 확인</label><input type="password" id="confirmPw"></div>
+      <button class="btn btn-primary" id="changePwBtn" style="width:100%">비밀번호 변경하기</button>
+    </div>
+
+      </section>
     </div>
   </div>
 </div>
@@ -1163,6 +1203,15 @@
   
   // ---- 픽토그램(SVG) 세트: 글자 크기에 맞춰 자동으로 크기가 조절됩니다 ----
   const PATHS = {
+    users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+    clock:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+    calendar:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+    grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+    book:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
+    shield:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+    history:'<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><polyline points="3 3 3 8 8 8"/><polyline points="12 7 12 12 15 15"/>',
+    clipboard:'<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/>',
+    search:'<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
     close:'<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
     alert:'<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
     check:'<polyline points="20 6 9 17 4 12"/>',
@@ -2229,7 +2278,7 @@
 
   safeAddListener('#btnSupervision', 'click', () => requireAdmin(openSupervisionModal));
   safeAddListener('#supervisionBar', 'click', () => requireAdmin(() => { if(!(supFor(todayStr()))) openAdminPanel('supervision'); else openSupervisionModal(); }));
-  safeAddListener('#btnAdmin', 'click', () => requireAdmin(() => openAdminPanel('students')));
+  safeAddListener('#btnAdmin', 'click', () => requireAdmin(() => openAdminPanel(lastAdminTab, null, { showNav:true })));
 
   safeAddListener('#supvPrev', 'click', () => { supvYM = shiftYM(supvYM || supThisMonth(), -1); renderSupervisionModal(); });
   safeAddListener('#supvNext', 'click', () => { supvYM = shiftYM(supvYM || supThisMonth(), 1); renderSupervisionModal(); });
@@ -2310,25 +2359,81 @@
     }catch(err){ await showMessage('엑셀 처리 중 오류: ' + err.message); e.target.value = ''; }
   });
   
-  function openAdminPanel(tab, ym){
+  // ---- 관리자 메뉴: 분류별 사이드 메뉴 ----
+  //  예전 탭 이름(layout·floormode·ranking)으로 불러도 합쳐진 메뉴로 열립니다.
+  const ADMIN_TAB_ALIAS = { layout:'seats', floormode:'seats', ranking:'stats' };
+  const ADMIN_TAB_DESC = {
+    students:'학생 목록을 찾아 수정하고, 새 학생을 한 명씩 또는 엑셀로 한꺼번에 등록합니다.',
+    device:'층별 지문 기기 연결 상태를 보고, 원격 지문 등록 · 센서 복원 · 기기 재시작을 합니다.',
+    time:'누적 학습시간과 출결 기록을 확인·초기화하고, 학기 전환 마법사를 실행합니다.',
+    settings:'요일마다 운영 여부와 시간을 정하고, 운영 종료 후 자동 퇴실 여부를 설정합니다.',
+    seats:'좌석 배치도를 편집하고, 층마다 자율석·고정석 운영 방식을 고릅니다.',
+    rules:'학생 화면의 [야자 규정] 버튼에 보이는 규정 문구를 편집합니다.',
+    supervision:'월별 1층·2층 감독 교사를 달력에서 입력하고, 엑셀로 올리거나 내려받습니다.',
+    diary:'날짜별로 감독 중 있었던 일을 기록합니다.',
+    stats:'이번 달 학습시간 추이, 목표 달성률, 지각·결석, 랭킹을 한곳에서 봅니다.',
+    log:'관리자가 언제 무엇을 바꿨는지 날짜별로 확인합니다.',
+    backup:'전체 엑셀 백업, 지문 데이터 파일 백업·복원, 관리자 비밀번호 변경을 합니다.'
+  };
+  let lastAdminTab = 'students';
+  const isNarrow = () => window.matchMedia('(max-width:760px)').matches;
+  function setAdminNav(open){ const m = $('#admModal'); if(m) m.classList.toggle('nav-open', !!open); }
+  function updateAdminBadges(){
+    const set = (k, txt, warn) => { const el = document.querySelector(`.badge2[data-badge="${k}"]`); if(el){ el.textContent = txt || ''; el.classList.toggle('warn', !!warn); } };
+    const unreg = cache.students.filter(x => !x.fpRegistered).length;
+    set('students', cache.students.length ? cache.students.length + '명' : '');
+    const off = FLOORS.filter(f => deviceInfo['f' + f] && !deviceOnline(f)).length;
+    set('device', off ? `${off}대 끊김` : (unreg ? `미등록 ${unreg}` : ''), off > 0);
+    const wd = bizDate().getDay(); const sup = supFor(todayStr());
+    set('supervision', (wd !== 0 && wd !== 6 && !(sup && (supClean(sup.f1) || supClean(sup.f2)))) ? '오늘 미입력' : '', true);
+  }
+  function buildAdminJump(pane){
+    const box = $('#admJump'); if(!box) return; box.innerHTML = '';
+    const hs = pane ? Array.from(pane.querySelectorAll('h3')) : [];
+    if(hs.length < 3) return;
+    hs.forEach(h => { const b = document.createElement('button'); b.type = 'button'; b.textContent = h.textContent.replace(/\s+/g, ' ').trim().replace(/\s*\(.*?\)\s*$/, ''); b.onclick = () => h.scrollIntoView({ behavior:'smooth', block:'start' }); box.appendChild(b); });
+  }
+  function openAdminPanel(tab, ym, opts){
+    opts = opts || {}; tab = ADMIN_TAB_ALIAS[tab] || tab;
+    if(!document.getElementById('tab-' + tab)) tab = 'students';
+    lastAdminTab = tab;
     $$('.tabbtn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
     $$('.tabpane').forEach(p=>p.classList.toggle('active', p.id==='tab-'+tab));
-    
-    if($('#moreTabsMenu')) $('#moreTabsMenu').style.display = 'none';
+    const btn = document.querySelector(`.adm-item[data-tab="${tab}"]`);
+    if(btn){ if($('#admTitle')) $('#admTitle').textContent = btn.querySelector('.lbl').firstChild.textContent.trim(); if($('#admCrumb')) $('#admCrumb').textContent = btn.dataset.group; }
+    if($('#admDesc')) $('#admDesc').textContent = ADMIN_TAB_DESC[tab] || '';
+    if($('#admMain')) $('#admMain').scrollTop = 0;
 
     if(tab==='students'){ renderAdminStudentList(); renderDeskOptions(); }
     if(tab==='rules'){ if($('#rulesTextarea')) $('#rulesTextarea').value = settings.rulesText || ''; }
     if(tab==='settings'){ renderOpHoursForm(); }
-    if(tab==='floormode'){ renderFloorModeTab(); }
+    if(tab==='seats'){ renderFloorModeTab(); }
     if(tab==='time'){ renderTimeManage(); renderAttendanceResetInfo(); }
     if(tab==='device'){ if($('#enrollFloor')) $('#enrollFloor').value = String(currentFloor); renderDeviceStatus(); }
     if(tab==='supervision'){ if(ym) supAdminYM = ym; renderSupervisionAdmin(); }
-    if(tab==='ranking'){ renderRanking(); }
-    if(tab==='stats'){ renderStatsChart(); renderWeekdayTrendChart(); renderStudentProgress(); renderLateAbsenceStats(); }
+    if(tab==='stats'){ renderStatsChart(); renderWeekdayTrendChart(); renderStudentProgress(); renderLateAbsenceStats(); renderRanking(); }
     if(tab==='diary'){ if($('#diaryDate') && !$('#diaryDate').value) $('#diaryDate').value = todayStr(); renderDiaryList(); }
     if(tab==='log'){ renderChangeLog(); }
+    if($('#admSearch') && $('#admSearch').value){ $('#admSearch').value = ''; filterAdminMenu(); }
+    updateAdminBadges();
+    setAdminNav(!!opts.showNav && isNarrow());
     openOverlay('ovAdmin');
+    requestAnimationFrame(() => buildAdminJump(document.getElementById('tab-' + tab)));
   }
+  // 메뉴 검색: 이름·설명·키워드로 거르기, Enter = 첫 번째 결과 열기
+  function filterAdminMenu(){
+    const words = ($('#admSearch') ? $('#admSearch').value : '').trim().toLowerCase().split(/\s+/).filter(Boolean);
+    let shown = 0;
+    $$('.adm-group').forEach(g => {
+      let any = false;
+      g.querySelectorAll('.adm-item').forEach(b => { const hay = (b.dataset.kw || '').toLowerCase().replace(/\s+/g, ''); const ok = words.every(w => hay.includes(w)); b.style.display = ok ? '' : 'none'; if(ok){ any = true; shown++; } });
+      g.style.display = any ? '' : 'none';
+    });
+    if($('#admEmpty')) $('#admEmpty').style.display = shown ? 'none' : 'block';
+  }
+  safeAddListener('#admSearch', 'input', filterAdminMenu);
+  safeAddListener('#admSearch', 'keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); const first = $$('.adm-item').find(b => b.style.display !== 'none'); if(first) openAdminPanel(first.dataset.tab); } if(e.key === 'Escape'){ e.target.value = ''; filterAdminMenu(); } });
+  safeAddListener('#admMenuBtn', 'click', () => { setAdminNav(true); setTimeout(() => { if($('#admSearch')) $('#admSearch').focus(); }, 50); });
 
   function renderFloorModeTab(){
     const box = $('#floorModeBox'); if(!box) return;
@@ -2421,7 +2526,7 @@
           pendingAdminAction(); 
           pendingAdminAction = null;
       } else {
-          openAdminPanel('students');
+          openAdminPanel(lastAdminTab, null, { showNav:true });
       }
     } else { await showMessage('비밀번호가 올바르지 않습니다.'); }
   });
@@ -2430,7 +2535,7 @@
   safeAddListener('#promptInput', 'keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); $('#promptOk').click(); } });
   safeAddListener('#fabToggle', 'click', () => { if($('#fabMenu')) $('#fabMenu').classList.toggle('show'); });
   
-  $$('.fab-item').forEach(btn => { btn.addEventListener('click', () => { if($('#fabMenu')) $('#fabMenu').classList.remove('show'); const action = btn.dataset.action; if(action === 'layout'){ layoutEditMode = true; if($('#editToolbar')) $('#editToolbar').style.display='flex'; renderFloor(); return; } if(action === 'kiosk') { document.body.classList.add('kiosk-mode'); adminMode = false; layoutEditMode = false; if($('#editToolbar')) $('#editToolbar').style.display='none'; if($('#adminFab')) $('#adminFab').style.display='none'; if($('#btnAdmin')) $('#btnAdmin').textContent = '관리자 모드'; renderFloor(); showToast('키오스크 모드가 활성화되었습니다.'); return; } if(action === 'exit'){ adminMode = false; layoutEditMode = false; if($('#editToolbar')) $('#editToolbar').style.display='none'; if($('#adminFab')) $('#adminFab').style.display='none'; if($('#btnAdmin')) $('#btnAdmin').textContent = '관리자 모드'; renderFloor(); return; } openAdminPanel(action); }); });
+  $$('.fab-item').forEach(btn => { btn.addEventListener('click', () => { if($('#fabMenu')) $('#fabMenu').classList.remove('show'); const action = btn.dataset.action; if(action === 'layout'){ layoutEditMode = true; if($('#editToolbar')) $('#editToolbar').style.display='flex'; renderFloor(); return; } if(action === 'kiosk') { document.body.classList.add('kiosk-mode'); adminMode = false; layoutEditMode = false; if($('#editToolbar')) $('#editToolbar').style.display='none'; if($('#adminFab')) $('#adminFab').style.display='none'; if($('#btnAdmin')) $('#btnAdmin').textContent = '관리자 모드'; renderFloor(); showToast('키오스크 모드가 활성화되었습니다.'); return; } if(action === 'menu'){ openAdminPanel(lastAdminTab, null, { showNav:true }); return; } if(action === 'exit'){ adminMode = false; layoutEditMode = false; if($('#editToolbar')) $('#editToolbar').style.display='none'; if($('#adminFab')) $('#adminFab').style.display='none'; if($('#btnAdmin')) $('#btnAdmin').textContent = '관리자 모드'; renderFloor(); return; } openAdminPanel(action); }); });
 
   let exitTimer; const exitKiosk = $('#exitKioskBtn');
   const startExit = () => { exitTimer = setTimeout(() => { document.body.classList.remove('kiosk-mode'); showToast('키오스크 모드가 종료되었습니다.'); }, 1500); };
@@ -2438,6 +2543,7 @@
   if(exitKiosk) { exitKiosk.addEventListener('mousedown', startExit); exitKiosk.addEventListener('touchstart', startExit, {passive:true}); exitKiosk.addEventListener('mouseup', cancelExit); exitKiosk.addEventListener('mouseleave', cancelExit); exitKiosk.addEventListener('touchend', cancelExit); }
 
   $$('.tabbtn').forEach(btn => btn.addEventListener('click', () => openAdminPanel(btn.dataset.tab)));
+  window.addEventListener('resize', () => { if(!isNarrow()) setAdminNav(false); });
 
   const DARK_KEY = 'yaja_dark_mode'; let darkOverride = null;
   try{ const v = localStorage.getItem(DARK_KEY); if(v === '1') darkOverride = true; else if(v === '0') darkOverride = false; }catch(e){}
@@ -3211,7 +3317,7 @@
       else { doneRecs.forEach(r => { r.elapsedSeconds = 0; }); }
       await window.logChange('학습시간 초기화', `${scopeText} · ${mode === 'all' ? '출결 기록 ' + doneRecs.length + '건 삭제' : '누적 시간만 초기화'}`);
       closeOverlay('ovResetTime'); showToast('학습 시간이 초기화되었습니다.'); triggerRender(); renderTimeManage();
-      if(adminMode && $('#tab-ranking') && $('#tab-ranking').classList.contains('active')) renderRanking();
+      if(adminMode && $('#tab-stats') && $('#tab-stats').classList.contains('active')) renderRanking();
     }catch(e){ await showMessage('초기화 중 오류가 발생했습니다: ' + (e && e.message ? e.message : e)); }
   }
   const fmtMin = m => (m >= 60 ? Math.floor(m / 60) + '시간 ' : '') + (m % 60) + '분';
