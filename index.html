@@ -417,6 +417,64 @@
   body.dark .tag-badge.fp-wait { background: rgba(255,149,0,0.3); color: #ffb84d; }
   body.dark .fp-grid-container { background: rgba(255,255,255,0.04); }
   body.dark .fp-tile.empty { background: rgba(255,255,255,0.08); color: #888; }
+
+  /* ===== 층별 모드 상세 설정 ===== */
+  .fm-floor{ padding:12px; border-radius:var(--radius-md); background:rgba(255,255,255,0.45); margin-bottom:12px; }
+  body.dark .fm-floor{ background:rgba(255,255,255,0.05); }
+  .fm-floor-head{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; flex-wrap:wrap; margin-bottom:4px; }
+  .fm-group-label{ font-size:11px; font-weight:700; color:var(--text-secondary); margin:10px 0 5px; }
+  .fm-opt{ display:flex; gap:10px; align-items:flex-start; padding:9px 11px; border-radius:12px; border:1.5px solid transparent; background:rgba(255,255,255,0.6); margin-bottom:6px; cursor:pointer; font-size:13px; }
+  body.dark .fm-opt{ background:rgba(255,255,255,0.06); }
+  .fm-opt input{ margin-top:3px; flex-shrink:0; }
+  .fm-opt.on{ border-color:var(--accent); background:rgba(10,132,255,0.10); }
+  .fm-opt b{ display:block; margin-bottom:2px; }
+  .fm-opt .muted{ font-size:11.5px; line-height:1.45; }
+  .fm-tag{ font-size:10px; font-weight:700; padding:1px 6px; border-radius:999px; background:rgba(120,120,128,0.16); color:var(--text-secondary); margin-left:4px; vertical-align:1px; }
+
+  /* ===== 자리 선택 화면 (입실 스캔 후) ===== */
+  #ovSeatPick{ z-index:150; }
+  #ovSeatPick .modal{ max-width:760px; }
+  .sp-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+  .sp-timer{ font-variant-numeric:tabular-nums; font-weight:800; font-size:22px; color:var(--accent); min-width:48px; text-align:right; }
+  .sp-timer.low{ color:#d70015; }
+  .sp-tabs{ display:flex; gap:6px; margin:10px 0; flex-wrap:wrap; }
+  .sp-tabs:empty{ display:none; }
+  .sp-tabs button{ border:none; padding:8px 14px; border-radius:999px; font-size:13px; font-weight:600; background:rgba(120,120,128,0.14); color:var(--text-primary); cursor:pointer; font-family:inherit; }
+  .sp-tabs button.on{ background:var(--accent); color:#fff; }
+  .sp-map-wrap{ overflow:auto; border-radius:14px; background:rgba(255,255,255,0.45); padding:8px; max-height:56vh; margin-top:10px; }
+  body.dark .sp-map-wrap{ background:rgba(255,255,255,0.04); }
+  .sp-map{ position:relative; margin:0 auto; }
+  .sp-seat{ position:absolute; transform:translate(-50%,-50%); border-radius:12px; border:2px solid rgba(120,120,128,0.3); background:rgba(120,120,128,0.12); color:var(--text-secondary); font-weight:800; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:inherit; padding:0; line-height:1.1; }
+  .sp-seat small{ font-size:0.62em; font-weight:600; opacity:.85; margin-top:2px; }
+  .sp-seat.type-partition{ border-radius:5px; }
+  .sp-seat.free{ border-color:#34c759; background:rgba(52,199,89,0.16); color:var(--text-primary); cursor:pointer; }
+  .sp-seat.free:hover{ background:rgba(52,199,89,0.32); }
+  .sp-seat.taken{ opacity:.4; cursor:not-allowed; }
+  .sp-seat.mine{ box-shadow:0 0 0 3px rgba(10,132,255,0.5); }
+  .sp-seat.sel{ background:#34c759; color:#fff; border-color:#248a3d; }
+  .sp-legend{ display:flex; gap:12px; font-size:11px; color:var(--text-secondary); margin-top:8px; flex-wrap:wrap; }
+  .sp-legend i{ display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:4px; vertical-align:-1px; }
+  #spOk:disabled{ opacity:.45; }
+
+  /* ===== 감독표 캘린더 (월~금) ===== */
+  .cal-wrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; max-height:62vh; overflow-y:auto; }
+  .cal{ display:grid; grid-template-columns:repeat(5, minmax(0,1fr)); gap:6px; min-width:420px; }
+  .cal.edit{ min-width:480px; }
+  .cal-dow{ text-align:center; font-size:12px; font-weight:700; color:var(--text-secondary); padding:4px 0; }
+  .cal-cell{ min-height:86px; border-radius:12px; background:rgba(255,255,255,0.6); padding:6px 7px; display:flex; flex-direction:column; gap:4px; font-size:12px; border:1.5px solid transparent; min-width:0; }
+  body.dark .cal-cell{ background:rgba(255,255,255,0.06); }
+  .cal-cell.blank{ background:transparent; }
+  .cal-cell.today{ border-color:var(--accent); background:rgba(10,132,255,0.10); }
+  .cal-cell.past{ opacity:.72; }
+  .cal-day{ font-weight:800; font-size:13px; display:flex; justify-content:space-between; align-items:center; }
+  .cal-day .t{ font-size:10px; font-weight:700; color:#fff; background:var(--accent); border-radius:999px; padding:1px 6px; }
+  .cal-line{ display:flex; gap:4px; align-items:baseline; min-width:0; }
+  .cal-line .fl{ font-size:10px; font-weight:700; color:var(--text-secondary); flex-shrink:0; }
+  .cal-line .nm{ font-weight:600; overflow-wrap:anywhere; word-break:keep-all; }
+  .cal-line .nm.empty{ color:var(--text-secondary); font-weight:400; }
+  .cal-cell input{ width:100%; min-width:0; padding:5px 6px; border-radius:8px; border:1px solid rgba(120,120,128,0.25); background:rgba(255,255,255,0.8); font-size:12px; font-family:inherit; box-sizing:border-box; color:inherit; }
+  body.dark .cal-cell input{ background:rgba(0,0,0,0.25); color:#f2f2f5; }
+  #ovSupervision .modal{ max-width:760px; }
 </style>
 </head>
 <body>
@@ -722,7 +780,11 @@
     <!-- 탭 6: 층별 출석 모드 -->
     <div class="tabpane" id="tab-floormode">
       <h3>층별 출석 모드</h3>
+      <p class="muted">층마다 좌석 운영 방식을 고릅니다. 서버에 저장된 학생·지문·출결 데이터는 그대로 두고, 앞으로의 입실 처리 방식만 바뀝니다.</p>
       <div id="floorModeBox"></div>
+      <h3 style="margin-top:16px;">자리 선택 화면</h3>
+      <div class="field"><label>선택 제한 시간 (초, 10~120) — 시간이 지나면 띄어 앉기 방식으로 자동 배정됩니다</label><input id="seatPickSec" type="number" min="10" max="120" step="5" inputmode="numeric"></div>
+      <p class="muted" style="font-size:12px;">자리 선택 화면은 스캔한 층을 보고 있는 화면(키오스크)에 나타납니다. 그 층을 보고 있는 화면이 없으면 자동 배정됩니다.</p>
       <button class="btn btn-primary" id="saveFloorModeBtn" style="width:100%; margin-top:12px;">층별 출석 모드 저장</button>
     </div>
     
@@ -740,7 +802,8 @@
         <input type="month" id="supMonth" style="flex:1; min-width:0; padding:10px; border-radius:12px; border:1px solid rgba(120,120,128,0.25); font-family:inherit; font-size:14px;">
         <button class="btn btn-secondary" id="supNext" style="flex:0 0 auto;"><span data-ico="chevR"></span></button>
       </div>
-      <div id="supTable" class="sup-scroll" style="margin-top:12px;"></div>
+      <p class="muted" style="margin:8px 0 0; font-size:12px;">월~금만 표시됩니다. 칸에 이름을 적고 아래 저장 버튼을 누르세요.</p>
+      <div id="supTable" class="cal-wrap" style="margin-top:8px;"></div>
       <button class="btn btn-primary" id="supSaveBtn" style="width:100%; margin-top:10px;">이 달 감독표 저장</button>
       <h3 style="margin-top:22px;">엑셀로 올리기 / 내려받기</h3>
       <div class="row">
@@ -808,6 +871,11 @@
       <h3 style="margin-top:22px;">센서 미사용 지문 정리</h3>
       <p class="muted">학생이 삭제되었는데 센서에 남아 있는 지문을 두 층 센서에서 지웁니다. 학생에게 배정된 번호는 건드리지 않습니다.</p>
       <button class="btn btn-secondary" id="btnCleanSensors" style="width:100%">미사용 지문 번호 정리</button>
+
+      <h3 style="margin-top:22px;">지문 데이터 파일 백업 · 복원</h3>
+      <p class="muted">학생 정보와 서버에 저장된 지문 데이터(센서 템플릿)를 파일 하나로 내려받습니다. 이 파일을 다시 올리면 서버에 저장되고, 두 층 센서에도 다시 써 넣을 수 있습니다. 지문은 민감한 생체정보이므로 파일 암호를 걸어 안전한 곳에 보관하세요.</p>
+      <button class="btn btn-secondary" id="btnFpBackup" style="width:100%; font-weight:600;">지문 백업 파일 내려받기</button>
+      <div class="field" style="margin-top:8px;"><label>백업 파일 올리기 (.json) — 올리면 먼저 미리보기를 보여줍니다</label><input type="file" id="fpRestoreFile" accept=".json,application/json"></div>
     </div>
   </div>
 </div>
@@ -853,7 +921,7 @@
 <div class="overlay" id="ovWeekly"><div class="modal glass"><button class="close-x" data-close="ovWeekly"></button><h2 id="wkTitle">주간 자율학습 시간표</h2><div id="wkBody"></div><div class="modal-actions" id="wkActions"></div></div></div>
 <div class="overlay" id="ovStudentAction"><div class="modal glass"><h2><span id="saName"></span>님, 무엇을 할까요?</h2><div class="modal-actions" id="saActions" style="gap:12px;"></div><button class="btn btn-secondary" id="saCancel" style="width:100%;margin-top:12px;">취소</button></div></div>
 <div class="overlay" id="ovRules"><div class="modal glass"><button class="close-x" data-close="ovRules"></button><h2>야간 자율학습 규정</h2><p id="rulesDisplay" class="muted" style="white-space:pre-wrap;font-size:14px;color:var(--text-primary);"></p></div></div>
-<div class="overlay" id="ovSupervision"><div class="modal glass" style="max-width:520px;"><button class="close-x" data-close="ovSupervision"></button><h2>야자 감독표</h2><div class="row" style="align-items:center; margin-bottom:10px;"><button class="btn btn-secondary" id="supvPrev"><span data-ico="chevL"></span></button><div id="supvTitle" style="flex:1; text-align:center; font-weight:700;"></div><button class="btn btn-secondary" id="supvNext"><span data-ico="chevR"></span></button></div><div id="supvList" class="sup-scroll"></div><button class="btn btn-secondary" id="supvEdit" style="width:100%; margin-top:10px; display:none;">관리자: 감독표 편집</button></div></div>
+<div class="overlay" id="ovSupervision"><div class="modal glass"><button class="close-x" data-close="ovSupervision"></button><h2>야자 감독표</h2><div class="row" style="align-items:center; margin-bottom:10px;"><button class="btn btn-secondary" id="supvPrev" style="flex:0 0 auto;"><span data-ico="chevL"></span></button><div id="supvTitle" style="flex:1; text-align:center; font-weight:700;"></div><button class="btn btn-secondary" id="supvNext" style="flex:0 0 auto;"><span data-ico="chevR"></span></button></div><div id="supvList" class="cal-wrap"></div><button class="btn btn-secondary" id="supvEdit" style="width:100%; margin-top:10px; display:none;">관리자: 감독표 편집</button></div></div>
 <div class="overlay" id="ovMessage"><div class="modal glass"><p id="msgText" style="margin:0 0 16px;font-size:14px;"></p><button class="btn btn-primary" id="msgOk" style="width:100%">확인</button></div></div>
 <div class="overlay" id="ovConfirm"><div class="modal glass"><p id="confirmMsg" style="margin:0 0 16px;font-size:14px;"></p><div class="modal-actions"><button class="btn btn-secondary" id="confirmNo" style="flex:1">취소</button><button class="btn btn-danger" id="confirmYes" style="flex:1">확인</button></div></div></div>
 <div class="overlay" id="ovPrompt"><div class="modal glass"><p id="promptMsg" style="margin:0 0 12px;font-size:14px;"></p><div class="field"><input id="promptInput" type="text"></div><div class="modal-actions"><button class="btn btn-secondary" id="promptCancel" style="flex:1">취소</button><button class="btn btn-primary" id="promptOk" style="flex:1">확인</button></div></div></div>
@@ -971,6 +1039,36 @@
 
 <div class="overlay" id="ovAttendanceHistory"><div class="modal glass"><button class="close-x" data-close="ovAttendanceHistory"></button><h2 id="histTitle">출결 이력</h2><div id="histSummary" class="muted" style="margin-bottom:10px;"></div><div id="histList"></div></div></div>
 <div class="overlay" id="ovReminder"><div class="modal glass"><h2>오늘의 데이터를 백업할까요?</h2><div class="modal-actions"><button class="btn btn-secondary" id="reminderLater" style="flex:1;">나중에</button><button class="btn btn-primary" id="reminderBackup" style="flex:1;">지금 백업</button></div></div></div>
+
+<!-- 자리 선택 (입실 스캔 후) -->
+<div class="overlay" id="ovSeatPick">
+  <div class="modal glass">
+    <div class="sp-head">
+      <div><h2 id="spTitle" style="margin:0 0 4px;">앉을 자리를 선택해 주세요</h2><div id="spSub" class="muted" style="font-size:13px;"></div></div>
+      <div class="sp-timer" id="spTimer"></div>
+    </div>
+    <div class="sp-tabs" id="spTabs"></div>
+    <div class="sp-map-wrap"><div class="sp-map" id="spMap"></div></div>
+    <div class="sp-legend"><span><i style="background:rgba(52,199,89,0.55)"></i>선택 가능</span><span><i style="background:rgba(120,120,128,0.35)"></i>사용 중 · 오늘 배정됨</span><span id="spMineLegend" style="display:none;"><i style="background:transparent; box-shadow:0 0 0 2px rgba(10,132,255,0.7);"></i>내 고정석</span></div>
+    <div class="modal-actions"><button class="btn btn-secondary" id="spCancel">입실 취소</button><button class="btn btn-secondary" id="spAuto">자동 배정</button><button class="btn btn-primary" id="spOk" disabled>이 자리로 입실</button></div>
+  </div>
+</div>
+
+<!-- 지문 데이터 복원 미리보기 -->
+<div class="overlay" id="ovFpRestore">
+  <div class="modal glass" style="max-width:640px;">
+    <button class="close-x" data-close="ovFpRestore"></button>
+    <h2>지문 데이터 복원</h2>
+    <p id="frFile" class="muted" style="margin:0 0 8px; font-size:12px; white-space:pre-wrap;"></p>
+    <div class="field"><label>복원 방식</label><select id="frMode"><option value="safe">안전 복원 — 서버에 비어 있는 번호만 채움 (기존 데이터는 절대 안 바뀜)</option><option value="overwrite">덮어쓰기 — 파일에 있는 번호는 파일 내용으로 교체</option></select></div>
+    <label class="rt-opt"><input type="checkbox" id="frPreBackup" checked><span><b>복원하기 전에 현재 서버 상태를 파일로 자동 백업</b><br><span class="muted">문제가 생기면 이 파일을 다시 올려 되돌릴 수 있습니다.</span></span></label>
+    <label class="rt-opt"><input type="checkbox" id="frSync" checked><span><b>복원한 지문을 두 층 센서에도 다시 써 넣기</b><br><span class="muted">기기가 꺼져 있어도 요청이 저장되었다가 켜지면 처리됩니다.</span></span></label>
+    <div class="bulk-sum" id="frSummary"></div>
+    <div class="bulk-table-wrap"><table class="bulk-table"><thead><tr><th>번호</th><th>학번</th><th>이름</th><th>지문</th><th>결과</th></tr></thead><tbody id="frBody"></tbody></table></div>
+    <p class="muted" style="margin:8px 0 0; font-size:12px;">어떤 방식이든 서버에 있는 지문을 지우지는 않습니다. 출결 기록도 건드리지 않습니다.</p>
+    <div class="modal-actions"><button class="btn btn-secondary" id="frCancel">취소</button><button class="btn btn-primary" id="frRun">복원</button></div>
+  </div>
+</div>
 
 <script>
 (function(){
@@ -1178,6 +1276,23 @@
   const floorModeLabel = m => m === 'fixed' ? '고정석' : '자율석';
   const fixedFloors = () => FLOORS.filter(f => floorMode(f) === 'fixed');
   const freeFloors = () => FLOORS.filter(f => floorMode(f) === 'free');
+  // ---- 층별 세부 모드 (settings/app 의 floorSubModes 에만 저장. 기존 floorModes 값과 호환) ----
+  //  자율석: auto(자동·띄어 앉기, 기존) / choose(자리 자율 선택) / random(자리 랜덤 배정)
+  //  고정석: own(내 자리 고정, 기존) / floor(자리 층 고정) / shared(자리 층 공유 고정)
+  const FLOOR_SUBS = { free:['auto','choose','random'], fixed:['own','floor','shared'] };
+  const DEFAULT_SUB = { free:'auto', fixed:'own' };
+  function floorSub(f){ const base = floorMode(f); const v = settings.floorSubModes && settings.floorSubModes['f' + f]; return FLOOR_SUBS[base].indexOf(v) >= 0 ? v : DEFAULT_SUB[base]; }
+  const SUB_INFO = {
+    auto:   { name:'자동 배정 (띄어 앉기)', short:'자동 배정', desc:'입실 스캔을 하면 옆자리가 빈 좌석부터 자동으로 배정합니다.', tag:'기존 방식' },
+    choose: { name:'자리 자율 선택', short:'자율 선택', desc:'입실 스캔을 하면 화면에 빈 자리가 표시되고, 학생이 직접 골라 입실합니다.' },
+    random: { name:'자리 랜덤 배정', short:'랜덤 배정', desc:'입실 스캔을 하면 빈 자리 중 하나를 무작위로 배정합니다.' },
+    own:    { name:'내 자리 고정', short:'내 자리', desc:'배정된 자리에서만 이용합니다. 신청하지 않은 요일에 와도 내 자리로 입실합니다.', tag:'기존 방식' },
+    floor:  { name:'자리 층 고정', short:'층 고정', desc:'신청한 요일에는 내 자리, 신청하지 않은 요일에는 같은 층의 남는 자리 중에서 골라 입실합니다.' },
+    shared: { name:'자리 층 공유 고정', short:'층 공유', desc:'신청한 요일에는 내 자리, 신청하지 않은 요일에는 다른 층의 빈 자리 중에서 골라 입실합니다. (다른 층이 꽉 차면 같은 층에서 고릅니다)' }
+  };
+  function floorModeText(f){ return floorModeLabel(floorMode(f)) + ' · ' + SUB_INFO[floorSub(f)].short; }
+  function seatPickSec(){ const n = parseInt(settings.seatPickSec); return (n >= 10 && n <= 120) ? n : 30; }
+
   function effectiveFixed(s){ if(!s || s.seatMode !== 'fixed') return false; if(s.deskId == null) return true; const d = findDesk(s.deskId); return d ? floorMode(d.floor) === 'fixed' : true; }
   function findStudentByFp(fpId){ return cache.students.find(s => String(s.fingerprintId) === String(fpId)); }
   function deskLabel(desk){ if (!desk) return '알 수 없는 좌석'; if (desk.seatNumber) return `${desk.floor}층 ${desk.seatNumber}번 (${desk.type==='partition'?'칸막이':'오픈형'})`; const sameFloor = cache.desks.filter(d=>d.floor===desk.floor).sort((a,b)=>a.id-b.id); const idx = sameFloor.findIndex(d=>String(d.id)===String(desk.id))+1; return `${desk.floor}층 ${desk.type==='partition'?'칸막이':'오픈형'} #${idx}`; }
@@ -1271,6 +1386,116 @@
     } return emptyDesks[0];
   }
 
+  // 오늘 비어 있는 좌석 (고정석 학생이 오늘 신청했거나, 이미 누가 앉은 자리는 제외)
+  function freeDesksToday(floor, todayRecords){ const occ = occupiedDeskIdSet(todayRecords); return cache.desks.filter(d => d.floor === floor && !occ.has(String(d.id))); }
+  // 후보 중 옆자리가 빈 좌석을 우선 (기존 자동 배정과 같은 규칙)
+  function pickSpacedDesk(floor, candidates, todayRecords){
+    if(!candidates || !candidates.length) return null;
+    const occ = occupiedDeskIdSet(todayRecords); const floorDesks = cache.desks.filter(d => d.floor === floor);
+    const sorted = candidates.slice().sort((a, b) => a.id - b.id);
+    for(const desk of sorted){ const nb = floorDesks.some(o => occ.has(String(o.id)) && Math.abs(o.col - desk.col) <= 1 && Math.abs(o.row - desk.row) <= 1); if(!nb) return desk; }
+    return sorted[0];
+  }
+  const pickRandom = arr => (arr && arr.length) ? arr[Math.floor(Math.random() * arr.length)] : null;
+
+  // 입실 스캔(오늘 기록 없음) 때 어디에 앉힐지 결정
+  //  → { deskId, policy, msg }  또는  { pick:{ groups:[{floor, desks}], mine, title, sub }, policy }
+  async function planSeat(student, scanFloor){
+    const todayRecords = await getTodayRecords();
+    if(effectiveFixed(student)){
+      const own = student.deskId != null ? findDesk(student.deskId) : null;
+      const sc = student.weeklySchedule && student.weeklySchedule[todayDayKey()];
+      const scheduled = !!(sc && sc.enabled);
+      const sub = own ? floorSub(own.floor) : 'own';
+      if(!own || sub === 'own' || scheduled) return { deskId: own ? own.id : null, policy: 'fixed' };
+      // 신청하지 않은 요일
+      const floors = sub === 'floor' ? [own.floor] : FLOORS.filter(f => f !== own.floor);
+      const groups = floors.map(f => ({ floor: f, desks: freeDesksToday(f, todayRecords) })).filter(g => g.desks.length);
+      if(sub === 'shared' && !groups.length){ const g = freeDesksToday(own.floor, todayRecords); if(g.length) groups.push({ floor: own.floor, desks: g }); }
+      if(!groups.length) return { deskId: null, policy: sub, msg: ' ※ 오늘 고를 수 있는 빈자리가 없어 좌석 없이 입실 처리되었습니다.' };
+      const where = groups.map(g => g.floor + '층').join('·');
+      return { policy: sub, pick: { groups, mine: own.id, title: '오늘은 신청하지 않은 요일이에요', sub: `${where}의 빈 자리 중에서 골라주세요.` } };
+    }
+    const floors = freeFloors().slice().sort((a, b) => (b === scanFloor) - (a === scanFloor));
+    for(const f of floors){
+      const desks = freeDesksToday(f, todayRecords); if(!desks.length) continue;
+      const sub = floorSub(f);
+      if(sub === 'random') return { deskId: pickRandom(desks).id, policy: 'random' };
+      if(sub === 'choose'){
+        const groups = floors.filter(x => floorSub(x) === 'choose').map(x => ({ floor: x, desks: freeDesksToday(x, todayRecords) })).filter(g => g.desks.length);
+        groups.sort((a, b) => (b.floor === f) - (a.floor === f));
+        return { policy: 'choose', pick: { groups, mine: null, title: '앉을 자리를 선택해 주세요', sub: '초록색 자리가 지금 비어 있는 자리입니다.' } };
+      }
+      const d = findAvailableDeskForToday(f, todayRecords); return { deskId: d ? d.id : null, policy: 'auto' };
+    }
+    return { deskId: null, policy: 'auto', msg: floors.length ? ` ※ ${floors.join('·')}층(자율석)에 빈자리가 없어 좌석 없이 입실 처리되었습니다.` : ' ※ 자율석으로 운영되는 층이 없어 좌석 없이 입실 처리되었습니다.' };
+  }
+  // 고르기 화면을 띄울 수 없거나 시간이 지났을 때: 띄어 앉기 방식으로 자동 배정
+  async function autoFromGroups(groups){
+    const recs = await getTodayRecords(); const occ = occupiedDeskIdSet(recs);
+    for(const g of groups){ const left = g.desks.filter(d => !occ.has(String(d.id)) && findDesk(d.id)); if(left.length) return pickSpacedDesk(g.floor, left, recs); }
+    return null;
+  }
+
+  // ---- 자리 선택 화면 ----
+  let pickChain = Promise.resolve(), pickBusy = false; const pendingPick = new Set();
+  function runSeatPick(student, pick){
+    const sid = String(student.id); pendingPick.add(sid);
+    if(pickBusy) showToast(`앞 학생이 자리를 고르는 중입니다. 잠시만 기다려 주세요. (${student.name}님 대기)`, 4000);
+    const p = pickChain.then(() => { pickBusy = true; return showSeatPicker(student, pick); }).finally(() => { pickBusy = false; pendingPick.delete(sid); });
+    pickChain = p.catch(() => {});
+    return p;
+  }
+  function showSeatPicker(student, pick){
+    return new Promise(resolve => {
+      let gi = 0, selected = null, left = seatPickSec(), done = false, timer = null;
+      const finish = v => { if(done) return; done = true; clearInterval(timer); closeOverlay('ovSeatPick'); resolve(v); };
+      const freeSetNow = async () => { const recs = await getTodayRecords(); return occupiedDeskIdSet(recs); };
+      const doAuto = async () => { const d = await autoFromGroups(pick.groups); finish({ deskId: d ? d.id : null, how: 'auto' }); };
+      const tickText = () => { const t = $('#spTimer'); if(t){ t.textContent = left + '초'; t.classList.toggle('low', left <= 5); } };
+      async function render(){
+        const occ = await freeSetNow(); if(done) return;
+        const g = pick.groups[gi]; const floor = g.floor; const allowed = new Set(g.desks.map(d => String(d.id)));
+        const tabs = $('#spTabs');
+        tabs.innerHTML = pick.groups.length > 1 ? pick.groups.map((x, i) => { const n = x.desks.filter(d => !occ.has(String(d.id))).length; return `<button data-gi="${i}" class="${i === gi ? 'on' : ''}">${x.floor}층 · 빈자리 ${n}</button>`; }).join('') : '';
+        tabs.querySelectorAll('button').forEach(b => b.onclick = () => { gi = parseInt(b.dataset.gi); selected = null; left = Math.max(left, 10); render(); });
+        const desks = cache.desks.filter(d => d.floor === floor); const map = $('#spMap'); const wrap = map.parentElement;
+        if(!desks.length){ map.innerHTML = '<p class="muted">좌석이 없습니다.</p>'; map.style.width = 'auto'; map.style.height = 'auto'; return; }
+        let minC = GRID_COLS, maxC = 0, minR = GRID_ROWS, maxR = 0; desks.forEach(d => { minC = Math.min(minC, d.col); maxC = Math.max(maxC, d.col); minR = Math.min(minR, d.row); maxR = Math.max(maxR, d.row); });
+        const bw = (maxC - minC + 1) * CELL_W, bh = (maxR - minR + 1) * CELL_H;
+        const avail = Math.max(240, (wrap.clientWidth || 600) - 16); const sc = Math.max(0.45, Math.min(1.15, avail / bw));
+        map.style.width = Math.round(bw * sc) + 'px'; map.style.height = Math.round(bh * sc) + 'px'; map.innerHTML = '';
+        const sameFloor = cache.desks.filter(d => d.floor === floor).sort((a, b) => a.id - b.id);
+        desks.forEach(d => {
+          const ok = allowed.has(String(d.id)) && !occ.has(String(d.id));
+          const b = document.createElement('button'); b.type = 'button';
+          b.className = 'sp-seat type-' + d.type + (ok ? ' free' : ' taken') + (pick.mine != null && String(pick.mine) === String(d.id) ? ' mine' : '') + (selected === String(d.id) ? ' sel' : '');
+          b.style.left = Math.round(((d.col - minC) + 0.5) * CELL_W * sc) + 'px'; b.style.top = Math.round(((d.row - minR) + 0.5) * CELL_H * sc) + 'px';
+          b.style.width = Math.round(CELL_W * 0.84 * sc) + 'px'; b.style.height = Math.round(CELL_H * 0.8 * sc) + 'px'; b.style.fontSize = Math.max(10, Math.round(16 * sc)) + 'px';
+          const num = d.seatNumber || (sameFloor.findIndex(x => String(x.id) === String(d.id)) + 1);
+          b.innerHTML = `${esc(num)}<small>${d.type === 'partition' ? '칸막이' : '오픈형'}</small>`;
+          b.disabled = !ok;
+          if(ok) b.onclick = () => { selected = String(d.id); left = Math.max(left, 10); tickText(); $('#spOk').disabled = false; $('#spOk').textContent = `${floor}층 ${num}번으로 입실`; map.querySelectorAll('.sp-seat.sel').forEach(x => x.classList.remove('sel')); b.classList.add('sel'); };
+          map.appendChild(b);
+        });
+        $('#spMineLegend').style.display = pick.mine != null && desks.some(d => String(d.id) === String(pick.mine)) ? '' : 'none';
+      }
+      $('#spTitle').textContent = `${student.name}님, ${pick.title}`;
+      $('#spSub').textContent = pick.sub || '';
+      $('#spOk').disabled = true; $('#spOk').textContent = '이 자리로 입실';
+      $('#spOk').onclick = async () => {
+        if(!selected) return; const occ = await freeSetNow();
+        if(occ.has(selected) || !findDesk(selected)){ showToast('방금 다른 학생이 이 자리에 입실했습니다. 다른 자리를 골라주세요.', 4000); selected = null; $('#spOk').disabled = true; $('#spOk').textContent = '이 자리로 입실'; render(); return; }
+        finish({ deskId: findDesk(selected).id, how: 'choose' });
+      };
+      $('#spAuto').onclick = doAuto;
+      $('#spCancel').onclick = () => finish(null);
+      openOverlay('ovSeatPick'); tickText();
+      requestAnimationFrame(() => render());
+      timer = setInterval(() => { left--; tickText(); if(left <= 0) doAuto(); }, 1000);
+    });
+  }
+
   async function getDeskOccupant(deskId, todayRecords){
     todayRecords = todayRecords || await getTodayRecords();
     const allFixed = getDeskFixedStudents(deskId);
@@ -1340,16 +1565,27 @@
 
       if (action === 'present') {
            if(!record) {
-              let deskId = null, seatChoice = null, noSeatMsg = '';
-              if(effectiveFixed(student)) { deskId = student.deskId != null ? student.deskId : null; } else {
-                  const todayRecords = await getTodayRecords(); const floors = freeFloors().slice().sort((a, b) => (b === scanFloor) - (a === scanFloor)); let desk = null;
-                  for(const f of floors){ desk = findAvailableDeskForToday(f, todayRecords); if(desk) break; }
-                  deskId = desk ? desk.id : null; seatChoice = 'partial';
-                  if(!desk) noSeatMsg = floors.length ? ` ※ ${floors.join('·')}층(자율석)에 빈자리가 없어 좌석 없이 입실 처리되었습니다.` : ' ※ 자율석으로 운영되는 층이 없어 좌석 없이 입실 처리되었습니다.';
+              if(pendingPick.has(String(student.id))){ showToast6(`${student.name}님, 화면에서 자리를 골라주세요.`); return; }
+              const plan = await planSeat(student, scanFloor);
+              let deskId = plan.deskId != null ? plan.deskId : null, noSeatMsg = plan.msg || '', how = plan.policy;
+              const seatChoice = effectiveFixed(student) ? null : 'partial';
+              let checkInAt = now;
+              if(plan.pick){
+                const canPick = (scanFloor == null || scanFloor === currentFloor) && !layoutEditMode && document.visibilityState === 'visible';
+                if(canPick){
+                  const chosen = await runSeatPick(student, plan.pick);
+                  if(chosen === null){ showToast6(`${student.name}님 입실이 취소되었습니다. 다시 하려면 입실 스캔을 눌러주세요.`); return; }
+                  const again = await getTodayAttendance(student.id); if(again){ showToast6(`${student.name}님은 이미 입실 처리되었습니다.${seatText(again)}`); return; }
+                  deskId = chosen.deskId; how = chosen.how;
+                } else {
+                  const d = await autoFromGroups(plan.pick.groups); deskId = d ? d.id : null; how = 'auto';
+                }
+                if(deskId == null) noSeatMsg = ' ※ 빈자리가 없어 좌석 없이 입실 처리되었습니다.';
               }
-              record = { studentId: student.id, studentDate: student.id+'_'+todayStr(), date: todayStr(), checkIn: now, checkOut:null, status:'present', elapsedSeconds:0, totalBreakSeconds:0, lastBreakStart:null, deskId, seatChoice };
+              record = { studentId: student.id, studentDate: student.id+'_'+todayStr(), date: todayStr(), checkIn: checkInAt, checkOut:null, status:'present', elapsedSeconds:0, totalBreakSeconds:0, lastBreakStart:null, deskId, seatChoice, seatPolicy: how || null };
               await window.dbPut('attendance', record);
-              showToast6(`${student.name}님 환영합니다! 입실 완료되었습니다.${noSeatMsg || seatText(record)}${opHoursFor(todayDayKey()) ? '' : ' ※ 오늘은 운영하지 않는 요일이라 학습시간이 인정되지 않습니다.'}`);
+              const howText = how === 'random' ? ' (랜덤 배정)' : (how === 'choose' ? ' (직접 선택)' : (plan.pick && how === 'auto' ? ' (자동 배정)' : ''));
+              showToast6(`${student.name}님 환영합니다! 입실 완료되었습니다.${noSeatMsg || (seatText(record) + howText)}${opHoursFor(todayDayKey()) ? '' : ' ※ 오늘은 운영하지 않는 요일이라 학습시간이 인정되지 않습니다.'}`);
            } else {
               if(record.status === 'away') {
                  if(record.lastBreakStart) record.totalBreakSeconds = (record.totalBreakSeconds||0) + calcValidSeconds(record.lastBreakStart, now);
@@ -1373,10 +1609,19 @@
   function isFreshTs(v, windowMs){ let n = Number(v); if(!n || n < 1e9) return true; if(n < 1e11) n *= 1000; return n > serverNow() - windowMs; }
   function initFingerprintListener(){
     const ref = fbDB.ref(FP_MATCH_PATH); const MAX_AGE = 60000;
-    function consume(child, tries){
+    // 스캔한 층을 보고 있는 화면(키오스크)이 먼저 가져가도록, 다른 화면은 잠깐 기다렸다가 처리합니다.
+    // (자리 선택 화면이 학생 앞 화면에 뜨도록 하기 위함. 아무도 안 가져가면 다른 화면이 대신 처리)
+    function claimDelay(v){
+      const f = v && typeof v === 'object' ? parseInt(v.floor) : NaN; if(!f) return 0;
+      const same = f === currentFloor && !layoutEditMode && document.visibilityState === 'visible';
+      let app = false; try{ app = document.body.classList.contains('kiosk-mode') || window.matchMedia('(display-mode: fullscreen)').matches || window.matchMedia('(display-mode: standalone)').matches; }catch(e){}
+      return same ? (app ? 0 : 400) : 1500;
+    }
+    function consume(child, tries, waited){
       tries = tries || 0; const v = child.val(); const isObj = v && typeof v === 'object';
       if(isObj && !isFreshTs(v.timestamp, MAX_AGE)){ child.ref.remove(); return; }
-      if(!isReady()){ if(tries < 20) setTimeout(() => consume(child, tries + 1), 750); return; }
+      if(!waited){ const ms = claimDelay(v); if(ms > 0){ setTimeout(() => consume(child, tries, true), ms); return; } }
+      if(!isReady()){ if(tries < 20) setTimeout(() => consume(child, tries + 1, true), 750); return; }
       let claimed = null;
       child.ref.transaction(cur => { claimed = cur; return null; }, (err, committed) => {
         if(err || !committed || claimed == null) return;
@@ -1436,7 +1681,8 @@
     if(!canvas || !viewport || !scrollWrap) return;
     scrollWrap.classList.toggle('editing', layoutEditMode);
     if($('#editHint')) $('#editHint').style.display = layoutEditMode ? 'block' : 'none';
-    if($('#floor1Actions')) $('#floor1Actions').style.display = (floorMode(currentFloor) === 'free' && !layoutEditMode) ? 'flex' : 'none';
+    if($('#floor1Actions')) $('#floor1Actions').style.display = (!layoutEditMode && (floorMode(currentFloor) === 'free' || floorSub(currentFloor) !== 'own')) ? 'flex' : 'none';
+    if($('#btnSelfEnroll')) $('#btnSelfEnroll').style.display = floorMode(currentFloor) === 'free' ? '' : 'none';
 
     const size = canvasPixelSize(); canvas.style.width = size.width+'px'; canvas.style.height = size.height+'px';
     const frag = document.createDocumentFragment();
@@ -1512,7 +1758,7 @@
       viewport.style.width = Math.round(boundedW*scale)+'px'; viewport.style.height = Math.round(boundedH*scale)+'px';
       canvas.style.transformOrigin = '0 0'; canvas.style.transform = `scale(${scale}) translate(${-bMinC*CELL_W}px, ${-bMinR*CELL_H}px)`;
     } else { viewport.style.width = size.width+'px'; viewport.style.height = size.height+'px'; canvas.style.transformOrigin = '0 0'; canvas.style.transform = 'none'; }
-    if($('#floorSummary')) $('#floorSummary').textContent = `재실 ${presentCount} / 전체 ${floorDesks.length} · ${floorModeLabel(floorMode(currentFloor))}`;
+    if($('#floorSummary')) $('#floorSummary').textContent = `재실 ${presentCount} / 전체 ${floorDesks.length} · ${floorModeText(currentFloor)}`;
     renderTodaySummary(); renderPublicRanking(); 
   }
 
@@ -1751,8 +1997,10 @@
   });
 
   async function currentDeskForStudent(student, todayRecords){
+    todayRecords = todayRecords || await getTodayRecords(); const rec = todayRecords.find(r => String(r.studentId) === String(student.id));
+    if(rec && rec.deskId != null && findDesk(rec.deskId)) return findDesk(rec.deskId);
     if(effectiveFixed(student)) return student.deskId != null ? findDesk(student.deskId) : null;
-    todayRecords = todayRecords || await getTodayRecords(); const rec = todayRecords.find(r => String(r.studentId) === String(student.id)); return (rec && rec.deskId != null) ? findDesk(rec.deskId) : null;
+    return null;
   }
   async function jumpToStudentDesk(student){
     if($('#searchResults')) $('#searchResults').style.display = 'none'; if(!student) return;
@@ -1846,7 +2094,8 @@
 
     if(student){
       const status = record ? record.status : '미입실'; 
-      const modeLabel = effectiveFixed(student) ? '고정좌석' : ('자율 · ' + (record && record.seatChoice === 'full' ? '전체 시간' : record && record.seatChoice === 'partial' ? '일부 시간' : '-'));
+      const polLabel = record && record.seatPolicy ? ({ choose:'직접 선택', random:'랜덤 배정', auto:'자동 배정', floor:'층 고정', shared:'층 공유', fixed:'' })[record.seatPolicy] || '' : '';
+      const modeLabel = effectiveFixed(student) ? ('고정좌석' + (record && record.deskId != null && String(record.deskId) !== String(student.deskId) ? ' · 오늘 다른 자리' : '')) : ('자율' + (polLabel ? ' · ' + polLabel : ''));
       html += `
         <div style="margin-top:12px;">
           <h4 style="margin:0 0 6px; font-size:13px; color:var(--text-secondary);">오늘의 이용 학생</h4>
@@ -1923,7 +2172,7 @@
 
   function resetAdminIdleTimer(){
     clearTimeout(adminIdleTimer);
-    if(adminMode){ adminIdleTimer = setTimeout(() => { adminMode = false; layoutEditMode = false; if($('#editToolbar')) $('#editToolbar').style.display='none'; if($('#adminFab')) $('#adminFab').style.display='none'; if($('#fabMenu')) $('#fabMenu').classList.remove('show'); ['ovAdmin','ovStudentEdit','ovFingerprintEnroll','ovAttendanceHistory','ovSeatDetail','ovWeekly','ovFingerprintStatus','ovResetTime','ovBulkImport','ovSemester'].forEach(closeOverlay); if($('#btnAdmin')) $('#btnAdmin').textContent = '관리자 모드'; renderFloor(); }, 5*60*1000); }
+    if(adminMode){ adminIdleTimer = setTimeout(() => { adminMode = false; layoutEditMode = false; if($('#editToolbar')) $('#editToolbar').style.display='none'; if($('#adminFab')) $('#adminFab').style.display='none'; if($('#fabMenu')) $('#fabMenu').classList.remove('show'); ['ovAdmin','ovStudentEdit','ovFingerprintEnroll','ovAttendanceHistory','ovSeatDetail','ovWeekly','ovFingerprintStatus','ovResetTime','ovBulkImport','ovSemester','ovFpRestore'].forEach(closeOverlay); if($('#btnAdmin')) $('#btnAdmin').textContent = '관리자 모드'; renderFloor(); }, 5*60*1000); }
   }
   document.addEventListener('click', resetAdminIdleTimer); document.addEventListener('keydown', resetAdminIdleTimer);
   document.addEventListener('click', e => { if(!e.target.closest('#searchResults') && e.target.id !== 'studentSearch'){ if($('#searchResults')) $('#searchResults').style.display = 'none'; } });
@@ -1931,8 +2180,31 @@
   const WEEKDAY_KO = ['일','월','화','수','목','금','토'];
   const supKey = (y, m, d) => `${y}-${pad2(m)}-${pad2(d)}`; const supDaysIn = (y, m) => new Date(y, m, 0).getDate(); const supWeekday = (y, m, d) => new Date(y, m - 1, d).getDay(); const supFor = ds => cache.supervision.find(x => String(x.id) === ds) || null; const supClean = v => String(v == null ? '' : v).replace(/\s+/g, ' ').trim().slice(0, 60); function supMD(ds){ const [y, m, d] = ds.split('-').map(Number); return `${m}/${d} (${WEEKDAY_KO[supWeekday(y, m, d)]})`; }
 
+  // 월~금만 보이는 달력. editable=true면 칸마다 1층/2층 입력칸
+  function supCalendarHTML(y, m, editable){
+    const today = todayStr(); let html = ['월','화','수','목','금'].map(d => `<div class="cal-dow">${d}</div>`).join('');
+    let started = false, lastIdx = 4;
+    for(let d = 1; d <= supDaysIn(y, m); d++){
+      const wd = supWeekday(y, m, d); if(wd === 0 || wd === 6) continue;
+      const idx = wd - 1;
+      if(!started){ for(let i = 0; i < idx; i++) html += '<div class="cal-cell blank"></div>'; started = true; }
+      const ds = supKey(y, m, d), rec = supFor(ds); const f1 = rec ? supClean(rec.f1) : '', f2 = rec ? supClean(rec.f2) : '';
+      const isToday = ds === today, past = ds < today;
+      const head = `<div class="cal-day"><span>${d}</span>${isToday ? '<span class="t">오늘</span>' : ''}</div>`;
+      const line = (lb, v) => `<div class="cal-line"><span class="fl">${lb}</span><span class="nm${v ? '' : ' empty'}">${v ? esc(v) : '-'}</span></div>`;
+      const body = editable
+        ? `<input class="sup-f1" maxlength="60" value="${esc(f1)}" placeholder="1층" aria-label="${m}월 ${d}일 1층 감독"><input class="sup-f2" maxlength="60" value="${esc(f2)}" placeholder="2층" aria-label="${m}월 ${d}일 2층 감독">`
+        : line('1층', f1) + line('2층', f2);
+      html += `<div class="cal-cell${isToday ? ' today' : ''}${past && !editable ? ' past' : ''}" data-date="${ds}">${head}${body}</div>`;
+      lastIdx = idx;
+    }
+    for(let i = lastIdx + 1; i < 5; i++) html += '<div class="cal-cell blank"></div>';
+    return `<div class="cal${editable ? ' edit' : ''}">${html}</div>`;
+  }
+
   function renderSupervisionBar(){
     const bar = $('#supervisionBar'); if(!bar) return;
+    { const wdToday = bizDate().getDay(); if(wdToday === 0 || wdToday === 6){ bar.style.display = 'none'; bar.innerHTML = ''; return; } }   // 토·일은 표시하지 않음
     const rec = supFor(todayStr()); const has = rec && (supClean(rec.f1) || supClean(rec.f2));
     if(!has){ if(adminMode){ bar.style.display = 'flex'; bar.innerHTML = `<span class="sup-label">오늘의 감독</span><span class="muted">오늘 감독이 등록되어 있지 않습니다</span><span class="sup-more">감독표 열기 ›</span>`; } else { bar.style.display = 'none'; bar.innerHTML = ''; } return; }
     const cell = (label, v) => `<span><span class="sup-floor">${label}</span> ${supClean(v) ? esc(supClean(v)) : '<span class="muted">-</span>'}</span>`;
@@ -1942,9 +2214,9 @@
   let supvYM = null; function supThisMonth(){ const t = todayStr().split('-').map(Number); return { y: t[0], m: t[1] }; }
   function renderSupervisionModal(){
     if(!supvYM) supvYM = supThisMonth(); const { y, m } = supvYM; if($('#supvTitle')) $('#supvTitle').textContent = `${y}년 ${m}월`;
-    const today = todayStr(); let html = `<div class="sup-row head"><span>날짜</span><span>1층</span><span>2층</span></div>`; let any = false;
-    for(let d = 1; d <= supDaysIn(y, m); d++){ const ds = supKey(y, m, d), rec = supFor(ds), wd = supWeekday(y, m, d); const f1 = rec ? supClean(rec.f1) : '', f2 = rec ? supClean(rec.f2) : ''; if(f1 || f2) any = true; html += `<div class="sup-row${wd === 0 || wd === 6 ? ' weekend' : ''}${ds === today ? ' today' : ''}"><span class="sup-date">${esc(supMD(ds))}</span><span class="sup-cell">${esc(f1)}</span><span class="sup-cell">${esc(f2)}</span></div>`; }
-    if($('#supvList')) $('#supvList').innerHTML = any ? html : `<p class="muted">${y}년 ${m}월 감독표가 아직 등록되지 않았습니다.</p>`; if($('#supvEdit')) $('#supvEdit').style.display = adminMode ? 'block' : 'none';
+    const any = cache.supervision.some(x => { const id = String(x.id); if(!id.startsWith(`${y}-${pad2(m)}-`)) return false; const wd = new Date(id + 'T00:00:00').getDay(); return wd !== 0 && wd !== 6 && (supClean(x.f1) || supClean(x.f2)); });
+    if($('#supvList')) $('#supvList').innerHTML = (any ? '' : `<p class="muted" style="margin:0 0 8px;">${y}년 ${m}월 감독표가 아직 등록되지 않았습니다.</p>`) + supCalendarHTML(y, m, false);
+    if($('#supvEdit')) $('#supvEdit').style.display = adminMode ? 'block' : 'none';
   }
   function refreshSupervisionModal(){ const ov = $('#ovSupervision'); if(ov && ov.classList.contains('show')) renderSupervisionModal(); }
   function openSupervisionModal(){ supvYM = supThisMonth(); renderSupervisionModal(); openOverlay('ovSupervision'); }
@@ -1967,8 +2239,7 @@
   function readSupMonthInput(){ const v = $('#supMonth') ? $('#supMonth').value : ''; const mm = /^(\d{4})-(\d{2})$/.exec(v); return mm ? { y: +mm[1], m: +mm[2] } : null; }
   function renderSupervisionAdmin(){
     const box = $('#supTable'); if(!box) return; if(!supAdminYM) supAdminYM = supThisMonth(); if($('#supMonth')) $('#supMonth').value = supMonthValue(supAdminYM);
-    const { y, m } = supAdminYM, today = todayStr(); let html = `<div class="sup-row head"><span>날짜</span><span>1층 감독</span><span>2층 감독</span></div>`;
-    for(let d = 1; d <= supDaysIn(y, m); d++){ const ds = supKey(y, m, d), rec = supFor(ds), wd = supWeekday(y, m, d); html += `<div class="sup-row${wd === 0 || wd === 6 ? ' weekend' : ''}${ds === today ? ' today' : ''}" data-date="${ds}"><span class="sup-date">${esc(supMD(ds))}</span><input class="sup-f1" maxlength="60" value="${esc(rec ? supClean(rec.f1) : '')}" placeholder="1층"><input class="sup-f2" maxlength="60" value="${esc(rec ? supClean(rec.f2) : '')}" placeholder="2층"></div>`; } box.innerHTML = html;
+    const { y, m } = supAdminYM; box.innerHTML = supCalendarHTML(y, m, true);
   }
   safeAddListener('#supMonth', 'change', () => { const o = readSupMonthInput(); if(o){ supAdminYM = o; renderSupervisionAdmin(); } });
   safeAddListener('#supPrev', 'click', () => { supAdminYM = shiftYM(supAdminYM || supThisMonth(), -1); renderSupervisionAdmin(); });
@@ -1984,7 +2255,7 @@
     } return { saved, removed };
   }
   safeAddListener('#supSaveBtn', 'click', async () => {
-    const rows = $$('#supTable .sup-row[data-date]'); const entries = rows.map(r => ({ date: r.dataset.date, f1: r.querySelector('.sup-f1').value, f2: r.querySelector('.sup-f2').value }));
+    const rows = $$('#supTable .cal-cell[data-date]'); const entries = rows.map(r => ({ date: r.dataset.date, f1: r.querySelector('.sup-f1').value, f2: r.querySelector('.sup-f2').value }));
     const { saved, removed } = await applySupervision(entries); const { y, m } = supAdminYM || supThisMonth();
     if(saved || removed) await window.logChange('감독표 저장', `${y}년 ${m}월 (등록/수정 ${saved}일${removed ? ', 삭제 ' + removed + '일' : ''})`);
     renderSupervisionBar(); showToast(saved || removed ? `감독표가 저장되었습니다. (수정 ${saved}일${removed ? ', 삭제 ' + removed + '일' : ''})` : '변경된 내용이 없습니다.');
@@ -2000,7 +2271,7 @@
   const SUP_HEAD = { date:'날짜', wd:'요일', f1:'1층 감독', f2:'2층 감독' };
   function supSheetRows(y, m, withData){
     const rows = [];
-    for(let d = 1; d <= supDaysIn(y, m); d++){ const ds = supKey(y, m, d), rec = withData ? supFor(ds) : null; rows.push({ [SUP_HEAD.date]: ds, [SUP_HEAD.wd]: WEEKDAY_KO[supWeekday(y, m, d)], [SUP_HEAD.f1]: rec ? supClean(rec.f1) : '', [SUP_HEAD.f2]: rec ? supClean(rec.f2) : '' }); } return rows;
+    for(let d = 1; d <= supDaysIn(y, m); d++){ const wdx = supWeekday(y, m, d); if(wdx === 0 || wdx === 6) continue; const ds = supKey(y, m, d), rec = withData ? supFor(ds) : null; rows.push({ [SUP_HEAD.date]: ds, [SUP_HEAD.wd]: WEEKDAY_KO[supWeekday(y, m, d)], [SUP_HEAD.f1]: rec ? supClean(rec.f1) : '', [SUP_HEAD.f2]: rec ? supClean(rec.f2) : '' }); } return rows;
   }
   function downloadSupSheet(withData){
     const o = supAdminYM || supThisMonth(); const wb = XLSX.utils.book_new(); const ws = XLSX.utils.json_to_sheet(supSheetRows(o.y, o.m, withData));
@@ -2061,19 +2332,32 @@
 
   function renderFloorModeTab(){
     const box = $('#floorModeBox'); if(!box) return;
+    if($('#seatPickSec')) $('#seatPickSec').value = seatPickSec();
+    const opt = (f, base, sub, cur) => { const i = SUB_INFO[sub]; const on = cur === base + ':' + sub; return `<label class="fm-opt${on ? ' on' : ''}"><input type="radio" name="fm_${f}" value="${base}:${sub}" ${on ? 'checked' : ''}><span><b>${i.name}${i.tag ? `<span class="fm-tag">${i.tag}</span>` : ''}</b><span class="muted">${i.desc}</span></span></label>`; };
     box.innerHTML = FLOORS.map(f => {
-      const m = floorMode(f); const deskCount = cache.desks.filter(d => d.floor === f).length;
+      const cur = floorMode(f) + ':' + floorSub(f); const deskCount = cache.desks.filter(d => d.floor === f).length;
       const assigned = cache.students.filter(s => s.seatMode === 'fixed' && s.deskId != null && (findDesk(s.deskId) || {}).floor === f).length;
-      return `<div class="list-item" style="flex-direction:column;align-items:stretch;gap:8px;"><div><b>${f}층</b> <span class="muted">· 좌석 ${deskCount}개 · 고정 배정 학생 ${assigned}명</span></div><div class="row"><label style="display:flex;align-items:center;gap:6px;font-size:14px;"><input type="radio" name="fm_${f}" value="fixed" ${m==='fixed'?'checked':''}> 고정석</label><label style="display:flex;align-items:center;gap:6px;font-size:14px;"><input type="radio" name="fm_${f}" value="free" ${m==='free'?'checked':''}> 자율석</label></div></div>`;
+      return `<div class="fm-floor"><div class="fm-floor-head"><b style="font-size:15px;">${f}층</b><span class="muted" style="font-size:12px;">좌석 ${deskCount}개 · 고정 배정 학생 ${assigned}명</span></div>
+        <div class="fm-group-label">자율석 (매일 자리가 바뀜)</div>${['auto','choose','random'].map(x => opt(f, 'free', x, cur)).join('')}
+        <div class="fm-group-label">고정석 (학생별로 자리가 정해짐)</div>${['own','floor','shared'].map(x => opt(f, 'fixed', x, cur)).join('')}</div>`;
     }).join('');
+    $$('#floorModeBox .fm-opt input').forEach(r => r.addEventListener('change', () => { $$(`#floorModeBox input[name="${r.name}"]`).forEach(x => x.closest('.fm-opt').classList.toggle('on', x.checked)); }));
   }
   safeAddListener('#saveFloorModeBtn', 'click', async () => {
-    const next = { f1: floorMode(1), f2: floorMode(2) }; FLOORS.forEach(f => { const el = document.querySelector(`input[name="fm_${f}"]:checked`); if(el) next['f' + f] = el.value; });
-    const changes = FLOORS.filter(f => next['f' + f] !== floorMode(f)); if(changes.length === 0){ showToast('변경된 내용이 없습니다.'); return; }
-    const desc = changes.map(f => `${f}층: ${floorModeLabel(floorMode(f))} → ${floorModeLabel(next['f' + f])}`).join('\n');
-    if(!await showConfirm(`다음과 같이 변경할까요?\n\n${desc}\n\n오늘 이미 입실한 학생의 기록은 유지됩니다.`)) return;
-    const before = changes.map(f => `${f}층 ${floorModeLabel(floorMode(f))}`).join(', '); settings.floorModes = next; await saveSettings();
-    await window.logChange('층별 출석 모드 변경', changes.map(f => `${f}층 ${floorModeLabel(next['f' + f])}`).join(', ') + ` (이전: ${before})`);
+    const nextBase = {}, nextSub = {}; const label = (b, sb) => `${floorModeLabel(b)}(${SUB_INFO[sb].short})`;
+    FLOORS.forEach(f => { const el = document.querySelector(`input[name="fm_${f}"]:checked`); const [b, sb] = el ? el.value.split(':') : [floorMode(f), floorSub(f)]; nextBase['f' + f] = b; nextSub['f' + f] = sb; });
+    let sec = parseInt($('#seatPickSec') ? $('#seatPickSec').value : 30); if(isNaN(sec)) sec = 30; sec = Math.max(10, Math.min(120, sec));
+    const changes = FLOORS.filter(f => nextBase['f' + f] !== floorMode(f) || nextSub['f' + f] !== floorSub(f));
+    const secChanged = sec !== seatPickSec();
+    if(changes.length === 0 && !secChanged){ showToast('변경된 내용이 없습니다.'); return; }
+    const desc = changes.map(f => `${f}층: ${label(floorMode(f), floorSub(f))} → ${label(nextBase['f' + f], nextSub['f' + f])}`).concat(secChanged ? [`자리 선택 제한 시간: ${seatPickSec()}초 → ${sec}초`] : []).join('\n');
+    if(!await showConfirm(`다음과 같이 변경할까요?\n\n${desc}\n\n학생·지문·출결 데이터는 바뀌지 않으며, 오늘 이미 입실한 학생의 기록도 그대로 유지됩니다.`)) return;
+    const before = changes.map(f => `${f}층 ${label(floorMode(f), floorSub(f))}`).join(', ');
+    settings.floorModes = Object.assign({}, settings.floorModes || {}, nextBase);
+    settings.floorSubModes = Object.assign({}, settings.floorSubModes || {}, nextSub);
+    settings.seatPickSec = sec;
+    await saveSettings();
+    await window.logChange('층별 출석 모드 변경', (changes.length ? changes.map(f => `${f}층 ${label(nextBase['f' + f], nextSub['f' + f])}`).join(', ') + ` (이전: ${before})` : '') + (secChanged ? `${changes.length ? ' / ' : ''}자리 선택 시간 ${sec}초` : ''));
     renderFloorModeTab(); renderDeskOptions(); renderFloor(); showToast('층별 출석 모드가 저장되었습니다.');
   });
 
@@ -3074,6 +3358,215 @@
   safeAddListener('#deleteAllFpBtn', 'click', deleteAllFingerprints);
 
   // =================================================================
+  // [1-2] 지문 데이터 파일 백업 · 복원
+  //  - 내려받기: /students 와 /fpTemplates 를 서버에서 그대로 읽어 JSON 파일 하나로 저장 (선택: AES-GCM 암호화)
+  //  - 올리기: 미리보기 후 서버에 다시 저장. 안전 복원은 "비어 있는 번호"에만 쓰고, 어떤 방식이든 서버 지문을 지우지 않음
+  //  - 복원한 지문은 /dev/fN/sync 큐로 두 층 센서에 다시 써 넣음 (기존 "센서 복원"과 같은 경로)
+  // =================================================================
+  const FP_BACKUP_FORMAT = 'hanseo-yaza-fp-backup';
+  const b64e = u8 => { let s = ''; for(let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); };
+  const b64d = str => { const bin = atob(str); const u8 = new Uint8Array(bin.length); for(let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i); return u8; };
+  const hasCrypto = () => !!(window.crypto && window.crypto.subtle && window.isSecureContext !== false);
+  async function fpDeriveKey(pw, salt, iter){
+    const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveKey']);
+    return crypto.subtle.deriveKey({ name:'PBKDF2', salt, iterations: iter, hash:'SHA-256' }, base, { name:'AES-GCM', length:256 }, false, ['encrypt','decrypt']);
+  }
+  async function fpEncrypt(obj, pw){
+    const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12)), iter = 200000;
+    const key = await fpDeriveKey(pw, salt, iter);
+    const ct = new Uint8Array(await crypto.subtle.encrypt({ name:'AES-GCM', iv }, key, new TextEncoder().encode(JSON.stringify(obj))));
+    return { format: FP_BACKUP_FORMAT, version: 1, encrypted: true, kdf: 'PBKDF2-SHA256', iter, salt: b64e(salt), iv: b64e(iv), exportedAt: obj.exportedAt, counts: obj.counts, data: b64e(ct) };
+  }
+  async function fpDecrypt(env, pw){
+    const key = await fpDeriveKey(pw, b64d(env.salt), parseInt(env.iter) || 200000);
+    const pt = await crypto.subtle.decrypt({ name:'AES-GCM', iv: b64d(env.iv) }, key, b64d(env.data));
+    return JSON.parse(new TextDecoder().decode(pt));
+  }
+  function downloadJsonFile(obj, name){
+    const blob = new Blob([JSON.stringify(obj)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+  }
+  // 암호 입력 (입력칸을 잠시 password 형식으로 바꿔서 사용)
+  async function askPassword(msg, placeholder){
+    const inp = $('#promptInput'); const prev = inp ? inp.type : 'text'; if(inp) inp.type = 'password';
+    try{ return await showPrompt(msg, placeholder || '', true); } finally { if(inp) inp.type = prev; }
+  }
+  async function collectFpBackup(){
+    const [tSnap, sSnap] = await Promise.all([withTimeout(fbDB.ref('fpTemplates').once('value'), 20000, null), withTimeout(fbDB.ref('students').once('value'), 20000, null)]);
+    if(!tSnap || !sSnap) throw new Error('서버에서 데이터를 불러오지 못했습니다 (시간 초과). 연결 상태를 확인해주세요.');
+    const tpl = tSnap.val() || {}, raw = sSnap.val() || {}; const students = {};
+    Object.keys(raw).forEach(k => { const v = raw[k]; if(v && typeof v === 'object' && v.fingerprintId != null) students[k] = v; });
+    return { format: FP_BACKUP_FORMAT, version: 1, encrypted: false, exportedAt: serverNow(), exportedBy: window.adminName || '관리자', source: location.host || '', counts: { students: Object.keys(students).length, templates: Object.keys(tpl).length }, students, fpTemplates: tpl };
+  }
+  const fileStamp = () => { const d = new Date(serverNow()); return `${todayStr()}_${pad2(d.getHours())}${pad2(d.getMinutes())}`; };
+
+  async function exportFpBackup(){
+    if(!isOnline){ await showMessage('서버에 연결되지 않았습니다. 연결 상태를 확인해주세요.'); return; }
+    let pw = '';
+    if(hasCrypto()){
+      pw = await askPassword('백업 파일 암호를 입력하세요. (권장)\n\n지문은 민감한 생체정보입니다. 암호를 걸면 이 암호 없이는 파일을 열 수 없습니다. 암호를 잊으면 복원할 수 없으니 따로 적어 두세요.\n\n비워 두고 확인을 누르면 암호 없이 저장합니다.', '파일 암호 (4자 이상)');
+      if(pw === null) return;
+      if(pw && pw.length < 4){ await showMessage('암호는 4자 이상으로 입력해주세요.'); return; }
+      if(pw){ const pw2 = await askPassword('확인을 위해 암호를 한 번 더 입력하세요.', '암호 확인'); if(pw2 === null) return; if(pw2 !== pw){ await showMessage('두 암호가 서로 다릅니다. 다시 시도해주세요.'); return; } }
+    }
+    if(!pw && !await showConfirm('암호 없이 저장합니다.\n파일을 가진 사람은 누구나 지문 데이터를 서버에 올릴 수 있으니, 안전한 곳에 보관해주세요. 계속할까요?')) return;
+    try{
+      showToast('서버에서 지문 데이터를 불러오는 중...', 3000);
+      const data = await collectFpBackup();
+      const out = pw ? await fpEncrypt(data, pw) : data;
+      downloadJsonFile(out, `야자_지문백업_${fileStamp()}${pw ? '_암호' : ''}.json`);
+      await window.logChange('지문 백업 다운로드', `학생 ${data.counts.students}명 · 지문 데이터 ${data.counts.templates}개${pw ? ' (암호화)' : ' (암호 없음)'}`);
+      showToast(`백업 파일을 내려받았습니다. (학생 ${data.counts.students}명 · 지문 ${data.counts.templates}개)`, 5000);
+    }catch(e){ await showMessage('백업 중 오류가 발생했습니다: ' + (e && e.message ? e.message : e)); }
+  }
+  safeAddListener('#btnFpBackup', 'click', exportFpBackup);
+
+  async function activeReservedFpIds(){
+    const set = new Set();
+    try{ const snap = await withTimeout(fbDB.ref('fpReserve').once('value'), 6000, null); const v = snap && snap.val(); if(v) Object.keys(v).forEach(k => { if(v[k] && v[k].ts && (serverNow() - v[k].ts) < 180000) set.add(parseInt(k)); }); }catch(e){}
+    [pendingEnrollFpId, pendingNewEnrollFpId].forEach(v => { if(v != null) set.add(parseInt(v)); });
+    if(pendingSelfEnroll) set.add(pendingSelfEnroll.fpId);
+    return set;
+  }
+  // 파일의 학생 정보를 이 서버에 맞게 정리 (좌석이 없거나 요일이 겹치면 좌석만 해제)
+  function prepRestoreStudent(fs, id, batchDesk, keepTpl, serverStu){
+    const o = JSON.parse(JSON.stringify(fs)); o.id = id; o.fingerprintId = id;
+    o.name = String(o.name == null ? '' : o.name).slice(0, 20); o.studentNum = String(o.studentNum == null ? '' : o.studentNum);
+    if(!o.weeklySchedule || typeof o.weeklySchedule !== 'object') o.weeklySchedule = defaultWeekly();
+    if(o.seatMode !== 'fixed' && o.seatMode !== 'flexible') o.seatMode = 'flexible';
+    if(!o.monthlyGoalMinutes) o.monthlyGoalMinutes = 1200;
+    if(!o.createdAt) o.createdAt = serverNow();
+    o.fpRegistered = !!keepTpl || !!(serverStu && serverStu.fpRegistered); delete o.fpTemplate;
+    let seatNote = '';
+    if(o.deskId != null){
+      const desk = findDesk(o.deskId); const days = DAYS.map(([k]) => k).filter(k => o.weeklySchedule[k] && o.weeklySchedule[k].enabled);
+      const taken = desk ? getDeskOccupiedDays(desk.id, id) : null; const inBatch = batchDesk.get(String(o.deskId)) || new Set();
+      if(!desk || o.seatMode !== 'fixed'){ o.deskId = null; seatNote = ' · 좌석 없음(배정 해제)'; }
+      else if(days.some(d => taken.has(d) || inBatch.has(d))){ o.deskId = null; seatNote = ' · 좌석 요일 겹침(배정 해제)'; }
+      else { days.forEach(d => inBatch.add(d)); batchDesk.set(String(desk.id), inBatch); }
+    }
+    return { obj: o, seatNote };
+  }
+  async function buildFpRestorePlan(data, mode){
+    const tSnap = await withTimeout(fbDB.ref('fpTemplates').once('value'), 20000, null);
+    if(!tSnap) throw new Error('서버의 지문 데이터를 확인하지 못했습니다 (시간 초과).');
+    const serverTpl = tSnap.val() || {}; const reserved = await activeReservedFpIds(); const maxId = maxUsableFpId();
+    const fileStu = data.students || {}, fileTpl = data.fpTemplates || {};
+    const ids = Array.from(new Set(Object.keys(fileStu).concat(Object.keys(fileTpl)))).map(k => parseInt(k)).filter(n => n >= 1 && n <= 300).sort((a, b) => a - b);
+    const byNum = new Map(); cache.students.forEach(x => { const k = String(x.studentNum || '').trim(); if(k) byNum.set(k, x); });
+    const batchDesk = new Map(); const rows = [];
+    for(const id of ids){
+      const fs = fileStu[id] && typeof fileStu[id] === 'object' ? fileStu[id] : null; const ft = fileTpl[id] != null ? fileTpl[id] : null;
+      const ss = findStudentByFp(id), st = serverTpl[id] != null;
+      const r = { id, num: fs ? String(fs.studentNum || '') : (ss ? String(ss.studentNum || '') : ''), name: fs ? String(fs.name || '') : (ss ? ss.name : ''), hasTpl: ft != null, act: 'skip', note: '', stu: null, tpl: false, regOnly: false };
+      rows.push(r);
+      if(id > maxId){ r.note = `센서 저장 용량(${maxId}) 초과`; continue; }
+      if(reserved.has(id)){ r.note = '지금 이 번호로 지문 등록이 진행 중'; continue; }
+      if(!fs && ft == null){ r.note = '내용 없음'; continue; }
+      const numKey = fs ? String(fs.studentNum || '').trim() : '';
+      const owner = numKey ? byNum.get(numKey) : null;
+      if(owner && String(owner.id) !== String(id)){ r.note = `학번 ${numKey}이(가) 이미 ${owner.fingerprintId}번(${maskName(owner.name)})으로 등록되어 있음`; continue; }
+      if(mode === 'safe'){
+        if(ss){
+          const same = !fs || (String(ss.studentNum || '').trim() === numKey && String(ss.name).trim() === String(fs.name || '').trim());
+          if(!same){ r.note = `서버의 ${maskName(ss.name)} 학생이 이 번호를 사용 중 (보호)`; continue; }
+          if(ft != null && !st){ r.act = 'fill'; r.tpl = true; r.regOnly = true; r.note = '같은 학생 · 서버에 없던 지문만 채움'; }
+          else { r.act = 'same'; r.note = st ? '이미 서버에 있음 (변경 없음)' : '파일에 지문 데이터 없음 (변경 없음)'; }
+        } else if(st){ r.note = '서버에 지문만 먼저 등록된 번호 (보호)'; }
+        else {
+          r.tpl = ft != null;
+          if(fs){ const p = prepRestoreStudent(fs, id, batchDesk, r.tpl); r.stu = p.obj; r.act = 'add'; r.note = (r.tpl ? '학생 + 지문 추가' : '학생만 추가 (지문은 다시 등록 필요)') + p.seatNote; }
+          else { r.act = 'add'; r.note = '지문만 추가 (학생 정보는 나중에 등록)'; }
+        }
+      } else {
+        r.tpl = ft != null;
+        if(fs){ const p = prepRestoreStudent(fs, id, batchDesk, r.tpl || st, ss); r.stu = p.obj; r.note = p.seatNote; }
+        else if(ss && r.tpl){ r.regOnly = true; }
+        const changed = ss && fs && (String(ss.name) !== String(fs.name || '') || String(ss.studentNum || '') !== numKey);
+        r.act = (ss || st) ? 'over' : 'add';
+        r.note = (r.act === 'over' ? (changed ? `덮어씀 (${maskName(ss.name)} → ${maskName(String(fs.name || ''))})` : '덮어씀') : '새로 추가') + (fs && !r.tpl ? (st ? ' · 서버 지문 유지' : (ss && ss.fpRegistered ? ' · 지문 등록 상태 유지' : ' · 지문 없음(다시 등록 필요)')) : '') + r.note;
+      }
+    }
+    return rows;
+  }
+  let frState = null;
+  function frRender(){
+    if(!frState) return; const rows = frState.rows;
+    const c = k => rows.filter(r => r.act === k).length; const nWrite = rows.filter(r => r.stu || r.tpl).length;
+    if($('#frSummary')) $('#frSummary').innerHTML = `<span class="bulk-chip ok">새로 추가 ${c('add')}</span>${c('fill') ? `<span class="bulk-chip ok">지문 채움 ${c('fill')}</span>` : ''}${c('over') ? `<span class="bulk-chip bad">덮어씀 ${c('over')}</span>` : ''}<span class="bulk-chip">변경 없음 ${c('same')}</span><span class="bulk-chip skip">건너뜀 ${c('skip')}</span>`;
+    if($('#frBody')) $('#frBody').innerHTML = rows.map(r => `<tr class="${r.act === 'skip' ? 'skip' : (r.act === 'over' ? 'bad' : '')}"><td>${r.id}</td><td>${esc(r.num)}</td><td>${esc(r.name)}</td><td>${r.hasTpl ? '있음' : '없음'}</td><td>${esc(r.note)}</td></tr>`).join('') || '<tr><td colspan="5" class="muted">파일에 복원할 내용이 없습니다.</td></tr>';
+    const run = $('#frRun'); if(run){ run.disabled = nWrite === 0; run.textContent = nWrite ? `${nWrite}건 복원` : '복원할 내용 없음'; }
+  }
+  safeAddListener('#fpRestoreFile', 'change', async e => {
+    const file = e.target.files && e.target.files[0]; e.target.value = ''; if(!file) return;
+    if(!isReady() || !isOnline){ await showMessage('서버 연결과 데이터 불러오기가 끝난 뒤 다시 시도해주세요.'); return; }
+    let obj, pw = '';
+    try{ obj = JSON.parse(await file.text()); }catch(err){ await showMessage('파일을 읽을 수 없습니다. [지문 백업 파일 내려받기]로 받은 .json 파일인지 확인해주세요.'); return; }
+    if(!obj || obj.format !== FP_BACKUP_FORMAT){ await showMessage('이 시스템의 지문 백업 파일이 아닙니다.'); return; }
+    if(obj.encrypted){
+      if(!hasCrypto()){ await showMessage('이 브라우저에서는 암호화된 파일을 열 수 없습니다. (https 주소에서 열어주세요)'); return; }
+      pw = await askPassword('이 백업 파일의 암호를 입력하세요.', '파일 암호'); if(pw === null || pw === '') return;
+      try{ obj = await fpDecrypt(obj, pw); }catch(err){ await showMessage('암호가 올바르지 않거나 파일이 손상되었습니다.'); return; }
+      if(!obj || obj.format !== FP_BACKUP_FORMAT){ await showMessage('파일 내용이 올바르지 않습니다.'); return; }
+    }
+    if(typeof obj.students !== 'object' || typeof obj.fpTemplates !== 'object' || obj.students === null || obj.fpTemplates === null){ await showMessage('파일에 학생/지문 데이터가 없습니다.'); return; }
+    try{
+      const mode = 'safe'; if($('#frMode')) $('#frMode').value = mode;
+      const rows = await buildFpRestorePlan(obj, mode);
+      frState = { data: obj, rows, mode, pw, fileName: file.name };
+      const when = obj.exportedAt ? new Date(Number(obj.exportedAt)).toLocaleString('ko-KR') : '-';
+      if($('#frFile')) $('#frFile').textContent = `파일: ${file.name}\n백업 시각: ${when} · 학생 ${Object.keys(obj.students).length}명 · 지문 데이터 ${Object.keys(obj.fpTemplates).length}개${obj.source && obj.source !== location.host ? ` · 다른 주소(${obj.source})에서 받은 파일` : ''}`;
+      if($('#frPreBackup')) $('#frPreBackup').checked = true; if($('#frSync')) $('#frSync').checked = true;
+      frRender(); openOverlay('ovFpRestore');
+    }catch(err){ await showMessage('미리보기를 만들지 못했습니다: ' + (err && err.message ? err.message : err)); }
+  });
+  safeAddListener('#frMode', 'change', async () => {
+    if(!frState) return; const mode = $('#frMode').value === 'overwrite' ? 'overwrite' : 'safe';
+    try{ frState.rows = await buildFpRestorePlan(frState.data, mode); frState.mode = mode; frRender(); }catch(err){ await showMessage('미리보기를 다시 만들지 못했습니다: ' + (err && err.message ? err.message : err)); }
+  });
+  safeAddListener('#frCancel', 'click', () => { frState = null; closeOverlay('ovFpRestore'); });
+  safeAddListener('#frRun', 'click', async () => {
+    if(!frState) return; const st = frState; const todo = st.rows.filter(r => r.stu || r.tpl); if(!todo.length) return;
+    if(!isOnline){ await showMessage('서버에 연결되지 않았습니다. 연결 상태를 확인해주세요.'); return; }
+    if(st.mode === 'overwrite'){
+      const nOver = todo.filter(r => r.act === 'over').length;
+      if(!await showConfirm(`덮어쓰기로 ${todo.length}건을 복원합니다.${nOver ? `\n그중 ${nOver}건은 서버에 있던 학생·지문이 파일 내용으로 바뀝니다.` : ''}\n진행할까요?`)) return;
+      const input = await showPrompt('덮어쓰기를 진행하려면 아래에 "지문복원"이라고 입력해주세요.', '지문복원'); if(input !== '지문복원'){ await showMessage('확인 문구가 일치하지 않아 취소되었습니다.'); return; }
+    } else if(!await showConfirm(`안전 복원으로 ${todo.length}건을 서버에 저장합니다.\n서버에 이미 있는 학생·지문은 바뀌지 않습니다. 진행할까요?`)) return;
+    const btn = $('#frRun'); btn.disabled = true;
+    try{
+      // 최신 상태로 한 번 더 확인 (미리보기 이후 다른 화면에서 바뀐 경우)
+      const fresh = await buildFpRestorePlan(st.data, st.mode);
+      const key = r => [r.id, r.act, !!r.stu, r.tpl].join('|');
+      if(fresh.map(key).join(',') !== st.rows.map(key).join(',')){ st.rows = fresh; frRender(); await showMessage('미리보기 이후 서버 데이터가 바뀌어 결과를 새로 고쳤습니다. 다시 확인한 뒤 [복원]을 눌러주세요.'); return; }
+      if($('#frPreBackup') && $('#frPreBackup').checked){
+        const pre = await collectFpBackup();
+        const out = st.pw && hasCrypto() ? await fpEncrypt(pre, st.pw) : pre;
+        downloadJsonFile(out, `야자_지문백업_복원전_${fileStamp()}${st.pw ? '_암호' : ''}.json`);
+      }
+      const updates = {};
+      todo.forEach(r => {
+        if(r.stu) updates['students/' + r.id] = r.stu;
+        else if(r.regOnly && r.tpl) updates['students/' + r.id + '/fpRegistered'] = true;
+        if(r.tpl) updates['fpTemplates/' + r.id] = st.data.fpTemplates[r.id];
+      });
+      await fbMultiUpdate(updates);
+      const tplIds = todo.filter(r => r.tpl).map(r => r.id); let syncNote = '';
+      if(tplIds.length && $('#frSync') && $('#frSync').checked){
+        const res = await withTimeout(Promise.all(FLOORS.map(f => queueIds('dev/f' + f + '/sync', tplIds))), 10000, null);
+        syncNote = res && res.every(Boolean) ? ` · 두 층 센서에 ${tplIds.length}개 반영 요청` : ' · 센서 반영 요청 전달 미확인';
+      }
+      const nStu = todo.filter(r => r.stu).length;
+      await window.logChange('지문 데이터 복원', `${st.mode === 'overwrite' ? '덮어쓰기' : '안전 복원'} · 학생 ${nStu}명 · 지문 ${tplIds.length}개 (${st.fileName})${syncNote}`);
+      frState = null; closeOverlay('ovFpRestore');
+      await showMessage(`복원이 끝났습니다.\n\n· 학생 정보 ${nStu}명 저장\n· 지문 데이터 ${tplIds.length}개 저장${syncNote ? '\n' + syncNote.replace(' · ', '· ') : ''}\n\n센서 반영은 기기가 켜져 있을 때 순서대로 진행됩니다. [지문 기기 상태]에서 센서 저장 개수를 확인할 수 있습니다.`);
+      renderAdminStudentList(); triggerRender();
+    }catch(err){ await showMessage('복원 중 오류가 발생했습니다: ' + (err && err.message ? err.message : err)); }
+    finally{ if(btn) btn.disabled = false; }
+  });
+
+  // =================================================================
   // [2] 기기 오프라인 배너 (메인 화면 상단)
   // =================================================================
   function fmtAgo(ms){ const m = Math.max(0, Math.floor(ms / 60000)); if(m < 60) return m + '분'; const h = Math.floor(m / 60); if(h < 48) return h + '시간'; return Math.floor(h / 24) + '일'; }
@@ -3436,7 +3929,7 @@
       let st = 'miss'; if(rec) st = rec.status === 'present' ? 'present' : (rec.status === 'away' ? 'away' : 'left');
       const late = !!(rec && (st === 'present' || st === 'left') && isLateRecord(s, rec));
       let desk = null;
-      if(effectiveFixed(s)) desk = s.deskId != null ? findDesk(s.deskId) : null; else if(rec && rec.deskId != null) desk = findDesk(rec.deskId);
+      if(rec && rec.deskId != null && findDesk(rec.deskId)) desk = findDesk(rec.deskId); else if(effectiveFixed(s)) desk = s.deskId != null ? findDesk(s.deskId) : null;
       rows.push({ s, rec, sc, st, late, desk });
     });
     return rows;

@@ -2,7 +2,7 @@
 // - 앱 화면(index.html 등): "네트워크 우선" → 항상 최신 버전을 받고, 인터넷이 안 되거나 느릴 때만 저장본 사용
 // - 외부 라이브러리(Firebase SDK, XLSX, html2canvas): 저장본 우선 + 백그라운드 갱신 → 오프라인에서도 앱이 열림
 // - Firebase 데이터 통신(웹소켓/롱폴링)은 절대 가로채지 않음 (실시간 데이터는 그대로 서버와 직접 통신)
-const VERSION = 'yaja-v2';
+const VERSION = 'yaja-v3';
 const SHELL_CACHE = VERSION + '-shell';
 const LIB_CACHE = VERSION + '-lib';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
