@@ -716,6 +716,8 @@
   .or-sign{ border-collapse:collapse; font-size:12px; }
   .or-sign th, .or-sign td{ border:1px solid #333; text-align:center; font-weight:400; }
   .or-sign th{ padding:3px 8px; background:#f2eee2; }
+  .or-sign th:not(.v){ white-space:nowrap; }
+  .or-sheet.daily .or-sign td{ width:66px; }
   .or-sign th.v{ width:22px; padding:2px; line-height:1.3; }
   .or-sign td{ width:58px; height:46px; }
   .or-scroll{ overflow:auto; border:1.5px solid #222; -webkit-overflow-scrolling:touch; max-height:68vh; }
@@ -736,7 +738,8 @@
   .or-table .sat{ color:#0b52b8; }
   .or-table .sun{ color:#c01818; }
   .or-table td.off{ background:repeating-linear-gradient(45deg,#ece7d8 0 3px,#fffdf6 3px 6px); }
-  .or-table td.today, .or-table th.today{ box-shadow:inset 0 0 0 1.5px #c0392b; }
+  .or-table td.today{ background:#fdf0e6; }
+  .or-table th.today{ color:#c0392b; background:#f9e3d3; }
   .or-table th.c-sum, .or-table td.c-sum{ width:34px; min-width:34px; font-size:12px; }
   .or-table th.c-time, .or-table td.c-time{ width:52px; min-width:52px; font-size:11.5px; }
   .or-table th.c-note, .or-table td.c-note{ width:64px; min-width:56px; }
@@ -756,6 +759,187 @@
   html.dev-mobile .or-sign td{ width:46px; height:36px; }
   html.dev-mobile .or-tools select{ flex:1 1 120px; min-width:0; }
   html.dev-mobile .or-month{ min-width:0; flex:1; font-size:15px; }
+
+
+  /* =====================================================================
+     모바일 보정 (2차): 날짜칸 넘침 · 납작한 버튼 · X 버튼 겹침 · 체크박스 정렬 등
+     ===================================================================== */
+  /* iOS 날짜/월 입력칸은 기본 최소 폭이 있어 옆 칸을 덮음 → 폭을 칸에 맞춤 */
+  input[type="date"], input[type="month"], input[type="time"]{ -webkit-appearance:none; appearance:none; min-width:0; max-width:100%; display:block; min-height:44px; line-height:1.2; color:inherit; }
+  input[type="date"]::-webkit-date-and-time-value, input[type="month"]::-webkit-date-and-time-value{ text-align:left; margin:0; }
+  .field input[type="date"], .field input[type="month"]{ width:100%; }
+  .month-input{ flex:1; min-width:0; height:44px; padding:0 12px; border-radius:12px; border:1px solid rgba(120,120,128,0.25); background:rgba(255,255,255,0.75); font-family:inherit; font-size:15px; font-weight:700; text-align:center; }
+  body.dark .month-input{ background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.15); }
+  .month-input::-webkit-date-and-time-value{ text-align:center; }
+  /* 체크박스·라디오: 둥근 입력칸 모양이 덮어써지던 것 정리 */
+  .field input[type="checkbox"], .field input[type="radio"], .day-toggle input, .rt-opt input, .sw-row input, .fm-opt input{ -webkit-appearance:auto; appearance:auto; width:20px; height:20px; min-height:0; padding:0; margin:0; border-radius:initial; flex:none; accent-color:var(--accent); background:none; }
+  .day-toggle, .field label.day-toggle{ display:flex; align-items:center; gap:10px; margin:0; font-size:15px; color:var(--text-primary); }
+  .field label.rt-opt{ display:flex; font-size:13px; color:var(--text-primary); }
+  .day-toggle span{ line-height:20px; }
+  .rt-opt{ align-items:flex-start; }
+  .rt-opt input{ margin-top:1px; }
+  /* 버튼 두 개 나란히 (높이 고정) */
+  .btn-row{ display:flex; gap:10px; }
+  .btn-row > .btn{ flex:1 1 0; min-width:0; height:44px; padding:0 10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .btn-sm-line{ width:100%; height:38px; margin:-2px 0 10px; font-size:12.5px; }
+  .modal .btn{ line-height:1.25; }
+  /* 관리자 메뉴: 제목 줄만 위에 고정 → 스크롤해도 X 버튼이 입력칸을 덮지 않음 */
+  .adm-main{ padding-top:0 !important; }
+  .adm-head{ position:sticky; top:0; z-index:4; margin:0 -26px; padding:20px 66px 10px 26px; background:#f8f8fb; border-bottom:1px solid rgba(120,120,128,0.12); align-items:center; }
+  body.dark .adm-head{ background:#1c1c24; border-bottom-color:rgba(255,255,255,0.08); }
+  .adm-desc{ margin:10px 0 0; font-size:12.5px; line-height:1.5; }
+  #admModal > .close-x{ z-index:12; }
+  .adm-main .tabpane{ padding-top:6px; }
+  .adm-main .tabpane > .row:first-child, .adm-main .tabpane > .field:first-child{ margin-top:8px; }
+  @media (max-width:760px){
+    .adm-head{ margin:0 -16px; padding:14px 60px 10px 16px; gap:10px; }
+    .adm-head #admTitle{ font-size:18px; margin:0; }
+    .adm-desc{ font-size:12px; }
+  }
+  /* 감독표 휴대폰용 목록 */
+  .sup-list .sup-row{ grid-template-columns:76px minmax(0,1fr) minmax(0,1fr); padding:4px 6px; margin:0 -6px 4px; border-radius:10px; }
+  .sup-list .sup-row.wk-start{ margin-top:12px; }
+  .sup-list .sup-row input{ height:40px; font-size:14px; }
+  .sup-list .sup-row .sup-cell{ font-size:14px; font-weight:600; }
+  .sup-list .sup-row .sup-cell.empty{ color:var(--text-secondary); font-weight:400; }
+  body.dark .sup-row input{ background:rgba(0,0,0,0.25); color:#f2f2f5; border-color:rgba(255,255,255,0.15); }
+  body.dark .sup-row .sup-cell{ background:rgba(255,255,255,0.06); }
+  /* 통계 그래프: 한 달이 한 화면에 */
+  .day-chart{ display:flex; align-items:flex-end; gap:2px; height:140px; padding-bottom:4px; }
+  .day-chart .bar-col{ flex:1 1 0; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; }
+  .day-chart .bar{ width:100%; max-width:22px; background:var(--accent); border-radius:3px 3px 0 0; }
+  .day-chart .bar.today{ background:#34c759; }
+  .day-chart .lbl{ font-size:9px; color:var(--text-secondary); margin-top:3px; height:11px; line-height:11px; white-space:nowrap; }
+
+  /* ---------- 휴대폰: 관리자 창·폼 ---------- */
+  html.dev-mobile .modal .row > *{ flex:1 1 140px; }
+  html.dev-mobile .modal .row > .field-full{ flex-basis:100%; }
+  html.dev-mobile .modal .row.btn-row > .btn{ flex:1 1 0; }
+  html.dev-mobile .field input, html.dev-mobile .field select{ font-size:16px; }      /* iOS: 16px 미만이면 누를 때 화면이 확대됨 */
+  html.dev-mobile #adminStudentSearch, html.dev-mobile #timeSearch, html.dev-mobile #studentSearch{ font-size:16px; }
+  html.dev-mobile .student-compact-row .btn-more-student{ height:32px !important; }
+  html.dev-mobile .day-sched-row{ padding:9px 12px; }
+  html.dev-mobile .adm-jump button{ padding:7px 11px; }
+  html.dev-mobile #ovAdmin .modal.adm-modal{ height:calc(100dvh - 20px - var(--warn-h,0px)); max-height:none; }
+  /* 휴대폰 가로 화면: 창을 화면 높이에 맞춤 */
+  @media (orientation:landscape) and (max-height:520px){
+    #ovAdmin .modal.adm-modal{ height:calc(100dvh - 16px) !important; max-height:none !important; }
+    .overlay{ padding:8px; }
+    .modal{ max-height:calc(100dvh - 16px); }
+    .adm-nav{ padding-top:12px; }
+    .adm-nav h2{ margin-bottom:8px; }
+  }
+
+  /* ---------- 출석부 도구 줄 ---------- */
+  .or-tools{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .or-nav, .or-filters{ display:flex; align-items:center; gap:6px; min-width:0; }
+  .or-nav .btn{ width:44px; padding:0; flex:none; }
+  .or-nav #orToday{ width:auto; padding:0 14px; }
+  .seg{ display:inline-flex; background:rgba(120,120,128,0.14); border-radius:12px; padding:3px; gap:2px; }
+  .seg button{ border:none; background:transparent; height:34px; padding:0 14px; border-radius:9px; font-family:inherit; font-size:14px; font-weight:700; color:var(--text-secondary); cursor:pointer; white-space:nowrap; }
+  .seg button.on{ background:#fff; color:var(--text-primary); box-shadow:0 1px 4px rgba(0,0,0,0.12); }
+  body.dark .seg button.on{ background:rgba(255,255,255,0.18); color:#fff; }
+  .or-title{ word-break:keep-all; }
+  html.dev-mobile .or-tools{ flex-direction:column; align-items:stretch; }
+  html.dev-mobile .seg{ display:flex; }
+  html.dev-mobile .seg button{ flex:1; }
+  html.dev-mobile .or-nav .or-month{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; }
+  html.dev-mobile .or-filters select{ flex:1 1 0; min-width:0; font-size:15px; }
+  html.dev-mobile .or-title{ font-size:17px; letter-spacing:1px; line-height:1.45; text-underline-offset:5px; }
+  html.dev-mobile .or-head-left{ font-size:12px; }
+  html.dev-mobile #ovOldRoll .full-top .full-tools{ width:100%; }
+  html.dev-mobile #ovOldRoll .full-top .full-tools .btn{ flex:1; }
+  html.dev-mobile #ovRoster .full-top{ flex-wrap:nowrap; margin-bottom:8px; }
+  html.dev-mobile #ovRoster .full-tools{ flex-wrap:nowrap; }
+  /* 오늘(일일) 출석부 */
+  .or-sheet.daily .or-title{ font-size:24px; }
+  .or-date-big{ text-align:center; font-size:15px; font-weight:700; margin:-4px 0 10px; letter-spacing:1px; }
+  .or-table.daily td, .or-table.daily th{ padding:0 6px; height:30px; font-size:13px; }
+  .or-table.daily td.l{ text-align:left; }
+  .or-table.daily td.c-sign{ min-width:70px; }
+  .or-table.daily tr.miss td{ color:#c01818; }
+  .or-table.daily .c-name{ max-width:none; width:auto; }
+  .or-sum{ display:flex; gap:6px 18px; flex-wrap:wrap; font-size:13px; margin-top:10px; }
+  .or-sum b{ font-size:15px; }
+  html.dev-mobile .or-sheet.daily .or-title{ font-size:19px; }
+  html.dev-mobile .or-table.daily td, html.dev-mobile .or-table.daily th{ font-size:12.5px; padding:0 4px; }
+
+  /* ---------- 요일별 명단: 한눈에 보기 (이름 카드) ---------- */
+  .rs-bar{ display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+  .rs-bar .rs-floor{ margin:0; }
+  .rs-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(calc(84px * var(--rs-s,1)), 1fr)); gap:calc(6px * var(--rs-s,1)); }
+  .rs-chip{ position:relative; border:none; border-left:calc(5px * var(--rs-s,1)) solid #8e8e93; border-radius:calc(10px * var(--rs-s,1)); padding:calc(7px * var(--rs-s,1)) 4px; background:rgba(255,255,255,0.9); color:var(--text-primary); font-family:inherit; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; min-width:0; gap:1px; }
+  body.dark .rs-chip{ background:rgba(255,255,255,0.08); }
+  .rs-chip b{ font-size:calc(16px * var(--rs-s,1)); font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; letter-spacing:-0.3px; }
+  .rs-chip small{ font-size:calc(11px * var(--rs-s,1)); color:var(--text-secondary); white-space:nowrap; font-variant-numeric:tabular-nums; }
+  .rs-chip.st-present{ border-left-color:#34c759; }
+  .rs-chip.st-away{ border-left-color:#ffcc00; background:rgba(255,204,0,0.12); }
+  .rs-chip.st-left{ border-left-color:#8e8e93; opacity:.82; }
+  .rs-chip.late::after{ content:''; position:absolute; top:4px; right:4px; width:calc(8px * var(--rs-s,1)); height:calc(8px * var(--rs-s,1)); min-width:5px; min-height:5px; border-radius:50%; background:#ff9500; }
+  .rs-chip.miss{ border-left-color:#ff3b30; background:rgba(255,59,48,0.08); }
+  .rs-chip.miss b{ color:#c41a10; }
+  body.dark .rs-chip.miss b{ color:#ff6b61; }
+  .rs-chip.wait{ border-left-color:#aeaeb2; background:rgba(120,120,128,0.1); }
+  #rsList.tiny .rs-chip small{ display:none; }
+  .rs-legend{ display:flex; gap:4px 12px; flex-wrap:wrap; font-size:11.5px; color:var(--text-secondary); margin-top:10px; }
+  .rs-legend i{ display:inline-block; width:4px; height:12px; border-radius:2px; margin-right:4px; vertical-align:-1px; }
+  .rs-compact .rs-stats{ gap:6px; margin-bottom:8px; }
+  .rs-compact .rs-stat{ padding:6px 4px; border-radius:12px; display:flex; align-items:baseline; justify-content:center; gap:5px; }
+  .rs-compact .rs-stat b{ display:inline; font-size:20px; }
+  .rs-compact .rs-sec{ margin:10px 0 6px; font-size:14px; }
+  .rs-compact .rs-date{ font-size:15px; margin:4px 0 6px; }
+  .rs-compact #rsNote{ display:none; }
+  html.dev-mobile .rs-compact .rs-stat{ flex-direction:column; align-items:center; gap:0; padding:5px 2px; }
+  html.dev-mobile .rs-compact .rs-stat b{ font-size:18px; }
+  html.dev-mobile .rs-grid{ grid-template-columns:repeat(auto-fill, minmax(calc(72px * var(--rs-s,1)), 1fr)); }
+  html.dev-mobile .rs-week{ margin:0 0 8px; }
+  html.dev-mobile .rs-week .btn{ height:36px; }
+  html.dev-mobile .rs-floor button{ padding:6px 13px; }
+  @media print{
+    body.printing .rs-chip{ background:#fff !important; border:1px solid #999; border-left-width:4px; color:#000; break-inside:avoid; }
+    body.printing .rs-bar{ display:none !important; }
+    body.printing .or-sheet.daily{ page:auto; }
+  }
+
+
+  /* ===== 운영 편의 기능 ===== */
+  .miss-alert{ display:flex; align-items:center; gap:8px; margin:0 12px 10px; padding:10px 14px; border-radius:14px; background:rgba(255,149,0,0.16); border:1px solid rgba(255,149,0,0.45); color:#8a4b00; font-size:13px; cursor:pointer; white-space:nowrap; min-width:0; }
+  body.dark .miss-alert{ color:#ffc266; background:rgba(255,149,0,0.14); }
+  .miss-alert .ico{ flex:none; }
+  .miss-alert b{ flex:none; }
+  .miss-alert .ma-sub{ flex:none; font-size:11.5px; opacity:.8; }
+  .miss-alert .ma-names{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; }
+  .miss-alert .ma-more{ flex:none; font-weight:700; }
+  html.dev-mobile .miss-alert{ margin:0 8px 8px; flex-wrap:wrap; white-space:normal; row-gap:2px; }
+  html.dev-mobile .miss-alert .ma-names{ flex-basis:100%; order:5; white-space:nowrap; }
+  #ovExcuse{ z-index:170; }
+  .ex-info{ background:rgba(120,120,128,0.1); border-radius:12px; padding:10px 12px; margin-bottom:12px; font-size:13px; line-height:1.6; }
+  .ex-radio{ display:flex; gap:8px; flex-wrap:wrap; }
+  .field .ex-radio label{ display:flex; align-items:center; gap:8px; margin:0; font-size:14px; color:var(--text-primary); padding:10px 12px; border-radius:12px; background:rgba(255,255,255,0.6); flex:1 1 140px; cursor:pointer; }
+  body.dark .field .ex-radio label{ background:rgba(255,255,255,0.06); }
+  .fac-item{ align-items:flex-start; gap:10px; }
+  .fac-item .btn{ flex:none; height:36px; padding:0 12px; font-size:12.5px; }
+  .fac-main{ flex:1; min-width:0; }
+  .fac-note{ margin:2px 0; overflow-wrap:anywhere; }
+  .risk-item .btn{ flex:none; height:34px; padding:0 12px; font-size:12px; }
+  textarea.ta{ width:100%; padding:11px 12px; border-radius:12px; border:1px solid rgba(120,120,128,0.25); background:rgba(255,255,255,0.7); font-family:inherit; font-size:14px; resize:vertical; color:inherit; }
+  body.dark textarea.ta{ background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.15); }
+  html.dev-mobile textarea, html.dev-mobile textarea.ta{ font-size:16px; }
+  .desk.off{ background:repeating-linear-gradient(45deg, rgba(255,59,48,0.10) 0 6px, rgba(255,255,255,0.35) 6px 12px) !important; border:1.5px dashed rgba(255,59,48,0.6) !important; opacity:1; }
+  .desk .d-off{ font-size:7.5px; font-weight:800; color:#d70015; flex:none; }
+  .sp-seat.off{ border-style:dashed; border-color:rgba(255,59,48,0.5); }
+  .sd-fac{ margin-top:16px; padding-top:14px; border-top:1px dashed rgba(0,0,0,0.2); }
+  .sd-fac h4{ margin:0 0 8px; font-size:12px; color:var(--text-secondary); }
+  .m-exc{ color:#0b52b8; font-weight:700; }
+  .or-table td.c-day{ cursor:pointer; }
+  .or-table.daily tbody tr[data-sid]{ cursor:pointer; }
+  .or-table.daily tr.warn td{ background:#fdeeee; }
+  .rs-chip.exc{ border-left-color:#0a84ff; background:rgba(10,132,255,0.08); }
+  .rs-chip.exc b{ color:inherit; }
+  .hist-abs{ display:flex; flex-wrap:wrap; gap:5px; margin:6px 0 10px; }
+  .hist-abs button{ border:none; border-radius:999px; padding:5px 10px; font-size:12px; font-weight:700; font-family:inherit; cursor:pointer; background:rgba(255,59,48,0.12); color:#d70015; }
+  .hist-abs button.ok{ background:rgba(10,132,255,0.12); color:#0a64c8; }
+  @media print{ body.printing .or-sheet.report{ page:auto; } body.printing .or-table.daily tr.warn td{ background:#f3f3f3 !important; } }
 
   /* =====================================================================
      인쇄 (요일별 명단: A4 세로 / 구 버전 출석부: A4 가로)
@@ -861,6 +1045,8 @@
   </div>
 </header>
 
+<div id="missAlert" class="miss-alert" role="button" tabindex="0" style="display:none"></div>
+
 <div class="kiosk-instruction"><span id="icon-fingerprint"></span>아래 버튼을 눌러 스캐너를 켠 후 지문을 스캔하세요</div>
 
 <!-- 1층 스캔 전용 버튼 -->
@@ -899,6 +1085,8 @@
     <button class="fab-item" data-action="time">학습·출결</button>
     <button class="fab-item" data-action="supervision">감독표</button>
     <button class="fab-item" data-action="stats">통계·랭킹</button>
+    <button class="fab-item" data-action="report">월간 보고서</button>
+    <button class="fab-item" data-action="facility">시설 관리</button>
     <button class="fab-item" data-action="menu"><b>전체 메뉴 보기</b></button>
     <div class="fab-label">화면 작업</div>
     <button class="fab-item" data-action="layout">좌석 배치 편집</button>
@@ -920,11 +1108,11 @@
         <div class="adm-search"><span data-ico="search"></span><input id="admSearch" type="search" placeholder="메뉴 검색 (예: 비밀번호)" autocomplete="off"></div>
         <div class="adm-group"><div class="adm-group-label">학생</div>
           <button class="tabbtn adm-item" data-tab="students" data-group="학생" data-kw="학생 관리 목록 · 등록 · 엑셀 일괄 등록 학생 등록 수정 삭제 엑셀 일괄 학번 이름 지문번호 목표시간 좌석유형 필터 검색"><span data-ico="users"></span><span class="lbl">학생 관리<small>목록 · 등록 · 엑셀 일괄 등록</small></span><span class="badge2" data-badge="students"></span></button>
-          <button class="tabbtn adm-item" data-tab="device" data-group="학생" data-kw="지문·기기 기기 상태 · 원격 등록 · 센서 지문 기기 센서 원격 등록 재등록 재시작 동기화 와이파이 정리 미사용 연결 상태"><span data-ico="fingerprint"></span><span class="lbl">지문·기기<small>기기 상태 · 원격 등록 · 센서</small></span><span class="badge2" data-badge="device"></span></button>
+          <button class="tabbtn adm-item" data-tab="device" data-group="학생" data-kw="지문·기기 기기 상태 · 원격 등록 · 센서 지문 기기 센서 원격 등록 재등록 재시작 동기화 와이파이 정리 미사용 연결 상태 끊김 기록 오프라인"><span data-ico="fingerprint"></span><span class="lbl">지문·기기<small>기기 상태 · 원격 등록 · 센서</small></span><span class="badge2" data-badge="device"></span></button>
         </div>
         <div class="adm-group"><div class="adm-group-label">출결 · 운영</div>
           <button class="tabbtn adm-item" data-tab="time" data-group="출결 · 운영" data-kw="학습·출결 학습시간 · 출결 초기화 · 학기 전환 학습시간 출결 초기화 학기 전환 마법사 졸업 기록 삭제"><span data-ico="clock"></span><span class="lbl">학습·출결<small>학습시간 · 출결 초기화 · 학기 전환</small></span><span class="badge2" data-badge="time"></span></button>
-          <button class="tabbtn adm-item" data-tab="settings" data-group="출결 · 운영" data-kw="운영 시간 요일별 운영 · 자동 퇴실 운영 시간 요일 자동 퇴실 마감 여유 시작 종료"><span data-ico="calendar"></span><span class="lbl">운영 시간<small>요일별 운영 · 자동 퇴실</small></span><span class="badge2" data-badge="settings"></span></button>
+          <button class="tabbtn adm-item" data-tab="settings" data-group="출결 · 운영" data-kw="운영 시간 요일별 운영 · 자동 퇴실 운영 시간 요일 자동 퇴실 마감 여유 시작 종료 미입실 알림"><span data-ico="calendar"></span><span class="lbl">운영 시간<small>요일별 운영 · 자동 퇴실</small></span><span class="badge2" data-badge="settings"></span></button>
           <button class="tabbtn adm-item" data-tab="seats" data-group="출결 · 운영" data-kw="좌석·층 설정 배치도 편집 · 층별 출석 모드 좌석 배치 책상 배치도 층별 모드 자율석 고정석 랜덤 자리 선택 공유 좌석표 이미지 제한 시간"><span data-ico="grid"></span><span class="lbl">좌석·층 설정<small>배치도 편집 · 층별 출석 모드</small></span><span class="badge2" data-badge="seats"></span></button>
           <button class="tabbtn adm-item" data-tab="rules" data-group="출결 · 운영" data-kw="야자 규정 규정 문구 편집 규정 야자 안내 문구"><span data-ico="book"></span><span class="lbl">야자 규정<small>규정 문구 편집</small></span><span class="badge2" data-badge="rules"></span></button>
         </div>
@@ -933,8 +1121,11 @@
           <button class="tabbtn adm-item" data-tab="diary" data-group="감독" data-kw="감독일지 날짜별 감독 기록 감독일지 일지 기록 작성"><span data-ico="clipboard"></span><span class="lbl">감독일지<small>날짜별 감독 기록</small></span><span class="badge2" data-badge="diary"></span></button>
         </div>
         <div class="adm-group"><div class="adm-group-label">현황 · 기록</div>
-          <button class="tabbtn adm-item" data-tab="stats" data-group="현황 · 기록" data-kw="통계·랭킹 학습 추이 · 목표 달성 · 지각/결석 · 랭킹 통계 랭킹 순위 목표 달성률 지각 결석 요일별 추이 명예의 전당"><span data-ico="chart"></span><span class="lbl">통계·랭킹<small>학습 추이 · 목표 달성 · 지각/결석 · 랭킹</small></span><span class="badge2" data-badge="stats"></span></button>
+          <button class="tabbtn adm-item" data-tab="stats" data-group="현황 · 기록" data-kw="통계·랭킹 학습 추이 · 목표 달성 · 지각/결석 · 랭킹 통계 랭킹 순위 목표 달성률 지각 결석 요일별 추이 명예의 전당 월간 보고서 담임 출석 관리 필요 장기 결석"><span data-ico="chart"></span><span class="lbl">통계·랭킹<small>월간 보고서 · 관리 필요 학생 · 랭킹</small></span><span class="badge2" data-badge="stats"></span></button>
           <button class="tabbtn adm-item" data-tab="log" data-group="현황 · 기록" data-kw="변경 이력 관리자 작업 기록 변경 이력 로그 기록 작업 누가"><span data-ico="history"></span><span class="lbl">변경 이력<small>관리자 작업 기록</small></span><span class="badge2" data-badge="log"></span></button>
+        </div>
+        <div class="adm-group"><div class="adm-group-label">시설</div>
+          <button class="tabbtn adm-item" data-tab="facility" data-group="시설" data-kw="시설 관리 고장 신고 · 좌석 사용 중지 고장 신고 수리 점검 책상 의자 콘센트 전기 조명 냉난방 사용 중지"><span data-ico="tool"></span><span class="lbl">시설 관리<small>고장 신고 · 좌석 사용 중지</small></span><span class="badge2" data-badge="facility"></span></button>
         </div>
         <div class="adm-group"><div class="adm-group-label">데이터 · 보안</div>
           <button class="tabbtn adm-item" data-tab="backup" data-group="데이터 · 보안" data-kw="백업·보안 엑셀 백업 · 지문 파일 · 비밀번호 백업 엑셀 지문 파일 복원 내려받기 올리기 비밀번호 암호 보안"><span data-ico="shield"></span><span class="lbl">백업·보안<small>엑셀 백업 · 지문 파일 · 비밀번호</small></span><span class="badge2" data-badge="backup"></span></button>
@@ -944,8 +1135,9 @@
       <section class="adm-main" id="admMain">
         <div class="adm-head">
           <button type="button" class="adm-menu-btn" id="admMenuBtn"><span data-ico="menu"></span> 메뉴</button>
-          <div style="min-width:0;"><div class="adm-crumb" id="admCrumb"></div><h2 id="admTitle"></h2><p id="admDesc" class="muted"></p></div>
+          <div style="min-width:0;"><div class="adm-crumb" id="admCrumb"></div><h2 id="admTitle"></h2></div>
         </div>
+        <p id="admDesc" class="muted adm-desc"></p>
         <div class="adm-jump" id="admJump"></div>
 
       <div class="tabpane" id="tab-students">
@@ -1003,7 +1195,7 @@
         <div id="regScheduleGrid"></div>
       </div>
       <div class="row">
-        <div class="field" id="newSeatField">
+        <div class="field field-full" id="newSeatField">
           <label>좌석 (고정좌석 요일 중복 배정 가능)</label>
           <select id="newSeat"></select>
           <div id="newSeatHint" class="muted" style="font-size:11px; margin-top:4px;"></div>
@@ -1026,15 +1218,20 @@
       <div class="tabpane" id="tab-device">
       <h3>지문 기기 상태</h3>
       <div id="deviceStatusBox" style="margin-bottom:6px;"></div>
+      <h3 style="margin-top:20px;">연결 끊김 기록 (최근 30일)</h3>
+      <div id="devLogSummary" class="muted" style="margin-bottom:6px;"></div>
+      <div id="devLogList" style="max-height:34vh; overflow-y:auto;"></div>
+      <button class="btn btn-secondary" id="devLogClear" style="width:100%; margin-top:6px; height:38px;">60일 지난 기록 정리</button>
+      <p class="muted" style="font-size:11.5px;">이 사이트가 켜져 있는 화면이 하나라도 있을 때 기록됩니다. 와이파이 개선이나 기기 교체를 판단할 때 참고하세요.</p>
       <h3 style="margin-top:20px;">지문 원격 신규 등록</h3>
       <button class="btn btn-secondary" id="btnViewFpStatus2" style="width:100%; margin-bottom:12px; font-weight:600; padding:9px 12px; background:rgba(10,132,255,0.12); color:var(--accent);">
         <span data-ico="chart"></span> 전체 지문 등록 현황 및 미등록 번호 확인
       </button>
       <div class="row">
         <div class="field"><label>등록할 기기</label><select id="enrollFloor"><option value="1">1층 기기</option><option value="2">2층 기기</option></select></div>
-        <div class="field"><label>지문 ID (1~300)</label><input id="enrollFpId" type="number" min="1" max="300"></div>
-        <button class="btn btn-primary" id="enrollBtn" style="align-self:flex-end;height:44px;">원격 등록 시작</button>
+        <div class="field"><label>지문 ID (1~300)</label><input id="enrollFpId" type="number" min="1" max="300" inputmode="numeric"></div>
       </div>
+      <button class="btn btn-primary" id="enrollBtn" style="width:100%; height:44px;">원격 등록 시작</button>
       <div id="feStatus" class="muted" style="margin-top:12px;white-space:pre-wrap;">기기가 와이파이에 켜져있어야 합니다.</div>
       <p class="muted" style="margin-top:6px;">등록이 끝나면 다른 층 센서에도 자동으로 복사됩니다.</p>
 
@@ -1060,9 +1257,9 @@
 
       <div class="tabpane" id="tab-time">
       <p class="muted">누적 학습시간과 출결 기록을 확인하고 초기화합니다. 초기화 전에 엑셀 백업을 받아두는 것을 권장합니다.</p>
-      <div class="row" style="margin-bottom:6px;">
-        <button class="btn btn-secondary" id="btnTimeBackup" style="white-space:nowrap; padding:0 8px; font-size:13px;">엑셀 백업 받기</button>
-        <button class="btn btn-danger" id="btnResetTimeAll" style="white-space:nowrap; padding:0 8px; font-size:13px;">전체 학습시간 초기화</button>
+      <div class="row btn-row" style="margin-bottom:6px;">
+        <button class="btn btn-secondary" id="btnTimeBackup">엑셀 백업 받기</button>
+        <button class="btn btn-danger" id="btnResetTimeAll">전체 학습시간 초기화</button>
       </div>
 
       <h3 style="margin-top:20px;">학기 전환 마법사</h3>
@@ -1075,6 +1272,7 @@
         <div class="field"><label>시작일 (선택)</label><input id="arStart" type="date"></div>
         <div class="field"><label>종료일 (선택)</label><input id="arEnd" type="date"></div>
       </div>
+      <button type="button" class="btn btn-secondary btn-sm-line" id="arClear">기간 지우기 (전체 기간)</button>
       <label class="rt-opt"><input type="checkbox" id="arResetTotal"><span>남아 있는 이번 달 학습시간도 함께 0분으로 초기화</span></label>
       <div id="arInfo" class="muted" style="margin:4px 0 8px; font-size:12px;"></div>
       <button class="btn btn-danger" id="btnAttendanceReset" style="width:100%">출결 기록 삭제</button>
@@ -1093,6 +1291,9 @@
       <h3 style="margin-top:18px;">자동 퇴실 마감</h3>
       <label class="rt-opt"><input type="checkbox" id="autoCheckoutOn"><span><b>운영 시간이 끝나면 미퇴실자를 자동 퇴실 처리</b><br><span class="muted">재실·자리비움으로 남은 학생을 그날 종료 시간에 퇴실 처리하고 학습시간을 계산합니다. 운영하지 않는 요일의 기록은 다음 날 오전 6시에 마감됩니다.</span></span></label>
       <div class="field"><label>종료 후 여유 시간 (분, 0~180)</label><input id="autoCheckoutGrace" type="number" min="0" max="180" step="5" inputmode="numeric"></div>
+      <h3 style="margin-top:18px;">미입실 알림</h3>
+      <label class="rt-opt"><input type="checkbox" id="missAlertOn"><span><b>신청 시간이 지나도 입실하지 않은 학생을 화면 위쪽에 알림</b><br><span class="muted">학생에게 보이지 않도록 관리자 모드에서만 표시됩니다. 사유(인정)가 등록된 학생은 빠집니다.</span></span></label>
+      <div class="field"><label>알림 기준: 신청 시작 후 몇 분 (5~180)</label><input id="missAlertMin" type="number" min="5" max="180" step="5" inputmode="numeric"></div>
       <button class="btn btn-primary" id="saveTimeSettingsBtn" style="width:100%; margin-top:10px;">운영 설정 저장</button>
 </div>
 
@@ -1118,10 +1319,10 @@
       <div class="tabpane" id="tab-supervision">
       <div class="row" style="align-items:center;">
         <button class="btn btn-secondary" id="supPrev" style="flex:0 0 auto;"><span data-ico="chevL"></span></button>
-        <input type="month" id="supMonth" style="flex:1; min-width:0; padding:10px; border-radius:12px; border:1px solid rgba(120,120,128,0.25); font-family:inherit; font-size:14px;">
+        <input type="month" id="supMonth" class="month-input">
         <button class="btn btn-secondary" id="supNext" style="flex:0 0 auto;"><span data-ico="chevR"></span></button>
       </div>
-      <p class="muted" style="margin:8px 0 0; font-size:12px;">월~금만 표시됩니다. 칸에 이름을 적고 아래 저장 버튼을 누르세요.</p>
+      <p class="muted" style="margin:8px 0 0; font-size:12px;">월~금만 표시됩니다. 칸에 1층·2층 감독 교사 이름을 적고 아래 저장 버튼을 누르세요.</p>
       <div id="supTable" class="cal-wrap" style="margin-top:8px;"></div>
       <button class="btn btn-primary" id="supSaveBtn" style="width:100%; margin-top:10px;">이 달 감독표 저장</button>
       <h3 style="margin-top:22px;">엑셀로 올리기 / 내려받기</h3>
@@ -1145,7 +1346,13 @@
     </div>
 
       <div class="tabpane" id="tab-stats">
-      <h3>월간 누적 학습시간 추이</h3>
+      <h3>월간 보고서</h3>
+      <p class="muted">학생별 출석률 · 학습시간 · 지각 · 조퇴 · 결석을 반별로 한 장에 정리합니다. 인쇄하거나 엑셀로 담임 선생님께 전달하세요.</p>
+      <button class="btn btn-primary" id="btnOpenReport" style="width:100%">월간 보고서 만들기</button>
+      <h3 style="margin-top:22px;">출석 관리 필요 학생 (최근 2주)</h3>
+      <p class="muted">최근 14일 동안 신청한 날의 출석률이 50% 미만인 학생입니다. (신청 3일 이상 · 인정 결석 제외)</p>
+      <div id="riskList"></div>
+      <h3 style="margin-top:24px;">월간 누적 학습시간 추이</h3>
       <div id="statsChart" style="padding:8px 4px 0;"></div>
       <div id="statsSummary" class="muted" style="margin-top:10px;"></div>
       
@@ -1163,12 +1370,30 @@
 </div>
 
       <div class="tabpane" id="tab-log">
-      <div class="row" style="margin-bottom:12px;">
-        <div class="field" style="margin-bottom:0;"><input type="date" id="logDateFilter"></div>
-        <button class="btn btn-danger" id="clearLogBtn" style="white-space:nowrap; height:44px;">기록 삭제</button>
-        <button class="btn btn-secondary" id="exportLogExcelBtn" style="white-space:nowrap; height:44px;">엑셀 다운로드</button>
+      <div class="field"><label>날짜</label><input type="date" id="logDateFilter"></div>
+      <div class="row btn-row" style="margin-bottom:12px;">
+        <button class="btn btn-secondary" id="exportLogExcelBtn">엑셀 다운로드</button>
+        <button class="btn btn-danger" id="clearLogBtn">이 날짜 기록 삭제</button>
       </div>
       <div id="changeLogList"></div>
+    </div>
+
+      <div class="tabpane" id="tab-facility">
+      <h3>고장 · 점검 신고</h3>
+      <div class="row">
+        <div class="field"><label>층</label><select id="facFloor"><option value="1">1층</option><option value="2">2층</option><option value="0">공용 · 기타</option></select></div>
+        <div class="field"><label>좌석 (선택)</label><select id="facDesk"></select></div>
+      </div>
+      <div class="field"><label>분류</label><select id="facCat"><option>책상·의자</option><option>콘센트·전기</option><option>조명</option><option>냉난방</option><option>지문 기기</option><option>와이파이</option><option>청소·비품</option><option>기타</option></select></div>
+      <div class="field"><label>내용</label><textarea id="facNote" rows="3" maxlength="200" placeholder="예: 12번 책상 콘센트 불량" class="ta"></textarea></div>
+      <label class="rt-opt" id="facDisableRow" style="display:none;"><input type="checkbox" id="facDisable"><span><b>이 좌석을 사용 중지</b><br><span class="muted">자동 배정 · 자리 선택 · 고정석 배정에서 빠집니다. [처리 완료]를 누르면 다시 사용됩니다.</span></span></label>
+      <button class="btn btn-primary" id="facAddBtn" style="width:100%">신고 등록</button>
+      <h3 style="margin-top:22px;">처리 대기 <span id="facOpenCount" class="muted" style="font-size:12px;"></span></h3>
+      <div id="facOpenList"></div>
+      <h3 style="margin-top:22px;">사용 중지된 좌석</h3>
+      <div id="facDisabledList"></div>
+      <h3 style="margin-top:22px;">처리 완료 기록 (최근 30건)</h3>
+      <div id="facDoneList"></div>
     </div>
 
       <div class="tabpane" id="tab-backup">
@@ -1255,7 +1480,7 @@
       <div id="editScheduleGrid"></div>
     </div>
     <div class="row">
-      <div class="field" id="editSeatField">
+      <div class="field field-full" id="editSeatField">
         <label>좌석 (고정좌석 요일 중복 배정 가능)</label>
         <select id="editSeat"></select>
         <div id="editSeatHint" class="muted" style="font-size:11px; margin-top:4px;"></div>
@@ -1320,13 +1545,59 @@
         <button class="btn btn-secondary" id="rsNext" aria-label="다음 주"><span data-ico="chevR"></span></button>
       </div>
       <div class="rs-days no-print" id="rsDays"></div>
-      <div class="rs-floor no-print" id="rsFloor">
-        <button data-floor="all" class="on">전체</button><button data-floor="1">1층</button><button data-floor="2">2층</button>
+      <div class="rs-bar no-print">
+        <div class="rs-floor" id="rsFloor">
+          <button data-floor="all" class="on">전체</button><button data-floor="1">1층</button><button data-floor="2">2층</button>
+        </div>
+        <div class="rs-floor rs-view" id="rsView">
+          <button data-view="grid" class="on">한눈에</button><button data-view="list">자세히</button>
+        </div>
       </div>
       <div class="rs-date" id="rsDate"></div>
       <div class="rs-stats" id="rsStats"></div>
       <div id="rsList"></div>
-      <p class="rs-note">· 참여: 그날 입실 기록이 있는 학생입니다. &nbsp;· 미참여: 그 요일을 신청했지만 입실 기록이 없는 학생입니다.<br>· 층은 그날 앉은 좌석(없으면 고정석) 기준이며, 좌석이 없는 학생은 [전체]에서만 보입니다.</p>
+      <p class="rs-note" id="rsNote">· 참여: 그날 입실 기록이 있는 학생입니다. &nbsp;· 미참여: 그 요일을 신청했지만 입실 기록이 없는 학생입니다.<br>· 층은 그날 앉은 좌석(없으면 고정석) 기준이며, 좌석이 없는 학생은 [전체]에서만 보입니다.</p>
+    </div>
+  </div>
+</div>
+
+<!-- 출결 사유 기록 -->
+<div class="overlay" id="ovExcuse">
+  <div class="modal glass">
+    <button class="close-x" data-close="ovExcuse"></button>
+    <h2>출결 사유 기록</h2>
+    <div id="exInfo" class="ex-info"></div>
+    <div class="field"><label>사유</label><select id="exType"><option value="sick">병결 (아픔 · 보건실)</option><option value="academy">학원 · 과외</option><option value="home">가정 사정</option><option value="event">학교 행사 · 대회</option><option value="other">기타</option></select></div>
+    <div class="field"><label>처리</label>
+      <div class="ex-radio"><label><input type="radio" name="exApproved" value="1" checked> 인정 (결석으로 세지 않음)</label><label><input type="radio" name="exApproved" value="0"> 미인정</label></div>
+    </div>
+    <div class="field"><label>메모 (선택)</label><input id="exNote" maxlength="100" placeholder="예: 학부모 연락 확인"></div>
+    <div id="exMeta" class="muted" style="font-size:11.5px; margin-top:-4px;"></div>
+    <div class="modal-actions"><button class="btn btn-danger" id="exDelete">사유 삭제</button><button class="btn btn-primary" id="exSave">저장</button></div>
+  </div>
+</div>
+
+<!-- 월간 보고서 -->
+<div class="overlay ov-full" id="ovReport">
+  <div class="modal">
+    <div class="full-inner" style="max-width:1200px;">
+      <div class="full-top no-print">
+        <h2 class="full-title">월간 보고서</h2>
+        <div class="full-tools">
+          <button class="btn btn-primary" id="rpPrint"><span data-ico="printer"></span> 인쇄</button>
+          <button class="btn btn-secondary" id="rpExcel"><span data-ico="download"></span> 엑셀 저장</button>
+          <button class="btn btn-secondary" id="rpClose" data-esc-close>닫기</button>
+        </div>
+      </div>
+      <div class="or-tools no-print">
+        <div class="or-nav">
+          <button class="btn btn-secondary" id="rpPrev" aria-label="이전 달"><span data-ico="chevL"></span></button>
+          <div class="or-month" id="rpMonth"></div>
+          <button class="btn btn-secondary" id="rpNext" aria-label="다음 달"><span data-ico="chevR"></span></button>
+        </div>
+        <div class="or-filters"><select id="rpGrade" aria-label="학년"></select><select id="rpClass" aria-label="반"></select></div>
+      </div>
+      <div id="rpSheet"></div>
     </div>
   </div>
 </div>
@@ -1344,17 +1615,23 @@
         </div>
       </div>
       <div class="or-tools no-print">
-        <button class="btn btn-secondary" id="orPrev" aria-label="이전 달"><span data-ico="chevL"></span></button>
-        <div class="or-month" id="orMonthLabel"></div>
-        <button class="btn btn-secondary" id="orNext" aria-label="다음 달"><span data-ico="chevR"></span></button>
-        <select id="orGrade" aria-label="학년"></select>
-        <select id="orScope" aria-label="대상">
-          <option value="active">이 달 신청·출석 학생</option>
-          <option value="all">전체 학생</option>
-        </select>
+        <div class="seg" id="orMode" role="tablist">
+          <button type="button" data-mode="day">오늘 출석부</button>
+          <button type="button" data-mode="month" class="on">월별 출석부</button>
+        </div>
+        <div class="or-nav">
+          <button class="btn btn-secondary" id="orPrev" aria-label="이전"><span data-ico="chevL"></span></button>
+          <div class="or-month" id="orMonthLabel"></div>
+          <button class="btn btn-secondary" id="orNext" aria-label="다음"><span data-ico="chevR"></span></button>
+          <button class="btn btn-secondary" id="orToday">오늘</button>
+        </div>
+        <div class="or-filters">
+          <select id="orGrade" aria-label="학년"></select>
+          <select id="orScope" aria-label="대상"></select>
+        </div>
       </div>
       <div id="orSheet"></div>
-      <p class="or-help no-print">인쇄를 누르면 A4 가로 용지에 맞춰 출력됩니다. 결석(×)은 그 요일을 신청했는데 입실 기록이 없는 날이며, 조퇴(▽)는 신청한 종료 시각보다 일찍 퇴실 스캔한 날입니다. (운영 종료 후 자동 퇴실은 조퇴가 아닙니다)</p>
+      <p class="or-help no-print" id="orHelp">인쇄를 누르면 A4 가로 용지에 맞춰 출력됩니다. 결석(×)은 그 요일을 신청했는데 입실 기록이 없는 날이며, 조퇴(▽)는 신청한 종료 시각보다 일찍 퇴실 스캔한 날입니다. (운영 종료 후 자동 퇴실은 조퇴가 아닙니다)</p>
     </div>
   </div>
 </div>
@@ -1458,7 +1735,7 @@
   // 서버 시각(각 기기의 시계 오차를 보정). 다른 모든 시간 계산보다 먼저 선언되어야 합니다.
   let serverOffset = 0; const serverNow = () => Date.now() + serverOffset;
   let settings = { id:'app', adminPassword:'0000', currentDate: todayStr(), studyEndTime:'22:00', lastBackupReminderDate:null, rulesText:'', darkMode:false, validStartTime:'16:00', validEndTime:'21:30', weeklyHours:null, autoCheckout:true, autoCheckoutGraceMin:0, floorModes:{ f1:'free', f2:'fixed' } };
-  let cache = { students: [], desks: [], attendance: [], changelog: [], dailylogs: [], supervision: [] };
+  let cache = { students: [], desks: [], attendance: [], changelog: [], dailylogs: [], supervision: [], excuses: [], facility: [], deviceLog: [] };
   const loaded = { settings:false, students:false, desks:false, attendance:false };
   const isReady = () => loaded.settings && loaded.students && loaded.desks && loaded.attendance;
   let isOnline = false, startedUp = false;
@@ -1542,6 +1819,7 @@
     chevU:'<polyline points="18 15 12 9 6 15"/>',
     menu:'<line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>',
     list:'<line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/>',
+    tool:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
     printer:'<polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>',
     download:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
     fingerprint:'<path d="M2 12C2 6.48 6.48 2 12 2s10 4.48 10 10"/><path d="M5 15c0-3.87 3.13-7 7-7s7 3.13 7 7"/><path d="M8 18c0-2.21 1.79-4 4-4s4 1.79 4 4"/><path d="M11 21c0-.55.45-1 1-1s1 .45 1 1"/>'
@@ -1783,7 +2061,7 @@
   function findAvailableDeskForToday(floor, todayRecords){
     const occupied = occupiedDeskIdSet(todayRecords);
     const floorDesks = cache.desks.filter(d => d.floor === floor).sort((a,b) => a.id - b.id);
-    const emptyDesks = floorDesks.filter(d => !occupied.has(String(d.id)));
+    const emptyDesks = floorDesks.filter(d => !d.disabled && !occupied.has(String(d.id)));
     if(emptyDesks.length === 0) return null;
     for(const desk of emptyDesks) {
       const hasNeighbor = floorDesks.some(other => occupied.has(String(other.id)) && (Math.abs(other.col - desk.col) <= 1 && Math.abs(other.row - desk.row) <= 1) );
@@ -1792,7 +2070,7 @@
   }
 
   // 오늘 비어 있는 좌석 (고정석 학생이 오늘 신청했거나, 이미 누가 앉은 자리는 제외)
-  function freeDesksToday(floor, todayRecords){ const occ = occupiedDeskIdSet(todayRecords); return cache.desks.filter(d => d.floor === floor && !occ.has(String(d.id))); }
+  function freeDesksToday(floor, todayRecords){ const occ = occupiedDeskIdSet(todayRecords); return cache.desks.filter(d => d.floor === floor && !d.disabled && !occ.has(String(d.id))); }
   // 후보 중 옆자리가 빈 좌석을 우선 (기존 자동 배정과 같은 규칙)
   function pickSpacedDesk(floor, candidates, todayRecords){
     if(!candidates || !candidates.length) return null;
@@ -1812,6 +2090,10 @@
       const sc = student.weeklySchedule && student.weeklySchedule[todayDayKey()];
       const scheduled = !!(sc && sc.enabled);
       const sub = own ? floorSub(own.floor) : 'own';
+      if(own && own.disabled){   // 내 자리가 고장 등으로 사용 중지 → 같은 층 빈자리로
+        const alt = pickSpacedDesk(own.floor, freeDesksToday(own.floor, todayRecords), todayRecords);
+        return { deskId: alt ? alt.id : null, policy: 'fixed', msg: alt ? ` ※ 내 자리(${deskLabel(own)})가 사용 중지되어 오늘은 ${deskLabel(alt)}에 배정했습니다.` : ' ※ 내 자리가 사용 중지되어 좌석 없이 입실 처리되었습니다.' };
+      }
       if(!own || sub === 'own' || scheduled) return { deskId: own ? own.id : null, policy: 'fixed' };
       // 신청하지 않은 요일
       const floors = sub === 'floor' ? [own.floor] : FLOORS.filter(f => f !== own.floor);
@@ -1878,7 +2160,7 @@
           b.style.left = Math.round(((d.col - minC) + 0.5) * CELL_W * sc) + 'px'; b.style.top = Math.round(((d.row - minR) + 0.5) * CELL_H * sc) + 'px';
           b.style.width = Math.round(CELL_W * 0.84 * sc) + 'px'; b.style.height = Math.round(CELL_H * 0.8 * sc) + 'px'; b.style.fontSize = Math.max(10, Math.round(16 * sc)) + 'px';
           const num = d.seatNumber || (sameFloor.findIndex(x => String(x.id) === String(d.id)) + 1);
-          b.innerHTML = `${esc(num)}<small>${d.type === 'partition' ? '칸막이' : '오픈형'}</small>`;
+          b.innerHTML = `${esc(num)}<small>${d.disabled ? '사용 중지' : (d.type === 'partition' ? '칸막이' : '오픈형')}</small>`; if(d.disabled) b.classList.add('off');
           b.disabled = !ok;
           if(ok) b.onclick = () => { selected = String(d.id); left = Math.max(left, 10); tickText(); $('#spOk').disabled = false; $('#spOk').textContent = `${floor}층 ${num}번으로 입실`; map.querySelectorAll('.sp-seat.sel').forEach(x => x.classList.remove('sel')); b.classList.add('sel'); };
           map.appendChild(b);
@@ -1908,7 +2190,7 @@
     const fixedStudentToday = allFixed.find(s => effectiveFixed(s) && s.weeklySchedule && s.weeklySchedule[todayKey] && s.weeklySchedule[todayKey].enabled);
     if(fixedStudentToday){
       const record = todayRecords.find(r => String(r.studentId) === String(fixedStudentToday.id)) || null;
-      return { student: fixedStudentToday, record, allFixed };
+      if(!(record && record.deskId != null && String(record.deskId) !== String(deskId) && findDesk(record.deskId))) return { student: fixedStudentToday, record, allFixed };
     }
     const record = todayRecords.find(r => String(r.deskId) === String(deskId)) || null;
     if(record){
@@ -2110,10 +2392,10 @@
         if(record && (status==='present' || status==='left')) isLate = isLateRecord(student, record);
         if(!record && todaySchedule && todaySchedule.enabled) expectedNotArrived = true;
       }
-      cell.className = 'desk type-' + desk.type + ' ' + status + (isLate ? ' late' : '');
+      cell.className = 'desk type-' + desk.type + ' ' + status + (isLate ? ' late' : '') + (desk.disabled ? ' off' : '');
       const pos = cellToPos(desk.col, desk.row); cell.style.left = pos.x+'px'; cell.style.top = pos.y+'px';
       const typeTxt = desk.type==='partition'?'칸막이':'오픈형';
-      const topNum = desk.seatNumber ? `<span class="d-num">${esc(desk.seatNumber)}</span>` : '';
+      const topNum = (desk.seatNumber ? `<span class="d-num">${esc(desk.seatNumber)}</span>` : '') + (desk.disabled ? '<span class="d-off">중지</span>' : '');
       
       if(student){
         const checkIn = record ? hhmm(record.checkIn) : '-'; const checkOut = record && record.checkOut ? hhmm(record.checkOut) : '';
@@ -2141,7 +2423,7 @@
           <div class="d-top">${topNum}<span class="badge">${typeTxt}</span></div>
           <div class="muted d-empty">오늘 비움<small>${esc(otherNames)}</small></div><div></div>`;
       } else {
-        cell.innerHTML = `<div class="d-top">${topNum}<span class="badge">${typeTxt}</span></div><div class="muted d-empty">미배정</div><div></div>`;
+        cell.innerHTML = `<div class="d-top">${topNum}<span class="badge">${typeTxt}</span></div><div class="muted d-empty">${desk.disabled ? '<b style="color:#d70015">사용 중지</b>' + (desk.disabledNote ? `<small>${esc(desk.disabledNote)}</small>` : '') : '미배정'}</div><div></div>`;
       }
       cell.dataset.deskId = desk.id;
       if(layoutEditMode) attachDeskEditEvents(cell, desk, canvas); else attachDeskEvents(cell, desk);
@@ -2168,7 +2450,7 @@
     const fsText = `재실 ${presentCount} / 전체 ${floorDesks.length} · ${floorModeText(currentFloor)}`;
     if($('#floorSummary')) $('#floorSummary').textContent = fsText;
     if($('#floorSummary2')) $('#floorSummary2').textContent = `${currentFloor}층 ${fsText}`;
-    await Promise.all([renderTodaySummary(), renderPublicRanking()]); updateHScroll();
+    await Promise.all([renderTodaySummary(), renderPublicRanking()]); updateHScroll(); renderMissAlert();
   }
 
   function attachDeskEvents(cell, desk){
@@ -2275,14 +2557,17 @@
   }
 
   async function renderStatsChart(){
-    const totals = await computeDailyTotals(); const daysInMonth = bizDate().getDate(); const bars = [];
+    const totals = await computeDailyTotals(); const daysInMonth = bizDate().getDate(); const bars = []; const todayD = bizDate().getDate();
     for(let d=1; d<=daysInMonth; d++){ const dateStr = monthStr()+'-'+pad2(d); bars.push({ day:d, min: totals[dateStr]||0 }); }
     const maxMin = Math.max(1, ...bars.map(b=>b.min)); const chart = $('#statsChart');
     if(chart) {
-      chart.innerHTML = `<div style="display:flex;align-items:flex-end;gap:3px;height:140px;overflow-x:auto;padding-bottom:4px;">` + bars.map(b => `<div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:18px;flex:1;"><div title="${b.day}일: ${b.min}분" style="width:100%;max-width:22px;background:var(--accent);border-radius:4px 4px 0 0;height:${Math.max(2,Math.round(b.min/maxMin*120))}px;"></div><div style="font-size:9px;color:var(--text-secondary);margin-top:3px;">${b.day}</div></div>`).join('') + `</div>`;
+      const w = chart.clientWidth || 320; const every = (w / Math.max(1, daysInMonth)) >= 16 ? 1 : ((w / Math.max(1, daysInMonth)) >= 9 ? 2 : 5);
+      chart.innerHTML = `<div class="day-chart">` + bars.map(b => `<div class="bar-col" title="${b.day}일: ${fmtMin(b.min)}"><div class="bar${b.day === todayD ? ' today' : ''}" style="height:${b.min ? Math.max(3, Math.round(b.min/maxMin*118)) : 2}px;${b.min ? '' : 'opacity:.35;'}"></div><div class="lbl">${(b.day === 1 || b.day % every === 0 || b.day === daysInMonth) ? b.day : ''}</div></div>`).join('') + `</div>`;
     }
-    const totalMin = bars.reduce((s,b)=>s+b.min,0); const avgMin = Math.round(totalMin/daysInMonth);
-    if($('#statsSummary')) $('#statsSummary').textContent = `이번 달 전체 누적 ${Math.floor(totalMin/60)}시간 ${totalMin%60}분 · 일평균 ${avgMin}분`;
+    const totalMin = bars.reduce((s,b)=>s+b.min,0); const activeDays = bars.filter(b => b.min > 0).length;
+    const recCount = cache.attendance.filter(a => a && a.date && a.date.startsWith(monthStr())).length;
+    const perDay = activeDays ? Math.round(totalMin / activeDays) : 0, perStudent = recCount ? Math.round(totalMin / recCount) : 0;
+    if($('#statsSummary')) $('#statsSummary').textContent = `이번 달 전체 누적 ${fmtMin(totalMin)} · 운영한 날 하루 합계 평균 ${fmtMin(perDay)} · 학생 1명 1회 평균 ${fmtMin(perStudent)}`;
   }
   
   async function renderWeekdayTrendChart(){
@@ -2343,7 +2628,7 @@
     list.innerHTML = stats.map(s => `
       <div class="list-item" style="justify-content:space-between;">
         <span><b>${esc(s.name)}</b> <span class="muted">(신청 ${s.scheduledCount}일)</span></span>
-        <span class="muted">지각 <b style="color:#ff9500;">${s.lateCount}</b>회 · 결석 <b style="color:#d70015;">${s.absentCount}</b>일</span>
+        <span class="muted">지각 <b style="color:#ff9500;">${s.lateCount}</b>회 · 결석 <b style="color:#d70015;">${s.absentCount}</b>일${s.excusedCount ? ` · 인정 <b style="color:#0a64c8;">${s.excusedCount}</b>일` : ''}</span>
       </div>
     `).join('');
   }
@@ -2528,9 +2813,23 @@
       }
     }
 
+    if(adminMode){
+      html += `<div class="sd-fac"><h4>시설 관리</h4>${desk.disabled ? `<p style="color:#d70015;font-size:12.5px;margin:0 0 8px;">사용 중지됨${desk.disabledNote ? ' · ' + esc(desk.disabledNote) : ''}</p><button class="btn btn-secondary" id="sdDeskOn" style="width:100%">다시 사용하기</button>` : `<button class="btn btn-secondary" id="sdDeskOff" style="width:100%">고장 신고 · 이 좌석 사용 중지</button>`}</div>`;
+    } else if(desk.disabled){
+      html += `<p style="color:#d70015;font-size:12.5px;margin:12px 0 0;">이 좌석은 현재 사용 중지 상태입니다.</p>`;
+    }
     body.innerHTML = html;
 
     if(adminMode){
+      safeAddListener('#sdDeskOff', 'click', async () => {
+        const note = await showPrompt(`${deskLabel(desk)} 고장 내용을 입력하세요. (자동 배정·자리 선택에서 빠집니다)`, '예: 의자 바퀴 파손'); if(note === null) return;
+        await addFacility('책상·의자', desk.floor, desk, note || '사용 중지', true); closeOverlay('ovSeatDetail'); showToast('좌석을 사용 중지하고 신고를 등록했습니다.'); renderFloor();
+      });
+      safeAddListener('#sdDeskOn', 'click', async () => {
+        await setDeskDisabled(desk, false); await window.logChange('좌석 사용 재개', deskLabel(desk));
+        (cache.facility || []).filter(f => f.status !== 'done' && f.disabledDesk && String(f.deskId) === String(desk.id)).forEach(f => { window.dbPut('facility', Object.assign({}, f, { status: 'done', doneTs: serverNow(), doneBy: window.adminName || '관리자' })); });
+        closeOverlay('ovSeatDetail'); showToast('좌석을 다시 사용합니다.'); renderFloor();
+      });
       $$('.btn-unassign-one').forEach(btn => {
         btn.onclick = async () => {
           const sid = btn.dataset.sid;
@@ -2585,7 +2884,7 @@
 
   function resetAdminIdleTimer(){
     clearTimeout(adminIdleTimer);
-    if(adminMode){ adminIdleTimer = setTimeout(() => { adminMode = false; layoutEditMode = false; if($('#editToolbar')) $('#editToolbar').style.display='none'; if($('#adminFab')) $('#adminFab').style.display='none'; if($('#fabMenu')) $('#fabMenu').classList.remove('show'); ['ovAdmin','ovStudentEdit','ovFingerprintEnroll','ovAttendanceHistory','ovSeatDetail','ovWeekly','ovFingerprintStatus','ovResetTime','ovBulkImport','ovSemester','ovFpRestore','ovSupervision','ovRoster','ovOldRoll'].forEach(closeOverlay); document.body.classList.remove('layout-editing'); setAdminBtn(false); renderFloor(); }, 5*60*1000); }
+    if(adminMode){ adminIdleTimer = setTimeout(() => { adminMode = false; layoutEditMode = false; if($('#editToolbar')) $('#editToolbar').style.display='none'; if($('#adminFab')) $('#adminFab').style.display='none'; if($('#fabMenu')) $('#fabMenu').classList.remove('show'); ['ovAdmin','ovStudentEdit','ovFingerprintEnroll','ovAttendanceHistory','ovSeatDetail','ovWeekly','ovFingerprintStatus','ovResetTime','ovBulkImport','ovSemester','ovFpRestore','ovSupervision','ovRoster','ovOldRoll','ovExcuse','ovReport'].forEach(closeOverlay); document.body.classList.remove('layout-editing'); setAdminBtn(false); renderFloor(); }, 5*60*1000); }
   }
   document.addEventListener('click', resetAdminIdleTimer); document.addEventListener('keydown', resetAdminIdleTimer);
   // Esc 키: 맨 위에 열린 창을 닫습니다 (확인 창은 '취소', 알림 창은 '확인'으로 처리)
@@ -2607,7 +2906,23 @@
   const supKey = (y, m, d) => `${y}-${pad2(m)}-${pad2(d)}`; const supDaysIn = (y, m) => new Date(y, m, 0).getDate(); const supWeekday = (y, m, d) => new Date(y, m - 1, d).getDay(); const supFor = ds => cache.supervision.find(x => String(x.id) === ds) || null; const supClean = v => String(v == null ? '' : v).replace(/\s+/g, ' ').trim().slice(0, 60); function supMD(ds){ const [y, m, d] = ds.split('-').map(Number); return `${m}/${d} (${WEEKDAY_KO[supWeekday(y, m, d)]})`; }
 
   // 월~금만 보이는 달력. editable=true면 칸마다 1층/2층 입력칸
+  function supListHTML(y, m, editable){
+    const today = todayStr(); let html = `<div class="sup-row head"><span>날짜</span><span>1층</span><span>2층</span></div>`; let prevWd = -1;
+    for(let d = 1; d <= supDaysIn(y, m); d++){
+      const wd = supWeekday(y, m, d); if(wd === 0 || wd === 6) continue;
+      const ds = supKey(y, m, d), rec = supFor(ds); const f1 = rec ? supClean(rec.f1) : '', f2 = rec ? supClean(rec.f2) : '';
+      const cls = ['sup-row']; if(ds === today) cls.push('today'); if(prevWd !== -1 && wd < prevWd) cls.push('wk-start'); prevWd = wd;
+      const cell = v => `<span class="sup-cell${v ? '' : ' empty'}">${v ? esc(v) : '-'}</span>`;
+      const body = editable
+        ? `<input class="sup-f1" maxlength="60" value="${esc(f1)}" placeholder="1층" aria-label="${m}월 ${d}일 1층 감독"><input class="sup-f2" maxlength="60" value="${esc(f2)}" placeholder="2층" aria-label="${m}월 ${d}일 2층 감독">`
+        : cell(f1) + cell(f2);
+      html += `<div class="${cls.join(' ')}" data-date="${ds}"><span class="sup-date">${m}/${d} (${WEEKDAY_KO[wd]})${ds === today ? ' 오늘' : ''}</span>${body}</div>`;
+    }
+    return `<div class="sup-list">${html}</div>`;
+  }
+  const supUseList = () => (window.__device || '') === 'mobile';
   function supCalendarHTML(y, m, editable){
+    if(supUseList()) return supListHTML(y, m, editable);
     const today = todayStr(); let html = ['월','화','수','목','금'].map(d => `<div class="cal-dow">${d}</div>`).join('');
     let started = false, lastIdx = 4;
     for(let d = 1; d <= supDaysIn(y, m); d++){
@@ -2645,6 +2960,7 @@
     if($('#supvEdit')) $('#supvEdit').style.display = adminMode ? 'block' : 'none';
   }
   function refreshSupervisionModal(){ const ov = $('#ovSupervision'); if(ov && ov.classList.contains('show')) renderSupervisionModal(); }
+  window.addEventListener('devicechange', () => { refreshSupervisionModal(); if(isShown('ovRoster')) renderRoster(); });
   function openSupervisionModal(){ supvYM = supThisMonth(); renderSupervisionModal(); openOverlay('ovSupervision'); }
   function shiftYM(o, delta){ let m = o.m + delta, y = o.y; while(m < 1){ m += 12; y--; } while(m > 12){ m -= 12; y++; } return { y, m }; }
   
@@ -2681,7 +2997,7 @@
     } return { saved, removed };
   }
   safeAddListener('#supSaveBtn', 'click', async () => {
-    const rows = $$('#supTable .cal-cell[data-date]'); const entries = rows.map(r => ({ date: r.dataset.date, f1: r.querySelector('.sup-f1').value, f2: r.querySelector('.sup-f2').value }));
+    const rows = $$('#supTable [data-date]').filter(r => r.querySelector('.sup-f1')); const entries = rows.map(r => ({ date: r.dataset.date, f1: r.querySelector('.sup-f1').value, f2: r.querySelector('.sup-f2').value }));
     const { saved, removed } = await applySupervision(entries); const { y, m } = supAdminYM || supThisMonth();
     if(saved || removed) await window.logChange('감독표 저장', `${y}년 ${m}월 (등록/수정 ${saved}일${removed ? ', 삭제 ' + removed + '일' : ''})`);
     renderSupervisionBar(); showToast(saved || removed ? `감독표가 저장되었습니다. (수정 ${saved}일${removed ? ', 삭제 ' + removed + '일' : ''})` : '변경된 내용이 없습니다.');
@@ -2748,9 +3064,10 @@
     rules:'학생 화면의 [야자 규정] 버튼에 보이는 규정 문구를 편집합니다.',
     supervision:'월별 1층·2층 감독 교사를 달력에서 입력하고, 엑셀로 올리거나 내려받습니다.',
     diary:'날짜별로 감독 중 있었던 일을 기록합니다.',
-    stats:'이번 달 학습시간 추이, 목표 달성률, 지각·결석, 랭킹을 한곳에서 봅니다.',
+    stats:'월간 보고서, 출석 관리가 필요한 학생, 학습시간 추이, 목표 달성률, 지각·결석, 랭킹을 한곳에서 봅니다.',
     log:'관리자가 언제 무엇을 바꿨는지 날짜별로 확인합니다.',
-    backup:'전체 엑셀 백업, 지문 데이터 파일 백업·복원, 관리자 비밀번호 변경을 합니다.'
+    backup:'전체 엑셀 백업, 지문 데이터 파일 백업·복원, 관리자 비밀번호 변경을 합니다.',
+    facility:'고장 · 점검 신고를 남기고 처리 상황을 관리합니다. 고장 난 좌석은 사용 중지해 자동 배정에서 뺄 수 있습니다.'
   };
   let lastAdminTab = 'students';
   const isNarrow = () => window.matchMedia('(max-width:760px)').matches;
@@ -2763,6 +3080,8 @@
     set('device', off ? `${off}대 끊김` : (unreg ? `미등록 ${unreg}` : ''), off > 0);
     const wd = bizDate().getDay(); const sup = supFor(todayStr());
     set('supervision', (wd !== 0 && wd !== 6 && !(sup && (supClean(sup.f1) || supClean(sup.f2)))) ? '오늘 미입력' : '', true);
+    const facOpen = (cache.facility || []).filter(x => x.status !== 'done').length; set('facility', facOpen ? `대기 ${facOpen}` : '', facOpen > 0);
+    try{ const rk = computeRiskStudents().length; set('stats', rk ? `관리 ${rk}명` : '', rk > 0); }catch(e){}
   }
   function buildAdminJump(pane){
     const box = $('#admJump'); if(!box) return; box.innerHTML = '';
@@ -2791,6 +3110,9 @@
     if(tab==='stats'){ renderStatsChart(); renderWeekdayTrendChart(); renderStudentProgress(); renderLateAbsenceStats(); renderRanking(); }
     if(tab==='diary'){ if($('#diaryDate') && !$('#diaryDate').value) $('#diaryDate').value = todayStr(); renderDiaryList(); }
     if(tab==='log'){ renderChangeLog(); }
+    if(tab==='facility'){ if($('#facFloor')) $('#facFloor').value = String(currentFloor); renderFacilityTab(); }
+    if(tab==='device'){ renderDeviceLog(); }
+    if(tab==='stats'){ renderRiskList(); }
     if($('#admSearch') && $('#admSearch').value){ $('#admSearch').value = ''; filterAdminMenu(); }
     updateAdminBadges();
     setAdminNav(!!opts.showNav && isNarrow());
@@ -2848,6 +3170,8 @@
     const wh = normWeeklyHours(settings.weeklyHours);
     if($('#autoCheckoutOn')) $('#autoCheckoutOn').checked = settings.autoCheckout !== false;
     if($('#autoCheckoutGrace')) $('#autoCheckoutGrace').value = Number(settings.autoCheckoutGraceMin) || 0;
+    if($('#missAlertOn')) $('#missAlertOn').checked = settings.missAlertOn !== false;
+    if($('#missAlertMin')) $('#missAlertMin').value = missAlertMin();
     box.innerHTML = OP_DAYS.map(([k, l]) => {
       const d = wh[k];
       return `<div class="day-sched-row"><div class="day-sched-head"><label class="day-toggle"><input type="checkbox" class="opDay" data-day="${k}" ${d.enabled ? 'checked' : ''}><span>${l}요일 운영</span></label></div><div class="day-sched-time" data-opday="${k}" style="display:${d.enabled ? 'flex' : 'none'};">${timeSelectHTML('op_' + k + '_s', d.start)}<span class="tilde">~</span>${timeSelectHTML('op_' + k + '_e', d.end)}</div></div>`;
@@ -2884,10 +3208,12 @@
     settings.autoCheckout = !$('#autoCheckoutOn') || $('#autoCheckoutOn').checked;
     let gm = parseInt($('#autoCheckoutGrace') ? $('#autoCheckoutGrace').value : 0); if(isNaN(gm) || gm < 0) gm = 0; if(gm > 180) gm = 180;
     settings.autoCheckoutGraceMin = gm;
+    settings.missAlertOn = !$('#missAlertOn') || $('#missAlertOn').checked;
+    let mm = parseInt($('#missAlertMin') ? $('#missAlertMin').value : 30); if(isNaN(mm)) mm = 30; settings.missAlertMin = Math.max(5, Math.min(180, mm));
     const first = OP_DAYS.map(([k]) => w[k]).find(d => d.enabled);
     if(first){ settings.validStartTime = first.start; settings.validEndTime = first.end; }
     await saveSettings();
-    await window.logChange('운영시간 변경', OP_DAYS.map(([k, l]) => `${l} ${w[k].enabled ? w[k].start + '~' + w[k].end : '휴무'}`).join(', ') + ` / 자동 퇴실 ${settings.autoCheckout ? '켜짐(종료 후 ' + gm + '분)' : '꺼짐'}`);
+    await window.logChange('운영시간 변경', OP_DAYS.map(([k, l]) => `${l} ${w[k].enabled ? w[k].start + '~' + w[k].end : '휴무'}`).join(', ') + ` / 자동 퇴실 ${settings.autoCheckout ? '켜짐(종료 후 ' + gm + '분)' : '꺼짐'} / 미입실 알림 ${settings.missAlertOn ? settings.missAlertMin + '분' : '꺼짐'}`);
     showToast('운영 설정이 저장되었습니다.'); triggerRender(); runAutoCheckout();
   });
 
@@ -2912,7 +3238,7 @@
   safeAddListener('#promptInput', 'keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); $('#promptOk').click(); } });
   safeAddListener('#fabToggle', 'click', () => { if($('#fabMenu')) $('#fabMenu').classList.toggle('show'); });
   
-  $$('.fab-item').forEach(btn => { btn.addEventListener('click', () => { if($('#fabMenu')) $('#fabMenu').classList.remove('show'); const action = btn.dataset.action; if(action === 'layout'){ layoutEditMode = true; if($('#editToolbar')) $('#editToolbar').style.display='flex'; renderFloor(); return; } if(action === 'kiosk') { document.body.classList.add('kiosk-mode'); adminMode = false; layoutEditMode = false; if($('#editToolbar')) $('#editToolbar').style.display='none'; if($('#adminFab')) $('#adminFab').style.display='none'; setAdminBtn(false); renderFloor(); showToast('키오스크 모드가 활성화되었습니다.'); return; } if(action === 'menu'){ openAdminPanel(lastAdminTab, null, { showNav:true }); return; } if(action === 'exit'){ adminMode = false; layoutEditMode = false; if($('#editToolbar')) $('#editToolbar').style.display='none'; if($('#adminFab')) $('#adminFab').style.display='none'; setAdminBtn(false); renderFloor(); return; } openAdminPanel(action); }); });
+  $$('.fab-item').forEach(btn => { btn.addEventListener('click', () => { if($('#fabMenu')) $('#fabMenu').classList.remove('show'); const action = btn.dataset.action; if(action === 'layout'){ layoutEditMode = true; if($('#editToolbar')) $('#editToolbar').style.display='flex'; renderFloor(); return; } if(action === 'kiosk') { document.body.classList.add('kiosk-mode'); adminMode = false; layoutEditMode = false; if($('#editToolbar')) $('#editToolbar').style.display='none'; if($('#adminFab')) $('#adminFab').style.display='none'; setAdminBtn(false); renderFloor(); showToast('키오스크 모드가 활성화되었습니다.'); return; } if(action === 'report'){ openReport(); return; } if(action === 'menu'){ openAdminPanel(lastAdminTab, null, { showNav:true }); return; } if(action === 'exit'){ adminMode = false; layoutEditMode = false; if($('#editToolbar')) $('#editToolbar').style.display='none'; if($('#adminFab')) $('#adminFab').style.display='none'; setAdminBtn(false); renderFloor(); return; } openAdminPanel(action); }); });
 
   let exitTimer; const exitKiosk = $('#exitKioskBtn');
   const startExit = () => { exitTimer = setTimeout(() => { document.body.classList.remove('kiosk-mode'); showToast('키오스크 모드가 종료되었습니다.'); }, 1500); };
@@ -2942,6 +3268,7 @@
     let availableCount = 0;
 
     fixedDesks.forEach(d => {
+      if(d.disabled){ html += `<option value="${esc(d.id)}" disabled style="color:#999;">${esc(deskLabel(d))} [사용 중지]</option>`; return; }
       const occupiedDays = getDeskOccupiedDays(d.id, null);
       const conflict = targetDays.some(day => occupiedDays.has(day));
       const freeDays = DAYS.map(([k]) => k).filter(day => !occupiedDays.has(day));
@@ -3207,6 +3534,7 @@
     let availableCount = 0;
 
     fixedDesks.forEach(d => {
+      if(d.disabled && !(current.deskId != null && String(d.id) === String(current.deskId))){ html += `<option value="${esc(d.id)}" disabled style="color:#999;">${esc(deskLabel(d))} [사용 중지]</option>`; return; }
       const occupiedDays = getDeskOccupiedDays(d.id, current.id);
       const conflict = targetDays.some(day => occupiedDays.has(day));
       const freeDays = DAYS.map(([k]) => k).filter(day => !occupiedDays.has(day));
@@ -3294,17 +3622,19 @@
   async function openAttendanceHistory(studentId){
     const s = cache.students.find(x => String(x.id) === String(studentId)); if(!s) return;
     if($('#histTitle')) $('#histTitle').textContent = s.name + '님의 출결 이력';
-    const records = (await dbGetAll('attendance')).filter(a => String(a.studentId) === String(studentId)).sort((a,b) => b.date.localeCompare(a.date)); const mPrefix = monthStr(); const recordDateSet = new Set(records.filter(r => r.date.startsWith(mPrefix)).map(r => r.date)); const scheduledDates = scheduledDatesThisMonth(s, recordDateSet); const absentCount = scheduledDates.filter(d => !recordDateSet.has(d)).length; let lateCount = 0, presentDays = 0; records.forEach(r => { if(!r.date.startsWith(mPrefix)) return; presentDays++; if(isLateRecord(s, r)) lateCount++; });
-    if($('#histSummary')) $('#histSummary').textContent = `이번 달 출석 ${presentDays}일 · 지각 ${lateCount}회 · 결석(신청 후 미출석) ${absentCount}일`;
-    const list = $('#histList'); if(!list) return; if(records.length === 0){ list.innerHTML = '<p class="muted">출결 기록이 없습니다.</p>'; } else { list.innerHTML = records.map(r => { const elapsedMin = Math.round((r.elapsedSeconds||0)/60); const deskInfo = r.deskId != null ? findDesk(r.deskId) : null; return `<div class="list-item" style="flex-direction:column;align-items:flex-start;gap:2px;"><div style="display:flex;justify-content:space-between;width:100%;"><b>${esc(r.date)}</b><span class="muted">${esc(statusLabel(r.status))}</span></div><div class="muted">입실 ${fmtTime(r.checkIn)} · 퇴실 ${r.checkOut?fmtTime(r.checkOut):'-'} · ${elapsedMin}분${deskInfo?' · '+esc(deskLabel(deskInfo)):''}</div></div>`; }).join(''); } openOverlay('ovAttendanceHistory');
+    const records = (await dbGetAll('attendance')).filter(a => String(a.studentId) === String(studentId)).sort((a,b) => b.date.localeCompare(a.date)); const mPrefix = monthStr(); const recordDateSet = new Set(records.filter(r => r.date.startsWith(mPrefix)).map(r => r.date)); const scheduledDates = scheduledDatesThisMonth(s, recordDateSet); const missDates = scheduledDates.filter(d => !recordDateSet.has(d)); const excusedN = missDates.filter(d => isExcused(s.id, d)).length; const absentCount = missDates.length - excusedN; let lateCount = 0, presentDays = 0; records.forEach(r => { if(!r.date.startsWith(mPrefix)) return; presentDays++; if(isLateRecord(s, r)) lateCount++; });
+    if($('#histSummary')) $('#histSummary').innerHTML = esc(`이번 달 출석 ${presentDays}일 · 지각 ${lateCount}회 · 결석(신청 후 미출석) ${absentCount}일${excusedN ? ` · 인정 결석 ${excusedN}일` : ''}`)
+      + (missDates.length ? `<div class="hist-abs">${missDates.map(d => { const e = excuseFor(s.id, d); return `<button type="button" class="${e && e.approved ? 'ok' : ''}" data-exd="${d}">${mdOf(d)} ${e ? esc(excuseText(e)) : '결석 · 사유 입력'}</button>`; }).join('')}</div>` : '');
+    $$('#histSummary [data-exd]').forEach(b => b.onclick = () => openExcuse(s.id, b.dataset.exd));
+    const list = $('#histList'); if(!list) return; if(records.length === 0){ list.innerHTML = '<p class="muted">출결 기록이 없습니다.</p>'; } else { list.innerHTML = records.map(r => { const elapsedMin = Math.round((r.elapsedSeconds||0)/60); const deskInfo = r.deskId != null ? findDesk(r.deskId) : null; const ex = excuseFor(s.id, r.date); return `<div class="list-item" data-exd="${esc(r.date)}" style="flex-direction:column;align-items:flex-start;gap:2px;cursor:pointer;"><div style="display:flex;justify-content:space-between;width:100%;"><b>${esc(r.date)}${isLateRecord(s, r) ? ' <span style="color:#b25000;font-size:12px;">지각</span>' : ''}${isEarlyLeave(s, r) ? ' <span style="color:#6b3fa0;font-size:12px;">조퇴</span>' : ''}${ex ? ` <span style="color:#0a64c8;font-size:12px;">${esc(excuseText(ex))}</span>` : ''}</b><span class="muted">${esc(statusLabel(r.status))}</span></div><div class="muted">입실 ${fmtTime(r.checkIn)} · 퇴실 ${r.checkOut?fmtTime(r.checkOut):'-'} · ${elapsedMin}분${deskInfo?' · '+esc(deskLabel(deskInfo)):''}</div></div>`; }).join(''); $$('#histList [data-exd]').forEach(el => el.onclick = () => openExcuse(s.id, el.dataset.exd)); } openOverlay('ovAttendanceHistory');
   }
 
 
   async function computeLateAbsenceStats(){
     const attendance = await dbGetAll('attendance'); const mPrefix = monthStr();
     return cache.students.map(s => {
-      const myRecords = attendance.filter(a => String(a.studentId) === String(s.id) && a.date && a.date.startsWith(mPrefix)); const recordDateSet = new Set(myRecords.map(r => r.date)); const scheduledDates = scheduledDatesThisMonth(s, recordDateSet); const absentCount = scheduledDates.filter(d => !recordDateSet.has(d)).length; let lateCount = 0; myRecords.forEach(r => { if(isLateRecord(s, r)) lateCount++; });
-      return { name: s.name, lateCount, absentCount, scheduledCount: scheduledDates.length };
+      const myRecords = attendance.filter(a => String(a.studentId) === String(s.id) && a.date && a.date.startsWith(mPrefix)); const recordDateSet = new Set(myRecords.map(r => r.date)); const scheduledDates = scheduledDatesThisMonth(s, recordDateSet); const missDates = scheduledDates.filter(d => !recordDateSet.has(d)); const excusedCount = missDates.filter(d => isExcused(s.id, d)).length; const absentCount = missDates.length - excusedCount; let lateCount = 0; myRecords.forEach(r => { if(isLateRecord(s, r)) lateCount++; });
+      return { name: s.name, lateCount, absentCount, excusedCount, scheduledCount: scheduledDates.length };
     }).sort((a,b) => (b.lateCount+b.absentCount) - (a.lateCount+a.absentCount));
   }
   
@@ -3383,7 +3713,7 @@
   function fmtUptime(sec){ sec = Math.max(0, Number(sec) || 0); const d = Math.floor(sec / 86400), h = Math.floor((sec % 86400) / 3600), m = Math.floor((sec % 3600) / 60); return d ? `${d}일 ${h}시간` : (h ? `${h}시간 ${m}분` : `${m}분`); }
   function resetKo(r){ return ({ 'power-on': '전원 켜짐', 'software': '자동 재시작(복구·점검)', 'crash': '오류로 재시작', 'int-wdt': '감시 재시작', 'task-wdt': '감시 재시작', 'wdt': '감시 재시작', 'brownout': '전원 부족', 'other': '기타' })[r] || r; }
   function renderDeviceStatus(){
-    updateDeviceBanner();
+    updateDeviceBanner(); trackDeviceOffline();
     const box = $('#deviceStatusBox'); if(!box) return;
     box.innerHTML = FLOORS.map(f => {
       const d = deviceInfo['f' + f]; const on = deviceOnline(f);
@@ -4251,6 +4581,7 @@
       showToast(`출결 기록 ${recs.length}건을 삭제했습니다.`); renderAttendanceResetInfo(); renderTimeManage(); triggerRender();
     }catch(e){ await showMessage('초기화 중 오류가 발생했습니다: ' + (e && e.message ? e.message : e)); }
   }
+  safeAddListener('#arClear', 'click', () => { if($('#arStart')) $('#arStart').value = ''; if($('#arEnd')) $('#arEnd').value = ''; renderAttendanceResetInfo(); showToast('기간을 비웠습니다. (전체 기간)'); });
   safeAddListener('#arStart', 'change', renderAttendanceResetInfo);
   safeAddListener('#arEnd', 'change', renderAttendanceResetInfo);
   safeAddListener('#btnAttendanceReset', 'click', runAttendanceReset);
@@ -4450,7 +4781,8 @@
   // =================================================================
   // [6-1] 요일별 명단 — 요일마다 실제로 참여(입실)한 학생을 간단히 확인
   // =================================================================
-  let rsWeek = null, rsDay = null, rsFloor = 'all';
+  let rsWeek = null, rsDay = null, rsFloor = 'all', rsView = 'grid';
+  try{ const v = localStorage.getItem('yaja_roster_view'); if(v === 'list' || v === 'grid') rsView = v; }catch(e){}
   function rosterDayData(ds){
     const today = todayStr();
     const recBy = new Map(); cache.attendance.forEach(a => { if(a && a.date === ds && a.studentId != null) recBy.set(String(a.studentId), a); });
@@ -4503,6 +4835,10 @@
     const stColor = { present: '#34c759', away: '#ffcc00', left: '#8e8e93' }, stLabel = { present: '재실', away: '자리비움', left: '퇴실' };
     const badge = (txt, bg, fg) => `<span class="rs-badge" style="background:${bg};color:${fg || 'inherit'};">${txt}</span>`;
     const seatOf = (s, r) => { const d = (r && r.deskId != null && findDesk(r.deskId)) || (effectiveFixed(s) && s.deskId != null ? findDesk(s.deskId) : null); return d ? deskLabel(d) : (effectiveFixed(s) ? '좌석 미배정' : '자율석'); };
+    $$('#rsView button').forEach(b => b.classList.toggle('on', b.dataset.view === rsView));
+    $('#ovRoster .modal').classList.toggle('rs-compact', rsView === 'grid');
+    if(rsView === 'grid'){ renderRosterGrid(dd, missLabel, seatOf); return; }
+    const lst = $('#rsList'); lst.classList.remove('tiny'); lst.style.removeProperty('--rs-s');
     let html = '';
     if(!dd.future){
       html += `<div class="rs-sec">실제 참여 <span class="cnt">${dd.joined.length}명</span>${dd.extra ? `<span class="muted" style="font-size:12px;font-weight:600;">(신청 안 한 날 참여 ${dd.extra}명 포함)</span>` : ''}</div>`;
@@ -4510,20 +4846,57 @@
         const r = x.rec, st = r.status === 'present' || r.status === 'away' ? r.status : 'left';
         const time = `입실 ${hhmm(r.checkIn)}${r.checkOut ? ' ~ 퇴실 ' + hhmm(r.checkOut) : ''} · ${fmtMin(Math.round(recordSeconds(r) / 60))}`;
         const bs = (x.late ? badge('지각', 'rgba(255,149,0,0.2)', '#b25000') : '') + (x.early ? badge('조퇴', 'rgba(107,63,160,0.15)', '#6b3fa0') : '') + (!x.sc ? badge('미신청일', 'rgba(10,132,255,0.12)', '#0a64c8') : '') + badge(stLabel[st], stColor[st] + '33');
-        return `<div class="rs-row"><span class="rs-no">${i + 1}</span><div class="rs-main"><div class="rs-name">${esc(x.s.name)}<small>${esc(x.s.studentNum || '')}</small></div><div class="rs-meta">${esc(seatOf(x.s, r))} · ${esc(time)}</div></div><div class="rs-badges">${bs}</div></div>`;
+        return `<div class="rs-row" data-sid="${esc(x.s.id)}" style="cursor:pointer;"><span class="rs-no">${i + 1}</span><div class="rs-main"><div class="rs-name">${esc(x.s.name)}<small>${esc(x.s.studentNum || '')}</small></div><div class="rs-meta">${esc(seatOf(x.s, r))} · ${esc(time)}</div></div><div class="rs-badges">${bs}</div></div>`;
       }).join('') : `<div class="rs-empty">${dd.isToday ? '아직 입실한 학생이 없습니다.' : '이 날 참여한 학생이 없습니다.'}</div>`;
     }
     html += `<div class="rs-sec">${missLabel} <span class="cnt">${dd.missing.length}명</span><span class="muted" style="font-size:12px;font-weight:600;">${dd.future ? '(현재 요일 신청 기준)' : '(신청했지만 입실 기록 없음)'}</span></div>`;
-    html += dd.missing.length ? dd.missing.map((x, i) => `<div class="rs-row"><span class="rs-no">${i + 1}</span><div class="rs-main"><div class="rs-name">${esc(x.s.name)}<small>${esc(x.s.studentNum || '')}</small></div><div class="rs-meta">${esc(seatOf(x.s, null))} · 신청 ${esc(normTime(x.sc.start, '18:00'))}~${esc(normTime(x.sc.end, '21:00'))}</div></div><div class="rs-badges">${badge(missLabel, dd.past ? 'rgba(255,59,48,0.14)' : 'rgba(120,120,128,0.16)', dd.past ? '#d70015' : '')}</div></div>`).join('')
+    html += dd.missing.length ? dd.missing.map((x, i) => `<div class="rs-row" data-sid="${esc(x.s.id)}" style="cursor:pointer;"><span class="rs-no">${i + 1}</span><div class="rs-main"><div class="rs-name">${esc(x.s.name)}<small>${esc(x.s.studentNum || '')}</small></div><div class="rs-meta">${esc(seatOf(x.s, null))} · 신청 ${esc(normTime(x.sc.start, '18:00'))}~${esc(normTime(x.sc.end, '21:00'))}</div></div><div class="rs-badges">${badge(missLabel, dd.past ? 'rgba(255,59,48,0.14)' : 'rgba(120,120,128,0.16)', dd.past ? '#d70015' : '')}</div></div>`).join('')
       : `<div class="rs-empty">${dd.future ? '이 요일을 신청한 학생이 없습니다.' : '신청한 학생이 모두 참여했습니다.'}</div>`;
     $('#rsList').innerHTML = html;
+    $$('#rsList .rs-row[data-sid]').forEach(el => el.onclick = () => openExcuse(el.dataset.sid, rsDay));
   }
+  // 한눈에 보기: 이름 카드만 촘촘히 → 화면에 다 들어오도록 글자 크기를 자동으로 줄임. 카드를 누르면 자세한 정보
+  let rsChipInfo = [];
+  function renderRosterGrid(dd, missLabel, seatOf){
+    rsChipInfo = [];
+    const chip = (cls, name, sub, sid) => `<button type="button" class="rs-chip ${cls}" data-sid="${esc(sid)}"><b>${esc(name)}</b><small>${esc(sub)}</small></button>`;
+    let html = '';
+    if(!dd.future){
+      html += `<div class="rs-sec">실제 참여 <span class="cnt">${dd.joined.length}명</span>${dd.extra ? `<span class="muted" style="font-size:11.5px;font-weight:600;">미신청일 참여 ${dd.extra}명 포함</span>` : ''}</div>`;
+      html += dd.joined.length ? `<div class="rs-grid">` + dd.joined.map(x => {
+        const r = x.rec, st = r.status === 'present' || r.status === 'away' ? r.status : 'left';
+        const sub = st === 'left' ? `${hhmm(r.checkIn)}~${hhmm(r.checkOut)}` : (st === 'away' ? '자리비움' : `${hhmm(r.checkIn)} 입실`);
+        const info = `${x.s.name} (${x.s.studentNum || '-'})\n좌석: ${seatOf(x.s, r)}\n입실 ${hhmm(r.checkIn)}${r.checkOut ? ' · 퇴실 ' + hhmm(r.checkOut) : ''} · ${fmtMin(Math.round(recordSeconds(r) / 60))}\n상태: ${({ present:'재실', away:'자리비움', left:'퇴실' })[st]}${x.late ? ' · 지각' : ''}${x.early ? ' · 조퇴' : ''}${x.sc ? '' : ' · 신청하지 않은 날 참여'}`;
+        void info; return chip(`st-${st}${x.late ? ' late' : ''}`, x.s.name, sub, x.s.id);
+      }).join('') + `</div>` : `<div class="rs-empty">${dd.isToday ? '아직 입실한 학생이 없습니다.' : '이 날 참여한 학생이 없습니다.'}</div>`;
+    }
+    html += `<div class="rs-sec">${missLabel} <span class="cnt">${dd.missing.length}명</span></div>`;
+    html += dd.missing.length ? `<div class="rs-grid">` + dd.missing.map(x => { const ex = excuseFor(x.s.id, rsDay); return chip(ex && ex.approved ? 'exc' : (dd.past ? 'miss' : 'wait'), x.s.name, ex ? excuseText(ex) : `신청 ${normTime(x.sc.start, '18:00')}`, x.s.id); }).join('') + `</div>`
+      : `<div class="rs-empty">${dd.future ? '이 요일을 신청한 학생이 없습니다.' : '신청한 학생이 모두 참여했습니다.'}</div>`;
+    html += `<div class="rs-legend no-print"><span><i style="background:#34c759"></i>재실</span><span><i style="background:#ffcc00"></i>자리비움</span><span><i style="background:#8e8e93"></i>퇴실</span><span><i style="background:#ff3b30"></i>미참여</span><span><i style="background:#0a84ff"></i>사유 인정</span><span><i style="background:#ff9500;width:8px;height:8px;border-radius:50%;vertical-align:0;"></i>지각</span><span>카드를 누르면 자세한 정보와 사유 기록</span></div>`;
+    const lst = $('#rsList'); lst.innerHTML = html;
+    lst.querySelectorAll('.rs-chip').forEach(b => b.onclick = () => openExcuse(b.dataset.sid, rsDay));
+    requestAnimationFrame(fitRosterGrid);
+  }
+  function fitRosterGrid(){
+    const m = $('#ovRoster .modal'), lst = $('#rsList'); if(!m || !lst || rsView !== 'grid' || !isShown('ovRoster')) return;
+    lst.classList.remove('tiny');
+    const steps = [1, 0.92, 0.85, 0.78, 0.72, 0.66, 0.6, 0.55];
+    const fits = () => m.scrollHeight <= m.clientHeight + 1;
+    for(let i = 0; i < steps.length; i++){
+      lst.style.setProperty('--rs-s', steps[i]);
+      if(i >= 5) lst.classList.add('tiny');
+      if(fits()) return;
+    }
+  }
+  window.addEventListener('resize', () => requestAnimationFrame(fitRosterGrid));
   function openRoster(){ rsWeek = mondayOf(bizDate()); rsDay = null; rsFloor = 'all'; renderRoster(); openOverlay('ovRoster'); }
   safeAddListener('#btnRoster', 'click', () => requireAdmin(openRoster));
   safeAddListener('#rsPrev', 'click', () => { const idx = rsDay ? (parseDateKey(rsDay).getDay() + 6) % 7 : 0; rsWeek = addDays(rsWeek, -7); rsDay = dateKey(addDays(rsWeek, idx)); renderRoster(); });
   safeAddListener('#rsNext', 'click', () => { const idx = rsDay ? (parseDateKey(rsDay).getDay() + 6) % 7 : 0; rsWeek = addDays(rsWeek, 7); rsDay = dateKey(addDays(rsWeek, idx)); renderRoster(); });
   safeAddListener('#rsThisWeek', 'click', () => { rsWeek = mondayOf(bizDate()); rsDay = null; renderRoster(); });
   $$('#rsFloor button').forEach(b => b.addEventListener('click', () => { rsFloor = b.dataset.floor; renderRoster(); }));
+  $$('#rsView button').forEach(b => b.addEventListener('click', () => { rsView = b.dataset.view; try{ localStorage.setItem('yaja_roster_view', rsView); }catch(e){} renderRoster(); }));
   safeAddListener('#rsClose', 'click', () => closeOverlay('ovRoster'));
   safeAddListener('#rsPrint', 'click', () => printOverlay('ovRoster'));
 
@@ -4531,8 +4904,9 @@
   // [6-2] 구 버전 출석부 — 예전 종이 출석부와 같은 모양의 월별 출석부
   //   ○ 출석  △ 지각  ▽ 조퇴  × 결석(신청했으나 미출석)  빈칸 = 미신청·운영 안 함·아직 오지 않은 날
   // =================================================================
-  let orYM = null, orGrade = 'all', orScope = 'active';
-  const OR_MARK = { o: '○', late: '△', early: '▽', abs: '×' };
+  let orYM = null, orGrade = 'all', orScope = 'active', orMode = 'month', orDay = null, orDayScope = 'attended';
+  try{ const v = localStorage.getItem('yaja_oldroll_mode'); if(v === 'day' || v === 'month') orMode = v; }catch(e){}
+  const OR_MARK = { o: '○', late: '△', early: '▽', abs: '×', exc: '◇' };
   function oldRollData(y, m){
     const pre = `${y}-${pad2(m)}-`, today = todayStr(), dim = new Date(y, m, 0).getDate();
     const recMap = new Map(); const datesWithRec = new Set();
@@ -4546,9 +4920,10 @@
     let list = cache.students.slice();
     if(orGrade !== 'all') list = list.filter(s => gradeOf(s) === orGrade);
     if(orScope === 'active') list = list.filter(s => getStudentDays(s).length > 0 || cols.some(c => recMap.has(String(s.id) + '_' + c.ds)));
+    else if(orScope === 'today'){ const td = todayStr(); list = list.filter(s => cache.attendance.some(a => a && a.date === td && String(a.studentId) === String(s.id))); }
     list.sort(byStudentNum);
     const rows = list.map(s => {
-      const t = { o: 0, late: 0, early: 0, abs: 0, att: 0, sec: 0 };
+      const t = { o: 0, late: 0, early: 0, abs: 0, exc: 0, att: 0, sec: 0 };
       const cells = cols.map(c => {
         const r = recMap.get(String(s.id) + '_' + c.ds);
         if(r){
@@ -4556,44 +4931,52 @@
           const late = isLateRecord(s, r), early = isEarlyLeave(s, r);
           if(late) t.late++; if(early) t.early++;
           const k = late ? 'late' : (early ? 'early' : 'o'); if(k === 'o') t.o++;
-          return { k, title: `${c.d}일 ${hhmm(r.checkIn)}~${r.checkOut ? hhmm(r.checkOut) : ''}${late ? ' 지각' : ''}${early ? ' 조퇴' : ''}` };
+          const ex = excuseFor(s.id, c.ds); return { k, title: `${c.d}일 ${hhmm(r.checkIn)}~${r.checkOut ? hhmm(r.checkOut) : ''}${late ? ' 지각' : ''}${early ? ' 조퇴' : ''}${ex ? ' · ' + excuseText(ex) : ''}` };
         }
-        if(!c.future && !c.today && countsAsExpected(s, c.ds)){ t.abs++; return { k: 'abs', title: `${c.d}일 결석` }; }
+        if(!c.future && !c.today && countsAsExpected(s, c.ds)){ const ex = excuseFor(s.id, c.ds); if(ex && ex.approved){ t.exc++; return { k: 'exc', title: `${c.d}일 인정 결석 · ${excuseText(ex)}${ex.note ? ' · ' + ex.note : ''}` }; } t.abs++; return { k: 'abs', title: `${c.d}일 결석${ex ? ' · ' + excuseText(ex) : ''}` }; }
         return { k: '', title: '' };
       });
       return { s, cells, t };
     });
-    const dayTotals = cols.map((c, i) => ({ att: rows.filter(r => r.cells[i].k && r.cells[i].k !== 'abs').length, abs: rows.filter(r => r.cells[i].k === 'abs').length }));
+    const dayTotals = cols.map((c, i) => ({ att: rows.filter(r => r.cells[i].k && r.cells[i].k !== 'abs' && r.cells[i].k !== 'exc').length, abs: rows.filter(r => r.cells[i].k === 'abs').length }));
     return { y, m, cols, rows, dayTotals, dim };
   }
   const secHM = sec => { const mm = Math.round((Number(sec) || 0) / 60); return mm ? `${Math.floor(mm / 60)}:${pad2(mm % 60)}` : ''; };
   function renderOldRoll(){
     if(!orYM) orYM = supThisMonth();
     const { y, m } = orYM;
-    $('#orMonthLabel').textContent = `${y}년 ${m}월`;
     // 학년 선택지 (학번 첫 자리)
     const gs = Array.from(new Set(cache.students.map(gradeOf).filter(Boolean))).sort();
     if(orGrade !== 'all' && !gs.includes(orGrade)) orGrade = 'all';
     const gSel = $('#orGrade'); gSel.innerHTML = `<option value="all">전체 학년</option>` + gs.map(g => `<option value="${g}">${g}학년</option>`).join(''); gSel.value = orGrade;
-    $('#orScope').value = orScope;
+    $$('#orMode button').forEach(b => b.classList.toggle('on', b.dataset.mode === orMode));
+    const sc = $('#orScope');
+    if(orMode === 'day'){
+      sc.innerHTML = `<option value="attended">출석한 학생만</option><option value="withMissing">출석 + 미출석 신청자</option>`; sc.value = orDayScope;
+      return renderOldRollDay();
+    }
+    sc.innerHTML = `<option value="active">이 달 신청·출석 학생</option><option value="all">전체 학생</option><option value="today">오늘 출석한 학생만</option>`; sc.value = orScope;
+    $('#orMonthLabel').textContent = `${y}년 ${m}월`;
+    if($('#orToday')) $('#orToday').style.display = (orYM.y === supThisMonth().y && orYM.m === supThisMonth().m) ? 'none' : '';
+    if($('#orHelp')) $('#orHelp').textContent = '인쇄를 누르면 A4 가로 용지에 맞춰 출력됩니다. 결석(×)은 그 요일을 신청했는데 입실 기록이 없는 날이며, 조퇴(▽)는 신청한 종료 시각보다 일찍 퇴실 스캔한 날입니다. (운영 종료 후 자동 퇴실은 조퇴가 아닙니다)';
 
     const D = oldRollData(y, m);
     const schoolYear = m >= 3 ? y : y - 1;
     const scroller = $('#orSheet .or-scroll'); const keep = scroller ? { l: scroller.scrollLeft, t: scroller.scrollTop } : null;
     const head1 = `<th class="c-no stick" rowspan="2">번호</th><th class="c-num stick" rowspan="2">학번</th><th class="c-name stick" rowspan="2">성 명</th>`
       + D.cols.map(c => `<th class="c-day ${c.wd === 6 ? 'sat' : (c.wd === 0 ? 'sun' : '')}${c.today ? ' today' : ''}">${c.d}</th>`).join('')
-      + `<th class="c-sum first" rowspan="2">출석</th><th class="c-sum" rowspan="2">지각</th><th class="c-sum" rowspan="2">조퇴</th><th class="c-sum" rowspan="2">결석</th><th class="c-time" rowspan="2">학습<br>시간</th><th class="c-note" rowspan="2">비고</th>`;
+      + `<th class="c-sum first" rowspan="2">출석</th><th class="c-sum" rowspan="2">지각</th><th class="c-sum" rowspan="2">조퇴</th><th class="c-sum" rowspan="2">결석</th><th class="c-sum" rowspan="2">인정</th><th class="c-time" rowspan="2">학습<br>시간</th><th class="c-note" rowspan="2">비고</th>`;
     const head2 = D.cols.map(c => `<th class="c-day ${c.wd === 6 ? 'sat' : (c.wd === 0 ? 'sun' : '')}${c.today ? ' today' : ''}">${WD_KO[c.wd]}</th>`).join('');
     const body = D.rows.length ? D.rows.map((r, i) => {
-      const cells = r.cells.map((x, ci) => { const c = D.cols[ci]; const cls = ['c-day']; if(c.off && !x.k) cls.push('off'); if(c.today) cls.push('today'); if(x.k) cls.push('m-' + x.k); return `<td class="${cls.join(' ')}"${x.title ? ` title="${esc(x.title)}"` : ''}>${x.k ? OR_MARK[x.k] : ''}</td>`; }).join('');
+      const cells = r.cells.map((x, ci) => { const c = D.cols[ci]; const cls = ['c-day']; if(c.off && !x.k) cls.push('off'); if(c.today) cls.push('today'); if(x.k) cls.push('m-' + x.k); return `<td class="${cls.join(' ')}" data-sid="${esc(r.s.id)}" data-ds="${c.ds}"${x.title ? ` title="${esc(x.title)}"` : ''}>${x.k ? OR_MARK[x.k] : ''}</td>`; }).join('');
       const note = r.s.seatMode === 'fixed' ? '고정석' : '';
-      return `<tr class="${(i + 1) % 5 === 0 ? 'five' : ''}"><td class="c-no stick">${i + 1}</td><td class="c-num stick">${esc(r.s.studentNum || '')}</td><td class="c-name stick" title="${esc(r.s.name)}">${esc(r.s.name)}</td>${cells}<td class="c-sum first">${r.t.att || ''}</td><td class="c-sum">${r.t.late || ''}</td><td class="c-sum">${r.t.early || ''}</td><td class="c-sum">${r.t.abs || ''}</td><td class="c-time">${secHM(r.t.sec)}</td><td class="c-note">${note}</td></tr>`;
-    }).join('') : `<tr><td colspan="${D.cols.length + 9}" style="height:60px;">해당하는 학생이 없습니다.</td></tr>`;
-    const sumAtt = D.rows.reduce((a, r) => a + r.t.att, 0), sumAbs = D.rows.reduce((a, r) => a + r.t.abs, 0), sumLate = D.rows.reduce((a, r) => a + r.t.late, 0), sumEarly = D.rows.reduce((a, r) => a + r.t.early, 0), sumSec = D.rows.reduce((a, r) => a + r.t.sec, 0);
-    const foot = `<tr><td class="c-no stick" colspan="3" style="left:0;">출석 인원</td>${D.dayTotals.map((t, i) => `<td class="c-day" style="font-size:11px;">${D.cols[i].future ? '' : t.att}</td>`).join('')}<td class="c-sum first">${sumAtt}</td><td class="c-sum">${sumLate}</td><td class="c-sum">${sumEarly}</td><td class="c-sum">${sumAbs}</td><td class="c-time">${secHM(sumSec)}</td><td class="c-note"></td></tr>`
-      + `<tr><td class="c-no stick" colspan="3" style="left:0;">결석 인원</td>${D.dayTotals.map((t, i) => `<td class="c-day" style="font-size:11px;color:#c01818;">${D.cols[i].future ? '' : (t.abs || '')}</td>`).join('')}<td colspan="6"></td></tr>`;
+      return `<tr class="${(i + 1) % 5 === 0 ? 'five' : ''}"><td class="c-no stick">${i + 1}</td><td class="c-num stick">${esc(r.s.studentNum || '')}</td><td class="c-name stick" title="${esc(r.s.name)}">${esc(r.s.name)}</td>${cells}<td class="c-sum first">${r.t.att || ''}</td><td class="c-sum">${r.t.late || ''}</td><td class="c-sum">${r.t.early || ''}</td><td class="c-sum">${r.t.abs || ''}</td><td class="c-sum">${r.t.exc || ''}</td><td class="c-time">${secHM(r.t.sec)}</td><td class="c-note">${note}</td></tr>`;
+    }).join('') : `<tr><td colspan="${D.cols.length + 10}" style="height:60px;">해당하는 학생이 없습니다.</td></tr>`;
+    const sumAtt = D.rows.reduce((a, r) => a + r.t.att, 0), sumAbs = D.rows.reduce((a, r) => a + r.t.abs, 0), sumLate = D.rows.reduce((a, r) => a + r.t.late, 0), sumEarly = D.rows.reduce((a, r) => a + r.t.early, 0), sumExc = D.rows.reduce((a, r) => a + r.t.exc, 0), sumSec = D.rows.reduce((a, r) => a + r.t.sec, 0);
+    const foot = `<tr><td class="c-no stick" colspan="3" style="left:0;">출석 인원</td>${D.dayTotals.map((t, i) => `<td class="c-day" style="font-size:11px;">${D.cols[i].future ? '' : t.att}</td>`).join('')}<td class="c-sum first">${sumAtt}</td><td class="c-sum">${sumLate}</td><td class="c-sum">${sumEarly}</td><td class="c-sum">${sumAbs}</td><td class="c-sum">${sumExc}</td><td class="c-time">${secHM(sumSec)}</td><td class="c-note"></td></tr>`
+      + `<tr><td class="c-no stick" colspan="3" style="left:0;">결석 인원</td>${D.dayTotals.map((t, i) => `<td class="c-day" style="font-size:11px;color:#c01818;">${D.cols[i].future ? '' : (t.abs || '')}</td>`).join('')}<td colspan="7"></td></tr>`;
     const nowD = new Date(serverNow());
-    const scopeTxt = (orGrade === 'all' ? '전체 학년' : orGrade + '학년') + ' · ' + (orScope === 'all' ? '전체 학생' : '신청·출석 학생') + ` (${D.rows.length}명)`;
+    const scopeTxt = (orGrade === 'all' ? '전체 학년' : orGrade + '학년') + ' · ' + ({ all:'전체 학생', active:'신청·출석 학생', today:'오늘 출석한 학생' })[orScope] + ` (${D.rows.length}명)`;
     $('#orSheet').innerHTML = `<div class="or-sheet">
       <div class="or-head">
         <div class="or-head-left"><div><b>한서고등학교</b></div><div>기간: ${y}. ${m}. 1. ~ ${y}. ${m}. ${D.dim}.</div><div>대상: ${esc(scopeTxt)}</div><div>출력: ${nowD.getFullYear()}. ${nowD.getMonth()+1}. ${nowD.getDate()}.</div></div>
@@ -4601,38 +4984,363 @@
         <table class="or-sign"><tr><th class="v" rowspan="2">결<br>재</th><th>담 당</th><th>부 장</th><th>교 감</th><th>교 장</th></tr><tr><td></td><td></td><td></td><td></td></tr></table>
       </div>
       <div class="or-scroll"><table class="or-table"><thead><tr>${head1}</tr><tr>${head2}</tr></thead><tbody>${body}</tbody><tfoot>${foot}</tfoot></table></div>
-      <div class="or-legend"><span><b class="m-o">○</b>출석</span><span><b class="m-late">△</b>지각</span><span><b class="m-early">▽</b>조퇴</span><span><b class="m-abs">×</b>결석 (신청일 미출석)</span><span>빈칸: 미신청 · 아직 지나지 않은 날</span><span><span style="display:inline-block;width:14px;height:12px;vertical-align:-1px;background:repeating-linear-gradient(45deg,#ddd6c2 0 3px,#fffdf6 3px 6px);border:1px solid #aaa;"></span> 운영하지 않는 날</span></div>
+      <div class="or-legend"><span><b class="m-o">○</b>출석</span><span><b class="m-late">△</b>지각</span><span><b class="m-early">▽</b>조퇴</span><span><b class="m-abs">×</b>결석 (신청일 미출석)</span><span><b class="m-exc">◇</b>인정 결석 (사유 확인)</span><span>칸을 누르면 사유를 기록할 수 있습니다</span><span>빈칸: 미신청 · 아직 지나지 않은 날</span><span><span style="display:inline-block;width:14px;height:12px;vertical-align:-1px;background:repeating-linear-gradient(45deg,#ddd6c2 0 3px,#fffdf6 3px 6px);border:1px solid #aaa;"></span> 운영하지 않는 날</span></div>
       <div class="or-foot"><span>위와 같이 확인함.</span><span>${y}년 &nbsp;&nbsp;&nbsp; 월 &nbsp;&nbsp;&nbsp; 일</span><span>감독교사 <span class="line"></span> (인)</span></div>
     </div>`;
     const sc2 = $('#orSheet .or-scroll'); if(sc2 && keep){ sc2.scrollLeft = keep.l; sc2.scrollTop = keep.t; }
     return D;
   }
+  // ---------- 오늘(일일) 출석부: 그날 출석한 학생만 모아서 ----------
+  function oldRollDayData(ds){
+    const today = todayStr();
+    const recBy = new Map(); cache.attendance.forEach(a => { if(a && a.date === ds && a.studentId != null) recBy.set(String(a.studentId), a); });
+    let list = cache.students.slice(); if(orGrade !== 'all') list = list.filter(s => gradeOf(s) === orGrade);
+    const expected = s => !!schedOn(s, ds) && (ds >= today || countsAsExpected(s, ds));
+    const rows = [];
+    list.forEach(s => {
+      const r = recBy.get(String(s.id)), sc = schedOn(s, ds);
+      if(r) rows.push({ s, r, sc, late: isLateRecord(s, r), early: isEarlyLeave(s, r) });
+      else if(orDayScope === 'withMissing' && expected(s)) rows.push({ s, r: null, sc });
+    });
+    rows.sort((a, b) => (Number(!!b.r) - Number(!!a.r)) || byStudentNum(a.s, b.s));
+    const att = rows.filter(x => x.r);
+    return { ds, rows, att: att.length, late: att.filter(x => x.late).length, early: att.filter(x => x.early).length, extra: att.filter(x => !x.sc).length,
+      applied: list.filter(expected).length, missN: list.filter(s => expected(s) && !recBy.has(String(s.id))).length, future: ds > today };
+  }
+  function dayRowCells(x){
+    const seatD = x.r && x.r.deskId != null ? findDesk(x.r.deskId) : (effectiveFixed(x.s) && x.s.deskId != null ? findDesk(x.s.deskId) : null);
+    const seat = seatD ? `${seatD.floor}층 ${seatD.seatNumber ? seatD.seatNumber + '번' : ''}`.trim() : '';
+    const ex = excuseFor(x.s.id, orDay || todayStr());
+    if(!x.r) return { seat, cin: '', cout: '', time: '', st: ex && ex.approved ? '인정결석' : '미출석', note: ex ? excuseText(ex) + (ex.note ? ' · ' + ex.note : '') : `신청 ${normTime(x.sc.start, '18:00')}~${normTime(x.sc.end, '21:00')}` };
+    const st = x.r.status === 'present' ? '재실' : (x.r.status === 'away' ? '외출' : '퇴실');
+    const notes = []; if(x.late) notes.push('지각'); if(x.early) notes.push('조퇴'); if(!x.sc) notes.push('미신청일'); if(x.r.autoClosed) notes.push('자동퇴실'); if(ex) notes.push(excuseText(ex));
+    return { seat, cin: hhmm(x.r.checkIn), cout: x.r.checkOut ? hhmm(x.r.checkOut) : '', time: secHM(recordSeconds(x.r)), st, note: notes.join('·') };
+  }
+  function renderOldRollDay(){
+    if(!orDay) orDay = todayStr();
+    const dObj = parseDateKey(orDay), today = todayStr();
+    $('#orMonthLabel').textContent = `${dObj.getMonth()+1}월 ${dObj.getDate()}일 (${WD_KO[dObj.getDay()]})`;
+    if($('#orToday')) $('#orToday').style.display = orDay === today ? 'none' : '';
+    if($('#orHelp')) $('#orHelp').textContent = '그날 입실 기록이 있는 학생만 모아 보여 줍니다. [출석 + 미출석 신청자]를 고르면 신청했지만 오지 않은 학생도 아래쪽에 표시됩니다. 인쇄는 A4 세로로 출력되며, 확인란에 학생 서명을 받을 수 있습니다.';
+    const D = oldRollDayData(orDay); const y = dObj.getFullYear(), m = dObj.getMonth() + 1, schoolYear = m >= 3 ? y : y - 1;
+    const sup = supFor(orDay); const supTxt = sup && (supClean(sup.f1) || supClean(sup.f2)) ? `1층 ${supClean(sup.f1) || '-'} · 2층 ${supClean(sup.f2) || '-'}` : '-';
+    const body = D.rows.length ? D.rows.map((x, i) => { const c = dayRowCells(x);
+      return `<tr data-sid="${esc(x.s.id)}" data-ds="${orDay}" class="${x.r ? '' : 'miss'}${(i + 1) % 5 === 0 ? ' five' : ''}"><td class="c-no">${i + 1}</td><td class="c-num">${esc(x.s.studentNum || '')}</td><td class="c-name">${esc(x.s.name)}</td><td>${esc(c.seat)}</td><td>${c.cin}</td><td>${c.cout}</td><td>${c.time}</td><td>${c.st}</td><td class="l">${esc(c.note)}</td><td class="c-sign"></td></tr>`; }).join('')
+      : `<tr><td colspan="10" style="height:60px;">${D.future ? '아직 지나지 않은 날입니다.' : '이 날 출석한 학생이 없습니다.'}</td></tr>`;
+    $('#orSheet').innerHTML = `<div class="or-sheet daily">
+      <div class="or-head">
+        <div class="or-head-left"><div><b>한서고등학교</b></div><div>대상: ${orGrade === 'all' ? '전체 학년' : orGrade + '학년'} · ${orDayScope === 'attended' ? '출석한 학생' : '출석 + 미출석 신청자'}</div><div>감독: ${esc(supTxt)}</div></div>
+        <div class="or-title">${schoolYear}학년도 야간 자율학습 출석부</div>
+        <table class="or-sign"><tr><th class="v" rowspan="2">확<br>인</th><th>1층 감독</th><th>2층 감독</th><th>담 당</th></tr><tr><td></td><td></td><td></td></tr></table>
+      </div>
+      <div class="or-date-big">${y}년 ${m}월 ${dObj.getDate()}일 (${WD_KO[dObj.getDay()]}요일)${orDay === today ? ' · 오늘' : ''}</div>
+      <div class="or-scroll"><table class="or-table daily"><thead><tr><th class="c-no">번호</th><th class="c-num">학번</th><th class="c-name">성 명</th><th>좌석</th><th>입실</th><th>퇴실</th><th>학습시간</th><th>상태</th><th>비고</th><th class="c-sign">확인</th></tr></thead><tbody>${body}</tbody></table></div>
+      <div class="or-sum"><span>출석 <b>${D.att}</b>명</span><span>지각 <b>${D.late}</b>명</span><span>조퇴 <b>${D.early}</b>명</span><span>${D.future ? '신청' : '신청 후 미출석'} <b>${D.future ? D.applied : D.missN}</b>명</span>${D.extra ? `<span>미신청일 참여 <b>${D.extra}</b>명</span>` : ''}</div>
+      <div class="or-foot"><span>위와 같이 확인함.</span><span>${y}년 ${m}월 ${dObj.getDate()}일</span><span>감독교사 <span class="line"></span> (인)</span></div>
+    </div>`;
+    return D;
+  }
+  function exportOldRollDayExcel(){
+    try{
+      const D = oldRollDayData(orDay || todayStr()); const dObj = parseDateKey(D.ds);
+      const aoa = [[`${dObj.getFullYear()}년 ${dObj.getMonth()+1}월 ${dObj.getDate()}일 (${WD_KO[dObj.getDay()]}) 야간 자율학습 출석부 (한서고등학교)`], [`출석 ${D.att}명 · 지각 ${D.late}명 · 조퇴 ${D.early}명`], [], ['번호', '학번', '성명', '좌석', '입실', '퇴실', '학습시간', '상태', '비고', '확인']];
+      D.rows.forEach((x, i) => { const c = dayRowCells(x); aoa.push([i + 1, x.s.studentNum || '', x.s.name, c.seat, c.cin, c.cout, c.time, c.st, c.note, '']); });
+      const ws = XLSX.utils.aoa_to_sheet(aoa); ws['!cols'] = [{ wch: 5 }, { wch: 8 }, { wch: 10 }, { wch: 9 }, { wch: 7 }, { wch: 7 }, { wch: 8 }, { wch: 7 }, { wch: 16 }, { wch: 10 }];
+      ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 9 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: 9 } }];
+      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, D.ds); XLSX.writeFile(wb, `야자_출석부_${D.ds}.xlsx`);
+      showToast('출석부 엑셀 파일을 내려받았습니다.');
+    }catch(e){ showMessage('엑셀 저장 중 오류: ' + (e && e.message ? e.message : e)); }
+  }
   function exportOldRollExcel(){
+    if(orMode === 'day') return exportOldRollDayExcel();
     try{
       const D = oldRollData(orYM.y, orYM.m); const schoolYear = orYM.m >= 3 ? orYM.y : orYM.y - 1;
-      const aoa = [[`${schoolYear}학년도 ${orYM.m}월 야간 자율학습 출석부 (한서고등학교)`], [`대상: ${orGrade === 'all' ? '전체 학년' : orGrade + '학년'} · ${orScope === 'all' ? '전체 학생' : '신청·출석 학생'} (${D.rows.length}명)   ○출석 △지각 ▽조퇴 ×결석`], []];
-      aoa.push(['번호', '학번', '성명'].concat(D.cols.map(c => c.d + '')).concat(['출석', '지각', '조퇴', '결석', '학습시간', '비고']));
-      aoa.push(['', '', ''].concat(D.cols.map(c => WD_KO[c.wd])).concat(['', '', '', '', '', '']));
-      D.rows.forEach((r, i) => aoa.push([i + 1, r.s.studentNum || '', r.s.name].concat(r.cells.map(x => x.k ? OR_MARK[x.k] : '')).concat([r.t.att || '', r.t.late || '', r.t.early || '', r.t.abs || '', secHM(r.t.sec), r.s.seatMode === 'fixed' ? '고정석' : ''])));
+      const aoa = [[`${schoolYear}학년도 ${orYM.m}월 야간 자율학습 출석부 (한서고등학교)`], [`대상: ${orGrade === 'all' ? '전체 학년' : orGrade + '학년'} · ${({ all:'전체 학생', active:'신청·출석 학생', today:'오늘 출석한 학생' })[orScope]} (${D.rows.length}명)   ○출석 △지각 ▽조퇴 ×결석 ◇인정결석`], []];
+      aoa.push(['번호', '학번', '성명'].concat(D.cols.map(c => c.d + '')).concat(['출석', '지각', '조퇴', '결석', '인정', '학습시간', '비고']));
+      aoa.push(['', '', ''].concat(D.cols.map(c => WD_KO[c.wd])).concat(['', '', '', '', '', '', '']));
+      D.rows.forEach((r, i) => aoa.push([i + 1, r.s.studentNum || '', r.s.name].concat(r.cells.map(x => x.k ? OR_MARK[x.k] : '')).concat([r.t.att || '', r.t.late || '', r.t.early || '', r.t.abs || '', r.t.exc || '', secHM(r.t.sec), r.s.seatMode === 'fixed' ? '고정석' : ''])));
       aoa.push(['', '', '출석 인원'].concat(D.dayTotals.map((t, i) => D.cols[i].future ? '' : t.att)));
       aoa.push(['', '', '결석 인원'].concat(D.dayTotals.map((t, i) => D.cols[i].future ? '' : (t.abs || ''))));
       const ws = XLSX.utils.aoa_to_sheet(aoa);
-      ws['!cols'] = [{ wch: 5 }, { wch: 8 }, { wch: 9 }].concat(D.cols.map(() => ({ wch: 3.5 }))).concat([{ wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 8 }, { wch: 8 }]);
-      ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: D.cols.length + 8 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: D.cols.length + 8 } }];
+      ws['!cols'] = [{ wch: 5 }, { wch: 8 }, { wch: 9 }].concat(D.cols.map(() => ({ wch: 3.5 }))).concat([{ wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 8 }, { wch: 8 }]);
+      ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: D.cols.length + 9 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: D.cols.length + 9 } }];
       const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, `${orYM.y}-${pad2(orYM.m)} 출석부`);
       XLSX.writeFile(wb, `야자_출석부_${orYM.y}-${pad2(orYM.m)}${orGrade === 'all' ? '' : '_' + orGrade + '학년'}.xlsx`);
       showToast('출석부 엑셀 파일을 내려받았습니다.');
     }catch(e){ showMessage('엑셀 저장 중 오류: ' + (e && e.message ? e.message : e)); }
   }
-  function openOldRoll(){ orYM = supThisMonth(); renderOldRoll(); openOverlay('ovOldRoll'); }
+  function openOldRoll(){ orYM = supThisMonth(); orDay = todayStr(); renderOldRoll(); openOverlay('ovOldRoll'); }
   safeAddListener('#btnOldRoll', 'click', () => requireAdmin(openOldRoll));
-  safeAddListener('#orPrev', 'click', () => { orYM = shiftYM(orYM || supThisMonth(), -1); renderOldRoll(); });
-  safeAddListener('#orNext', 'click', () => { orYM = shiftYM(orYM || supThisMonth(), 1); renderOldRoll(); });
+  safeAddListener('#orPrev', 'click', () => { if(orMode === 'day') orDay = dateKey(addDays(parseDateKey(orDay || todayStr()), -1)); else orYM = shiftYM(orYM || supThisMonth(), -1); renderOldRoll(); });
+  safeAddListener('#orNext', 'click', () => { if(orMode === 'day') orDay = dateKey(addDays(parseDateKey(orDay || todayStr()), 1)); else orYM = shiftYM(orYM || supThisMonth(), 1); renderOldRoll(); });
+  safeAddListener('#orToday', 'click', () => { orDay = todayStr(); orYM = supThisMonth(); renderOldRoll(); });
+  $$('#orMode button').forEach(b => b.addEventListener('click', () => { orMode = b.dataset.mode; try{ localStorage.setItem('yaja_oldroll_mode', orMode); }catch(e){} renderOldRoll(); }));
   safeAddListener('#orGrade', 'change', e => { orGrade = e.target.value; renderOldRoll(); });
-  safeAddListener('#orScope', 'change', e => { orScope = e.target.value; renderOldRoll(); });
+  safeAddListener('#orScope', 'change', e => { if(orMode === 'day') orDayScope = e.target.value; else orScope = e.target.value; renderOldRoll(); });
   safeAddListener('#orClose', 'click', () => closeOverlay('ovOldRoll'));
   safeAddListener('#orPrint', 'click', () => printOverlay('ovOldRoll'));
   safeAddListener('#orExcel', 'click', exportOldRollExcel);
+  safeAddListener('#orSheet', 'click', e => { const el = e.target.closest('[data-sid][data-ds]'); if(el) openExcuse(el.dataset.sid, el.dataset.ds); });
+
+  // =================================================================
+  // [7] 운영 편의 기능
+  //   ① 미입실 알림  ② 결석·지각·조퇴 사유 기록  ③ 시설 관리(고장 신고 · 좌석 사용 중지)
+  //   ④ 월간 보고서  ⑤ 출석 관리 필요 학생(최근 2주)  ⑥ 지문 기기 연결 끊김 기록
+  // =================================================================
+  const isAdminTab = t => isShown('ovAdmin') && !!$('#tab-' + t) && $('#tab-' + t).classList.contains('active');
+  const shortWhen = t => t ? new Date(Number(t)).toLocaleString('ko-KR', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
+  const mdOf = ds => { const d = parseDateKey(ds); return `${d.getMonth()+1}/${d.getDate()}`; };
+  function fmtDur(min){ min = Math.max(0, Math.round(min)); if(min >= 1440){ const d = Math.floor(min / 1440), h = Math.floor((min % 1440) / 60); return `${d}일 ${h}시간`; } return fmtMin(min); }
+
+  // ---------- ② 출결 사유 ----------
+  const EXCUSE_TYPES = { sick:'병결', academy:'학원·과외', home:'가정 사정', event:'학교 행사', other:'기타' };
+  const excuseKey = (sid, ds) => `${sid}_${ds}`;
+  function excuseFor(sid, ds){ const k = excuseKey(sid, ds); return (cache.excuses || []).find(x => String(x.id) === k) || null; }
+  function excuseText(e){ return e ? `${EXCUSE_TYPES[e.type] || '기타'}${e.approved ? '' : '(미인정)'}` : ''; }
+  function isExcused(sid, ds){ const e = excuseFor(sid, ds); return !!(e && e.approved); }
+
+  let exTarget = null;
+  function openExcuse(sid, ds){
+    const s = cache.students.find(x => String(x.id) === String(sid)); if(!s || !ds) return;
+    exTarget = { sid: String(s.id), ds };
+    const r = cache.attendance.find(a => a && a.date === ds && String(a.studentId) === String(s.id));
+    const sc = schedOn(s, ds), d = parseDateKey(ds); const lines = [];
+    lines.push(`<b style="font-size:16px;">${esc(s.name)}</b> <span class="muted">${esc(s.studentNum || '')}</span>`);
+    lines.push(`${d.getMonth()+1}월 ${d.getDate()}일 (${WD_KO[d.getDay()]}) · ${sc ? `신청 ${normTime(sc.start, '18:00')}~${normTime(sc.end, '21:00')}` : '신청하지 않은 날'}`);
+    if(r){
+      const late = isLateRecord(s, r), early = isEarlyLeave(s, r), desk = r.deskId != null ? findDesk(r.deskId) : null;
+      lines.push(`입실 ${hhmm(r.checkIn)}${r.checkOut ? ' · 퇴실 ' + hhmm(r.checkOut) : ''} · ${fmtMin(Math.round(recordSeconds(r) / 60))}${desk ? ' · ' + esc(deskLabel(desk)) : ''}`);
+      lines.push(`상태: ${({ present:'재실', away:'자리비움', left:'퇴실' })[r.status] || esc(r.status)}${late ? ' · <b style="color:#b25000">지각</b>' : ''}${early ? ' · <b style="color:#6b3fa0">조퇴</b>' : ''}`);
+    } else lines.push(ds > todayStr() ? '아직 지나지 않은 날입니다. 미리 사유를 등록할 수 있습니다.' : '<b style="color:#d70015">입실 기록 없음</b>');
+    $('#exInfo').innerHTML = lines.map(l => `<div>${l}</div>`).join('');
+    const e = excuseFor(s.id, ds);
+    $('#exType').value = e && EXCUSE_TYPES[e.type] ? e.type : 'sick';
+    const ap = document.querySelector(`input[name="exApproved"][value="${e && !e.approved ? '0' : '1'}"]`); if(ap) ap.checked = true;
+    $('#exNote').value = e ? (e.note || '') : '';
+    $('#exDelete').style.display = e ? '' : 'none';
+    $('#exMeta').textContent = e ? `마지막 기록: ${e.by || '관리자'} · ${shortWhen(e.ts)}` : '';
+    openOverlay('ovExcuse');
+  }
+  safeAddListener('#exSave', 'click', async () => {
+    if(!exTarget) return; const s = cache.students.find(x => String(x.id) === exTarget.sid); if(!s) return;
+    const ap = document.querySelector('input[name="exApproved"]:checked');
+    const rec = { id: excuseKey(s.id, exTarget.ds), studentId: s.id, date: exTarget.ds, type: EXCUSE_TYPES[$('#exType').value] ? $('#exType').value : 'other', approved: !ap || ap.value === '1', note: $('#exNote').value.trim().slice(0, 100), by: window.adminName || '관리자', ts: serverNow() };
+    await window.dbPut('excuses', rec);
+    await window.logChange('출결 사유 기록', `${s.name} ${exTarget.ds} · ${excuseText(rec)}${rec.note ? ' · ' + rec.note : ''}`);
+    closeOverlay('ovExcuse'); showToast('사유를 저장했습니다.'); refreshAfterExcuse();
+  });
+  safeAddListener('#exDelete', 'click', async () => {
+    if(!exTarget) return; const e = excuseFor(exTarget.sid, exTarget.ds); if(!e) return;
+    if(!await showConfirm('이 사유 기록을 삭제할까요?')) return;
+    const s = cache.students.find(x => String(x.id) === exTarget.sid);
+    await dbDelete('excuses', e.id); await window.logChange('출결 사유 삭제', `${s ? s.name : exTarget.sid} ${exTarget.ds}`);
+    closeOverlay('ovExcuse'); showToast('사유 기록을 삭제했습니다.'); refreshAfterExcuse();
+  });
+  function refreshAfterExcuse(){
+    triggerRender();
+    if(isShown('ovAttendanceHistory') && exTarget) openAttendanceHistory(exTarget.sid);
+    if(isAdminTab('stats')){ renderLateAbsenceStats(); renderRiskList(); }
+    if(isShown('ovReport')) renderReport();
+  }
+
+  // ---------- ① 미입실 알림 (관리자 화면에서만) ----------
+  function missAlertMin(){ const n = parseInt(settings.missAlertMin); return (n >= 5 && n <= 180) ? n : 30; }
+  function computeMissing(){
+    const ds = todayStr(), key = todayDayKey(), now = serverNow(); if(!opHoursFor(key)) return [];
+    const recSet = new Set(cache.attendance.filter(a => a && a.date === ds).map(a => String(a.studentId)));
+    const base = parseDateKey(ds); const at = t => { const p = normTime(t, '18:00').split(':').map(Number); return new Date(base.getFullYear(), base.getMonth(), base.getDate(), p[0], p[1]).getTime(); };
+    const lim = missAlertMin() * 60000;
+    return cache.students.filter(s => {
+      const sc = s.weeklySchedule && s.weeklySchedule[key]; if(!sc || !sc.enabled || recSet.has(String(s.id)) || isExcused(s.id, ds)) return false;
+      const st = at(sc.start); let en = at(sc.end); if(en <= st) en += 86400000;
+      return now >= st + lim && now < en;
+    }).sort(byStudentNum);
+  }
+  function renderMissAlert(){
+    const el = $('#missAlert'); if(!el) return;
+    if(!adminMode || settings.missAlertOn === false || !isReady() || document.body.classList.contains('kiosk-mode')){ el.style.display = 'none'; return; }
+    const list = computeMissing();
+    if(!list.length){ el.style.display = 'none'; return; }
+    const names = list.slice(0, 15).map(s => esc(s.name)).join(', ') + (list.length > 15 ? ` 외 ${list.length - 15}명` : '');
+    el.innerHTML = `${ico('alert')}<b>미입실 ${list.length}명</b><span class="ma-sub">신청 ${missAlertMin()}분 경과</span><span class="ma-names">${names}</span><span class="ma-more">명단 ›</span>`;
+    el.style.display = 'flex';
+  }
+  safeAddListener('#missAlert', 'click', () => requireAdmin(openRoster));
+
+  // ---------- ③ 시설 관리 ----------
+  async function setDeskDisabled(desk, on, note){
+    if(!desk) return;
+    desk.disabled = !!on; if(on) desk.disabledNote = String(note || '').slice(0, 60); else delete desk.disabledNote;
+    await window.dbPut('desks', desk);
+  }
+  function facWhere(x){ const d = x.deskId != null ? findDesk(x.deskId) : null; return d ? deskLabel(d) : (Number(x.floor) ? x.floor + '층' : '공용·기타'); }
+  function fillFacDesks(){
+    const sel = $('#facDesk'); if(!sel) return; const f = parseInt($('#facFloor').value) || 0; const keep = sel.value;
+    sel.innerHTML = '<option value="">좌석 지정 안 함</option>' + (f ? cache.desks.filter(d => d.floor === f).sort(compareDesks).map(d => `<option value="${esc(d.id)}">${esc(deskLabel(d))}${d.disabled ? ' (사용 중지)' : ''}</option>`).join('') : '');
+    sel.value = keep; if(sel.value !== keep) sel.value = '';
+    if($('#facDisableRow')) $('#facDisableRow').style.display = sel.value ? '' : 'none';
+  }
+  function renderFacilityTab(){
+    if(!$('#facOpenList')) return; fillFacDesks();
+    const all = cache.facility || [];
+    const open = all.filter(x => x.status !== 'done').sort((a, b) => (b.ts || 0) - (a.ts || 0));
+    const done = all.filter(x => x.status === 'done').sort((a, b) => (b.doneTs || 0) - (a.doneTs || 0)).slice(0, 30);
+    $('#facOpenCount').textContent = open.length ? `(${open.length}건)` : '';
+    $('#facOpenList').innerHTML = open.length ? open.map(x => `<div class="list-item fac-item"><div class="fac-main"><div><b>${esc(x.cat || '기타')}</b> · ${esc(facWhere(x))}${x.disabledDesk ? ' <span class="tag-badge fp-wait">좌석 사용 중지</span>' : ''}</div><div class="fac-note">${esc(x.note || '')}</div><div class="muted" style="font-size:11px;">${esc(x.by || '')} · ${shortWhen(x.ts)}</div></div><button class="btn btn-primary" data-facdone="${esc(x.id)}">처리 완료</button></div>`).join('') : '<p class="muted">처리 대기 중인 신고가 없습니다.</p>';
+    const off = cache.desks.filter(d => d.disabled).sort(compareDesks);
+    $('#facDisabledList').innerHTML = off.length ? off.map(d => `<div class="list-item fac-item"><div class="fac-main"><b>${esc(deskLabel(d))}</b>${d.disabledNote ? `<div class="fac-note">${esc(d.disabledNote)}</div>` : ''}</div><button class="btn btn-secondary" data-deskon="${esc(d.id)}">다시 사용</button></div>`).join('') : '<p class="muted">사용 중지된 좌석이 없습니다.</p>';
+    $('#facDoneList').innerHTML = done.length ? done.map(x => `<div class="list-item" style="flex-direction:column;align-items:flex-start;gap:2px;"><div><b>${esc(x.cat || '기타')}</b> · ${esc(facWhere(x))}</div><div class="fac-note">${esc(x.note || '')}</div><div class="muted" style="font-size:11px;">신고 ${shortWhen(x.ts)} → 완료 ${shortWhen(x.doneTs)} (${esc(x.doneBy || '')})</div></div>`).join('') : '<p class="muted">완료된 기록이 없습니다.</p>';
+    $$('#facOpenList [data-facdone]').forEach(b => b.onclick = () => facDone(b.dataset.facdone));
+    $$('#facDisabledList [data-deskon]').forEach(b => b.onclick = async () => { const d = findDesk(b.dataset.deskon); if(!d) return; await setDeskDisabled(d, false); await window.logChange('좌석 사용 재개', deskLabel(d)); showToast(`${deskLabel(d)}을(를) 다시 사용합니다.`); renderFacilityTab(); renderFloor(); });
+  }
+  async function addFacility(cat, floor, desk, note, disable){
+    const rec = { cat, floor: desk ? desk.floor : (floor || 0), deskId: desk ? desk.id : null, note: String(note).slice(0, 200), status: 'open', ts: serverNow(), by: window.adminName || '관리자', disabledDesk: !!(desk && disable) };
+    await window.dbPut('facility', rec);
+    if(rec.disabledDesk) await setDeskDisabled(desk, true, `${cat}: ${note}`);
+    await window.logChange('시설 신고', `${cat} · ${facWhere(rec)} · ${rec.note}${rec.disabledDesk ? ' (좌석 사용 중지)' : ''}`);
+    return rec;
+  }
+  async function facDone(id){
+    const x = (cache.facility || []).find(f => String(f.id) === String(id)); if(!x) return;
+    const nx = Object.assign({}, x, { status: 'done', doneTs: serverNow(), doneBy: window.adminName || '관리자' });
+    await window.dbPut('facility', nx); let msg = '처리 완료로 바꿨습니다.';
+    if(x.disabledDesk && x.deskId != null){
+      const d = findDesk(x.deskId); const other = (cache.facility || []).some(f => f.status !== 'done' && f.disabledDesk && String(f.deskId) === String(x.deskId) && String(f.id) !== String(x.id));
+      if(d && d.disabled && !other){ await setDeskDisabled(d, false); msg += ' 좌석을 다시 사용할 수 있습니다.'; }
+    }
+    await window.logChange('시설 처리 완료', `${x.cat || '기타'} · ${facWhere(x)} · ${x.note || ''}`);
+    showToast(msg); renderFacilityTab(); renderFloor();
+  }
+  safeAddListener('#facFloor', 'change', fillFacDesks);
+  safeAddListener('#facDesk', 'change', fillFacDesks);
+  safeAddListener('#facAddBtn', 'click', async () => {
+    const note = $('#facNote').value.trim(); if(!note){ await showMessage('신고 내용을 입력해주세요.'); return; }
+    const desk = $('#facDesk').value ? findDesk($('#facDesk').value) : null;
+    await addFacility($('#facCat').value, parseInt($('#facFloor').value) || 0, desk, note, !!(desk && $('#facDisable').checked));
+    $('#facNote').value = ''; $('#facDisable').checked = false; showToast('신고를 등록했습니다.'); renderFacilityTab(); renderFloor();
+  });
+
+  // ---------- ④ 월간 보고서 (반별, 담임 전달용) ----------
+  function classOf(s){ const n = String(s.studentNum || '').trim(); if(/^\d{5}$/.test(n)) return n.slice(1, 3); if(/^\d{4}$/.test(n)) return '0' + n.slice(1, 2); return ''; }
+  let rpYM = null, rpGrade = 'all', rpClass = 'all';
+  function reportData(y, m){
+    const pre = `${y}-${pad2(m)}-`, today = todayStr(), dim = new Date(y, m, 0).getDate();
+    const recs = new Map(); cache.attendance.forEach(a => { if(a && a.date && String(a.date).startsWith(pre) && a.studentId != null){ const k = String(a.studentId); if(!recs.has(k)) recs.set(k, []); recs.get(k).push(a); } });
+    let list = cache.students.slice(); if(rpGrade !== 'all') list = list.filter(s => gradeOf(s) === rpGrade); if(rpClass !== 'all') list = list.filter(s => classOf(s) === rpClass);
+    list.sort(byStudentNum);
+    const rows = list.map(s => {
+      const my = recs.get(String(s.id)) || []; const dates = new Set(my.map(r => r.date));
+      let expected = 0, abs = 0, exc = 0;
+      for(let d = 1; d <= dim; d++){
+        const ds = pre + pad2(d); if(ds > today) break;
+        const att = dates.has(ds); if(!countsAsExpected(s, ds)) continue; if(ds === today && !att) continue;
+        expected++; if(!att){ if(isExcused(s.id, ds)) exc++; else abs++; }
+      }
+      const base = expected - exc, rate = base > 0 ? Math.round((base - abs) / base * 100) : null;
+      const late = my.filter(r => isLateRecord(s, r)).length, early = my.filter(r => isEarlyLeave(s, r)).length;
+      const sec = my.reduce((a, r) => a + recordSeconds(r), 0), goal = Number(s.monthlyGoalMinutes) || 1200;
+      return { s, expected, attended: dates.size, rate, late, early, abs, exc, sec, goalPct: Math.round(sec / 60 / goal * 100) };
+    });
+    const rated = rows.filter(r => r.rate != null);
+    return { y, m, dim, rows, avgRate: rated.length ? Math.round(rated.reduce((a, r) => a + r.rate, 0) / rated.length) : null, sumSec: rows.reduce((a, r) => a + r.sec, 0), sumLate: rows.reduce((a, r) => a + r.late, 0), sumEarly: rows.reduce((a, r) => a + r.early, 0), sumAbs: rows.reduce((a, r) => a + r.abs, 0), sumExc: rows.reduce((a, r) => a + r.exc, 0) };
+  }
+  function reportNote(r){ const n = []; if(r.rate != null && r.rate < 50) n.push('출석 관리 필요'); if(r.late >= 5) n.push('지각 잦음'); if(r.goalPct >= 100) n.push('목표 달성'); return n.join(' · '); }
+  function renderReport(){
+    if(!rpYM) rpYM = supThisMonth(); const { y, m } = rpYM;
+    $('#rpMonth').textContent = `${y}년 ${m}월`;
+    const gs = Array.from(new Set(cache.students.map(gradeOf).filter(Boolean))).sort(); if(rpGrade !== 'all' && !gs.includes(rpGrade)) rpGrade = 'all';
+    $('#rpGrade').innerHTML = `<option value="all">전체 학년</option>` + gs.map(g => `<option value="${g}">${g}학년</option>`).join(''); $('#rpGrade').value = rpGrade;
+    const cs = Array.from(new Set(cache.students.filter(s => rpGrade === 'all' || gradeOf(s) === rpGrade).map(classOf).filter(Boolean))).sort(); if(rpClass !== 'all' && !cs.includes(rpClass)) rpClass = 'all';
+    $('#rpClass').innerHTML = `<option value="all">전체 반</option>` + cs.map(c => `<option value="${c}">${parseInt(c)}반</option>`).join(''); $('#rpClass').value = rpClass;
+    const D = reportData(y, m), schoolYear = m >= 3 ? y : y - 1;
+    const target = (rpGrade === 'all' ? '전체 학년' : rpGrade + '학년') + (rpClass === 'all' ? '' : ` ${parseInt(rpClass)}반`);
+    const body = D.rows.length ? D.rows.map((r, i) => `<tr class="${(i + 1) % 5 === 0 ? 'five' : ''}${r.rate != null && r.rate < 50 ? ' warn' : ''}"><td class="c-no">${i + 1}</td><td class="c-num">${esc(r.s.studentNum || '')}</td><td class="c-name">${esc(r.s.name)}</td><td>${r.expected}</td><td>${r.attended}</td><td><b>${r.rate == null ? '-' : r.rate + '%'}</b></td><td>${r.late || ''}</td><td>${r.early || ''}</td><td>${r.abs || ''}</td><td>${r.exc || ''}</td><td>${secHM(r.sec) || '0:00'}</td><td>${r.goalPct}%</td><td class="l">${esc(reportNote(r))}</td></tr>`).join('')
+      : `<tr><td colspan="13" style="height:60px;">해당하는 학생이 없습니다.</td></tr>`;
+    $('#rpSheet').innerHTML = `<div class="or-sheet daily report">
+      <div class="or-head">
+        <div class="or-head-left"><div><b>한서고등학교</b></div><div>대상: ${esc(target)} (${D.rows.length}명)</div><div>기간: ${y}. ${m}. 1. ~ ${m}. ${D.dim}.</div></div>
+        <div class="or-title">${schoolYear}학년도 ${m}월 야간 자율학습 월간 보고서</div>
+        <table class="or-sign"><tr><th class="v" rowspan="2">확<br>인</th><th>담 당</th><th>담 임</th></tr><tr><td></td><td></td></tr></table>
+      </div>
+      <div class="or-sum" style="margin:0 0 10px;"><span>평균 출석률 <b>${D.avgRate == null ? '-' : D.avgRate + '%'}</b></span><span>총 학습시간 <b>${fmtMin(Math.round(D.sumSec / 60))}</b></span><span>1인 평균 <b>${D.rows.length ? fmtMin(Math.round(D.sumSec / 60 / D.rows.length)) : '-'}</b></span><span>지각 <b>${D.sumLate}</b>회</span><span>조퇴 <b>${D.sumEarly}</b>회</span><span>결석 <b>${D.sumAbs}</b>일</span><span>인정 결석 <b>${D.sumExc}</b>일</span></div>
+      <div class="or-scroll"><table class="or-table daily"><thead><tr><th class="c-no">번호</th><th class="c-num">학번</th><th class="c-name">성 명</th><th>신청일</th><th>출석일</th><th>출석률</th><th>지각</th><th>조퇴</th><th>결석</th><th>인정</th><th>학습시간</th><th>목표</th><th>비고</th></tr></thead><tbody>${body}</tbody></table></div>
+      <p class="or-help" style="color:#555;">출석률 = 신청한 날 중 출석한 날 ÷ (신청일 − 인정 결석). 신청하지 않은 날 참여는 출석일에는 포함되지만 출석률 계산에는 들어가지 않습니다.</p>
+      <div class="or-foot"><span>위와 같이 보고합니다.</span><span>${y}년 &nbsp;&nbsp; 월 &nbsp;&nbsp; 일</span><span>담당 <span class="line"></span> (인)</span></div>
+    </div>`;
+  }
+  function exportReportExcel(){
+    try{
+      const D = reportData(rpYM.y, rpYM.m);
+      const aoa = [[`${rpYM.y}년 ${rpYM.m}월 야간 자율학습 월간 보고서 (한서고등학교)`], [`평균 출석률 ${D.avgRate == null ? '-' : D.avgRate + '%'} · 총 학습시간 ${fmtMin(Math.round(D.sumSec / 60))}`], [], ['번호', '학번', '성명', '신청일', '출석일', '출석률(%)', '지각', '조퇴', '결석', '인정결석', '학습시간', '목표달성(%)', '비고']];
+      D.rows.forEach((r, i) => aoa.push([i + 1, r.s.studentNum || '', r.s.name, r.expected, r.attended, r.rate == null ? '' : r.rate, r.late, r.early, r.abs, r.exc, secHM(r.sec) || '0:00', r.goalPct, reportNote(r)]));
+      const ws = XLSX.utils.aoa_to_sheet(aoa); ws['!cols'] = [{ wch: 5 }, { wch: 8 }, { wch: 10 }, { wch: 7 }, { wch: 7 }, { wch: 9 }, { wch: 6 }, { wch: 6 }, { wch: 6 }, { wch: 8 }, { wch: 9 }, { wch: 10 }, { wch: 18 }];
+      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, `${rpYM.y}-${pad2(rpYM.m)}`);
+      XLSX.writeFile(wb, `야자_월간보고서_${rpYM.y}-${pad2(rpYM.m)}${rpGrade === 'all' ? '' : '_' + rpGrade + '학년'}${rpClass === 'all' ? '' : parseInt(rpClass) + '반'}.xlsx`);
+      showToast('월간 보고서 엑셀 파일을 내려받았습니다.');
+    }catch(e){ showMessage('엑셀 저장 중 오류: ' + (e && e.message ? e.message : e)); }
+  }
+  function openReport(){ rpYM = supThisMonth(); renderReport(); openOverlay('ovReport'); }
+  safeAddListener('#btnOpenReport', 'click', () => requireAdmin(openReport));
+  safeAddListener('#rpPrev', 'click', () => { rpYM = shiftYM(rpYM || supThisMonth(), -1); renderReport(); });
+  safeAddListener('#rpNext', 'click', () => { rpYM = shiftYM(rpYM || supThisMonth(), 1); renderReport(); });
+  safeAddListener('#rpGrade', 'change', e => { rpGrade = e.target.value; rpClass = 'all'; renderReport(); });
+  safeAddListener('#rpClass', 'change', e => { rpClass = e.target.value; renderReport(); });
+  safeAddListener('#rpClose', 'click', () => closeOverlay('ovReport'));
+  safeAddListener('#rpPrint', 'click', () => printOverlay('ovReport'));
+  safeAddListener('#rpExcel', 'click', exportReportExcel);
+
+  // ---------- ⑤ 출석 관리 필요 학생 (최근 2주, 인정 결석 제외) ----------
+  function computeRiskStudents(){
+    const today = todayStr(), days = []; for(let i = 1; i <= 14; i++) days.push(dateKey(addDays(bizDate(), -i)));
+    const from = days[days.length - 1];
+    const recSet = new Set(cache.attendance.filter(a => a && a.date && a.date >= from && a.date < today).map(a => String(a.studentId) + '_' + a.date));
+    const last = new Map(); cache.attendance.forEach(a => { if(!a || !a.date) return; const k = String(a.studentId); if(!last.has(k) || last.get(k) < a.date) last.set(k, a.date); });
+    return cache.students.map(s => {
+      let exp = 0, att = 0; const missed = [];
+      days.forEach(ds => { if(!countsAsExpected(s, ds) || isExcused(s.id, ds)) return; exp++; if(recSet.has(String(s.id) + '_' + ds)) att++; else missed.push(ds); });
+      return { s, exp, att, rate: exp ? Math.round(att / exp * 100) : 100, missed: missed.sort(), last: last.get(String(s.id)) || '' };
+    }).filter(x => x.exp >= 3 && x.rate < 50).sort((a, b) => a.rate - b.rate || byStudentNum(a.s, b.s));
+  }
+  function renderRiskList(){
+    const box = $('#riskList'); if(!box) return; const list = computeRiskStudents();
+    box.innerHTML = list.length ? list.map(x => `<div class="list-item risk-item"><div class="fac-main"><div><b>${esc(x.s.name)}</b> <span class="muted">${esc(x.s.studentNum || '')}</span> <span class="tag-badge fp-wait">출석 ${x.att}/${x.exp}일 · ${x.rate}%</span></div><div class="muted" style="font-size:11.5px;">빠진 날: ${x.missed.map(mdOf).join(', ')} · 마지막 출석: ${x.last ? mdOf(x.last) : '없음'}</div></div><button class="btn btn-secondary" data-riskhist="${esc(x.s.id)}">출결 이력</button></div>`).join('')
+      : '<p class="muted">최근 2주 동안 출석률이 50% 미만인 학생이 없습니다.</p>';
+    $$('#riskList [data-riskhist]').forEach(b => b.onclick = () => openAttendanceHistory(b.dataset.riskhist));
+  }
+
+  // ---------- ⑥ 지문 기기 연결 끊김 기록 ----------
+  //  · 기기의 마지막 응답(lastSeen)이 2분 넘게 끊기면 기록을 만들고, 다시 응답하면 끝 시각을 적습니다.
+  //  · 기록 이름이 "층_마지막응답시각"이라 여러 화면이 동시에 켜져 있어도 한 건만 남습니다.
+  //  · 어떤 화면도 켜져 있지 않은 동안 끊겼다가 복구된 경우는 알 수 없어 기록되지 않습니다.
+  function trackDeviceOffline(){
+    if(!isOnline || !loaded.settings) return;
+    FLOORS.forEach(f => {
+      const d = deviceInfo['f' + f]; const ls = d ? Number(d.lastSeen) : 0; if(!ls) return;
+      const logs = cache.deviceLog || [];
+      if(!deviceOnline(f)){
+        const key = `f${f}_${ls}`; if(logs.some(x => String(x.id) === key)) return;
+        try{ fbDB.ref('deviceLog/' + key).transaction(cur => cur ? undefined : { id: key, floor: f, from: ls, to: null, seenAt: serverNow() }, () => {}, false); }catch(e){}
+      } else {
+        logs.filter(x => Number(x.floor) === f && !x.to).forEach(x => { try{ fbDB.ref('deviceLog/' + x.id).transaction(cur => (cur && !cur.to) ? Object.assign({}, cur, { to: ls }) : undefined, () => {}, false); }catch(e){} });
+      }
+    });
+  }
+  function renderDeviceLog(){
+    const box = $('#devLogList'); if(!box) return;
+    const now = serverNow(), since = now - 30 * 86400000, mPre = monthStr();
+    const logs = (cache.deviceLog || []).filter(x => Number(x.from) >= since || !x.to).sort((a, b) => Number(b.from) - Number(a.from));
+    const mins = x => ((x.to ? Number(x.to) : now) - Number(x.from)) / 60000;
+    const sum = FLOORS.map(f => { const mine = (cache.deviceLog || []).filter(x => Number(x.floor) === f && dateKey(new Date(Number(x.from))).startsWith(mPre)); return `${f}층 ${mine.length}회 · 총 ${fmtDur(mine.reduce((a, x) => a + mins(x), 0))}`; });
+    $('#devLogSummary').textContent = `이번 달: ${sum.join(' / ')}`;
+    box.innerHTML = logs.length ? logs.slice(0, 50).map(x => `<div class="list-item"><span><b>${esc(x.floor)}층</b> <span class="muted">${shortWhen(x.from)} ~ ${x.to ? shortWhen(x.to) : '<b style="color:#d70015">지금도 끊김</b>'}</span></span><span class="muted">${fmtDur(mins(x))}</span></div>`).join('')
+      : '<p class="muted">최근 30일 동안 기록된 연결 끊김이 없습니다.</p>';
+  }
+  safeAddListener('#devLogClear', 'click', async () => {
+    const cut = serverNow() - 60 * 86400000; const old = (cache.deviceLog || []).filter(x => x.to && Number(x.to) < cut);
+    if(!old.length){ showToast('정리할 기록이 없습니다. (60일 지난 기록만 정리합니다)'); return; }
+    if(!await showConfirm(`60일 지난 연결 끊김 기록 ${old.length}건을 삭제할까요?`)) return;
+    const upd = {}; old.forEach(x => { upd['deviceLog/' + x.id] = null; }); await fbMultiUpdate(upd); showToast(`${old.length}건을 정리했습니다.`);
+  });
 
   // =================================================================
   // 전체 데이터 엑셀 백업 / 관리자 비밀번호 변경 (기존에 버튼만 있고 동작이 없던 기능)
@@ -4795,7 +5503,7 @@
   safeAddListener('#btnViewFpStatus', 'click', renderFingerprintStatusModal);
   safeAddListener('#btnViewFpStatus2', 'click', renderFingerprintStatusModal);
 
-  function updateClock(){ if($('#clockText')) $('#clockText').textContent = new Date(serverNow()).toLocaleString('ko-KR',{hour:'2-digit',minute:'2-digit',month:'long',day:'numeric',weekday:'short'}); renderSupervisionBar(); updateHScroll(); }
+  function updateClock(){ if($('#clockText')) $('#clockText').textContent = new Date(serverNow()).toLocaleString('ko-KR',{hour:'2-digit',minute:'2-digit',month:'long',day:'numeric',weekday:'short'}); renderSupervisionBar(); updateHScroll(); renderMissAlert(); }
   
   async function checkDateRollover(){
     const today = todayStr();
@@ -4876,6 +5584,9 @@
     fbDB.ref('attendance').on('value', snap => { cache.attendance = snapToList(snap); loaded.attendance = true; triggerRender(); onDataLoaded(); });
     fbDB.ref('changelog').on('value', snap => { cache.changelog = snapToList(snap); });
     fbDB.ref('dailylogs').on('value', snap => { cache.dailylogs = snapToList(snap); });
+    fbDB.ref('excuses').on('value', snap => { cache.excuses = snapToList(snap); triggerRender(); });
+    fbDB.ref('facility').on('value', snap => { cache.facility = snapToList(snap); if(isAdminTab('facility')) renderFacilityTab(); updateAdminBadges(); });
+    fbDB.ref('deviceLog').on('value', snap => { cache.deviceLog = snapToList(snap); if(isAdminTab('device')) renderDeviceLog(); });
     fbDB.ref('supervision').on('value', snap => { cache.supervision = snapToList(snap); renderSupervisionBar(); refreshSupervisionModal(); });
 
     fbDB.ref('devices').on('value', snap => { deviceInfo = snap.val() || {}; renderDeviceStatus(); });
